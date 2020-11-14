@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--<mapper xmlns="http://mybatis.org/schema/mybatis-mapper" namespace="com.oyealex.server.mapper.TaskHugePathDao">-->
+<mapper namespace="com.oyealex.server.mapper.TaskHugePathDao">
+    <resultMap id="resultMap" type="com.oyealex.server.entity.TaskHugePath">
+        <id property="id" column="id"/>
+        <result property="taskId" column="task_id"/>
+        <result property="hugePaths" column="huge_paths"
+                typeHandler="com.oyealex.server.type.handler.HugePathTypeHandler"/>
+    </resultMap>
+
+    <insert id="insert">
+        insert into `task_huge_path`
+            (`id`, `task_id`, `huge_paths`)
+        values (#{id}, #{taskId},
+                #{hugePaths,jdbcType=VARCHAR,typeHandler=com.oyealex.server.type.handler.HugePathTypeHandler})
+    </insert>
+
+    <select id="selectByTaskId" resultType="com.oyealex.server.entity.TaskHugePath" resultMap="resultMap">
+        select *
+        from `task_huge_path`
+        where `task_id` = #{taskId}
+        limit 1
+    </select>
+</mapper>

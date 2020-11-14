@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+
+    <!--    <property name="LOG_HOME" value="./log/${HOSTNAME}"/>-->
+    <property name="LOG_HOME" value="./log"/>
+
+    <property name="default_pattern"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} ${PID:-0} %-5level %12.12thread %X{TRACE_UUID} %-24logger{24}: %msg%n"/>
+    <property name="colorful_pattern"
+              value="%blue(%d{yyyy-MM-dd HH:mm:ss.SSS}) %magenta(${PID:-0}) %5level %magenta(%12.12thread) %blue(%X{TRACE_UUID}) %cyan(%logger{24}): %msg%n"/>
+
+    <appender name="STD" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${colorful_pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_HOME}/common-%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>10GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${default_pattern}</pattern>
+        </encoder>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <MaxFileSize>10MB</MaxFileSize>
+        </triggeringPolicy>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="STD"/>
+    </root>
+</configuration>
