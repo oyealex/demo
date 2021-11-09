@@ -12,4 +12,18 @@ package com.huawei.md.nas.exception;
  * @since 2021-11-09
  */
 public class InvalidMigrationPathException extends MDRuntimeException {
+    public InvalidMigrationPathException() {
+    }
+
+    public InvalidMigrationPathException(String message) {
+        super(message);
+    }
+
+    public InvalidMigrationPathException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public InvalidMigrationPathException(Throwable cause) {
+        super(cause);
+    }
 }
