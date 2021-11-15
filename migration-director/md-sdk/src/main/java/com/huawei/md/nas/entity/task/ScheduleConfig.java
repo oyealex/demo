@@ -10,9 +10,6 @@ import lombok.ToString;
 
 import javax.annotation.concurrent.Immutable;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 
 /**
  * 任务定时执行配置
@@ -27,17 +24,11 @@ import java.time.ZonedDateTime;
 @RequiredArgsConstructor
 public class ScheduleConfig {
     /** 未配置定时执行的默认值 */
-    public static final ScheduleConfig UNSET;
-
-    static {
-        LocalDateTime localZeroDateTime = LocalDateTime.ofEpochSecond(0L, 0, ZoneOffset.UTC);
-        ZonedDateTime zonedZeroDateTime = ZonedDateTime.of(localZeroDateTime, ZoneId.systemDefault());
-        UNSET = new ScheduleConfig(zonedZeroDateTime, zonedZeroDateTime);
-    }
+    public static final ScheduleConfig UNSET = new ScheduleConfig(LocalDateTime.MIN, LocalDateTime.MIN);
 
     /** 定时开始时间 */
-    private final ZonedDateTime startAt;
+    private final LocalDateTime startAt;
 
     /** 定时停止时间 */
-    private final ZonedDateTime stopAt;
+    private final LocalDateTime stopAt;
 }

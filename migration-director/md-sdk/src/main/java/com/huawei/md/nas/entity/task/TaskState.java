@@ -38,6 +38,7 @@ public enum TaskState {
     SCHEDULED(6),
     ;
 
+    /** 编码到枚举对象的映射 */
     private static final Map<Integer, TaskState> CODE_MAP =
         Arrays.stream(values()).collect(Collectors.toMap(state -> state.code, Function.identity()));
 
