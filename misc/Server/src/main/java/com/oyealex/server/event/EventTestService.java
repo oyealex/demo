@@ -7,8 +7,6 @@ package com.oyealex.server.event;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -26,8 +24,7 @@ import java.util.concurrent.TimeUnit;
 public class EventTestService {
     @SneakyThrows
     @Async
-    @Order(0)
-    @EventListener
+    @SelfEvent(0)
     public void onTaskStart(@NotNull String taskId) {
         log.info("task {} start.start", taskId);
         TimeUnit.SECONDS.sleep(2L);
@@ -35,8 +32,7 @@ public class EventTestService {
     }
 
     @Async
-    @Order(1000)
-    @EventListener
+    @SelfEvent(1000)
     public void initTaskRunEnv(@NotNull String taskId) throws InterruptedException {
         log.info("init run environment for task {}.start", taskId);
         TimeUnit.SECONDS.sleep(2L);
