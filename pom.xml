@@ -148,11 +148,11 @@
                 <artifactId>activemq-kahadb-store</artifactId>
                 <version>${activemq-kahadb-store.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.apache.activemq</groupId>
-                <artifactId>activemq-spring</artifactId>
-                <version>${activemq-spring.version}</version>
-            </dependency>
+            <!--            <dependency>-->
+            <!--                <groupId>org.apache.activemq</groupId>-->
+            <!--                <artifactId>activemq-spring</artifactId>-->
+            <!--                <version>${activemq-spring.version}</version>-->
+            <!--            </dependency>-->
             <dependency>
                 <groupId>org.apache.activemq</groupId>
                 <artifactId>activemq-broker</artifactId>
