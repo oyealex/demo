@@ -11,7 +11,7 @@
     <property name="spring_style_pattern"
               value="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p ${PID:-0} [%15.15t] %-40.40logger{39} : %m%n"/>
     <property name="spring_style_colorful_pattern"
-              value="%blue(%d{yyyy-MM-dd HH:mm:ss.SSS}) %yellow(%5p) %magenta(${PID:-0}) %blue([%15.15t]) %cyan(%-40.40logger{39}) : %m%n"/>
+              value="%blue(%d{yyyy-MM-dd HH:mm:ss.SSS}) %yellow(%1.-1p) %magenta(${PID:-0}) %blue([%10.10t]) %cyan(%-24.24logger{28}) : %m%n"/>
 
     <appender name="STD" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">

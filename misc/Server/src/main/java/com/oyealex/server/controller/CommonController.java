@@ -1,5 +1,7 @@
 package com.oyealex.server.controller;
 
+import com.oyealex.server.event.CifsSubtask;
+import com.oyealex.server.event.NfsSubtask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +22,6 @@ public class CommonController {
 
     @PostMapping("/task/start/{id}")
     public void startTask(@PathVariable("id") @NotNull String taskId) {
-        publisher.publishEvent(taskId);
+        publisher.publishEvent(taskId.startsWith("N") ? new NfsSubtask(taskId) : new CifsSubtask(taskId));
     }
 }
