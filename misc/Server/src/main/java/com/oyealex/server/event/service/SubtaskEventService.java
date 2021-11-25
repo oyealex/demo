@@ -10,6 +10,7 @@ import com.oyealex.server.event.Subtask;
 import com.oyealex.server.event.annotation.SerialEventListener;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;

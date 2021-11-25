@@ -19,6 +19,9 @@
         <module>migration-director/md-sdk</module>
         <module>migration-director/md-master</module>
         <module>migration-director/md-worker</module>
+        <module>mq/mq-sdk</module>
+        <module>mq/mq-master</module>
+        <module>mq/mq-worker</module>
     </modules>
 
     <properties>
