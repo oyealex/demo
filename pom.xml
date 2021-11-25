@@ -28,6 +28,8 @@
         <java.version>1.8</java.version>
         <source.version>${java.version}</source.version>
         <target.version>${java.version}</target.version>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
@@ -36,17 +38,13 @@
         <logback-classic.version>1.2.5</logback-classic.version>
         <logback-core.version>1.2.5</logback-core.version>
         <lombok.version>1.18.20</lombok.version>
-        <spring-boot-starter-web.version>2.4.0</spring-boot-starter-web.version>
+        <spring-boot.version>2.4.0</spring-boot.version>
         <activemq-pool.version>5.16.0</activemq-pool.version>
         <pooled-jms.version>1.2.1</pooled-jms.version>
         <spring-boot-starter-activemq.version>2.4.0</spring-boot-starter-activemq.version>
         <h2.version>1.4.200</h2.version>
         <spring-boot-configuration-processor.version>2.4.0</spring-boot-configuration-processor.version>
-        <spring-boot-starter-data-jpa.version>2.4.0</spring-boot-starter-data-jpa.version>
-        <activemq-all.version>5.16.0</activemq-all.version>
-        <activemq-kahadb-store.version>5.16.0</activemq-kahadb-store.version>
-        <activemq-spring.version>5.16.0</activemq-spring.version>
-        <activemq-broker.version>5.16.0</activemq-broker.version>
+        <activemq.version>5.16.0</activemq.version>
         <netty-all.version>4.1.60.Final</netty-all.version>
         <nfs-client.version>1.0.3</nfs-client.version>
         <commons-codec.version>1.15</commons-codec.version>
@@ -99,8 +97,13 @@
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-web</artifactId>
-                <version>${spring-boot-starter-web.version}</version>
+                <version>${spring-boot.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
@@ -135,12 +138,12 @@
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-data-jpa</artifactId>
-                <version>${spring-boot-starter-data-jpa.version}</version>
+                <version>${spring-boot.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.activemq</groupId>
                 <artifactId>activemq-all</artifactId>
-                <version>${activemq-all.version}</version>
+                <version>${activemq.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>org.slf4j</groupId>
@@ -155,17 +158,17 @@
             <dependency>
                 <groupId>org.apache.activemq</groupId>
                 <artifactId>activemq-kahadb-store</artifactId>
-                <version>${activemq-kahadb-store.version}</version>
+                <version>${activemq.version}</version>
             </dependency>
-            <!--            <dependency>-->
-            <!--                <groupId>org.apache.activemq</groupId>-->
-            <!--                <artifactId>activemq-spring</artifactId>-->
-            <!--                <version>${activemq-spring.version}</version>-->
-            <!--            </dependency>-->
             <dependency>
                 <groupId>org.apache.activemq</groupId>
                 <artifactId>activemq-broker</artifactId>
-                <version>${activemq-broker.version}</version>
+                <version>${activemq.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>activemq-client</artifactId>
+                <version>${activemq.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
