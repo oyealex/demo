@@ -14,6 +14,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.oyealex</groupId>
+            <artifactId>mq-sdk</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.activemq</groupId>
             <artifactId>activemq-client</artifactId>
         </dependency>

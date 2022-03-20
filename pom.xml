@@ -38,12 +38,12 @@
         <logback-classic.version>1.2.5</logback-classic.version>
         <logback-core.version>1.2.5</logback-core.version>
         <lombok.version>1.18.20</lombok.version>
-        <spring-boot.version>2.4.0</spring-boot.version>
+        <spring-boot.version>2.6.0</spring-boot.version>
         <activemq-pool.version>5.16.0</activemq-pool.version>
         <pooled-jms.version>1.2.1</pooled-jms.version>
-        <spring-boot-starter-activemq.version>2.4.0</spring-boot-starter-activemq.version>
+        <spring-boot-starter-activemq.version>2.6.0</spring-boot-starter-activemq.version>
         <h2.version>1.4.200</h2.version>
-        <spring-boot-configuration-processor.version>2.4.0</spring-boot-configuration-processor.version>
+        <spring-boot-configuration-processor.version>2.6.0</spring-boot-configuration-processor.version>
         <activemq.version>5.16.0</activemq.version>
         <netty-all.version>4.1.60.Final</netty-all.version>
         <nfs-client.version>1.0.3</nfs-client.version>

@@ -65,20 +65,6 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>2.2.7.RELEASE</version>
             </plugin>
-            <!--            <plugin>-->
-            <!--                <groupId>org.apache.maven.plugins</groupId>-->
-            <!--                <artifactId>maven-jar-plugin</artifactId>-->
-            <!--                <version>3.2.0</version>-->
-            <!--                &lt;!&ndash;                <configuration>&ndash;&gt;-->
-            <!--                &lt;!&ndash;                    <archive>&ndash;&gt;-->
-            <!--                &lt;!&ndash;                        <compress>true</compress>&ndash;&gt;-->
-            <!--                &lt;!&ndash;                        <addMavenDescriptor>false</addMavenDescriptor>&ndash;&gt;-->
-            <!--                &lt;!&ndash;                        <manifest>&ndash;&gt;-->
-            <!--                &lt;!&ndash;                            <mainClass>com.oyealex.tools.Main</mainClass>&ndash;&gt;-->
-            <!--                &lt;!&ndash;                        </manifest>&ndash;&gt;-->
-            <!--                &lt;!&ndash;                    </archive>&ndash;&gt;-->
-            <!--                &lt;!&ndash;                </configuration>&ndash;&gt;-->
-            <!--            </plugin>-->
         </plugins>
     </build>
 
@@ -88,7 +74,7 @@
                 <!-- Import dependency management from Spring Boot -->
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
-                <version>2.2.7.RELEASE</version>
+                <version>${spring-boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

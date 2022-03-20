@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
  * @version 1.0
  * @since 2021-11-24
  */
-@Component
+// @Component
 @RequiredArgsConstructor
 public class MgmtMsgMulticaster {
     @Value("${user.mq.activemq.client.topic.mgmt}")
