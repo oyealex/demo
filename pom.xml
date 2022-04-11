@@ -5,26 +5,24 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.oyealex</groupId>
-    <artifactId>Demo</artifactId>
+    <artifactId>demo</artifactId>
     <packaging>pom</packaging>
     <version>1.0</version>
 
     <modules>
-        <module>misc/Server</module>
+        <module>misc/server</module>
         <module>misc/easy-kit</module>
         <module>misc/anfs</module>
         <module>misc/easy-run</module>
         <module>misc/common</module>
         <module>game/tetris</module>
-        <module>migration-director/md-sdk</module>
-        <module>migration-director/md-master</module>
-        <module>migration-director/md-worker</module>
         <module>mq/mq-sdk</module>
         <module>mq/mq-master</module>
         <module>mq/mq-worker</module>
     </modules>
 
     <properties>
+        <!-- basic properties -->
         <java.version>1.8</java.version>
         <source.version>${java.version}</source.version>
         <target.version>${java.version}</target.version>
@@ -34,6 +32,18 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
 
+        <!-- modules versions -->
+        <com.oyealex.server.version>1.0</com.oyealex.server.version>
+        <com.oyealex.easy-kit.version>1.0</com.oyealex.easy-kit.version>
+        <com.oyealex.anfs.version>1.0</com.oyealex.anfs.version>
+        <com.oyealex.easy-run.version>1.0</com.oyealex.easy-run.version>
+        <com.oyealex.common.version>1.0</com.oyealex.common.version>
+        <com.oyealex.tetris.version>1.0</com.oyealex.tetris.version>
+        <com.oyealex.mq-sdk.version>1.0</com.oyealex.mq-sdk.version>
+        <com.oyealex.mq-master.version>1.0</com.oyealex.mq-master.version>
+        <com.oyealex.mq-worker.version>1.0</com.oyealex.mq-worker.version>
+
+        <!-- dependencies versions -->
         <slf4j-api.version>1.7.31</slf4j-api.version>
         <logback-classic.version>1.2.5</logback-classic.version>
         <logback-core.version>1.2.5</logback-core.version>
@@ -56,7 +66,6 @@
         <slf4j-simple.version>1.7.5</slf4j-simple.version>
         <jmh-core.version>1.23</jmh-core.version>
         <jmh-generator-annprocess.version>1.23</jmh-generator-annprocess.version>
-        <com.oyealex.version>1.0</com.oyealex.version>
         <guava.version>29.0-jre</guava.version>
         <gson.version>2.8.6</gson.version>
         <spring-boot-starter-websocket.version>2.3.1.RELEASE</spring-boot-starter-websocket.version>
@@ -69,11 +78,60 @@
         <natives-desktop.version>1.10.0</natives-desktop.version>
         <gdx.version>1.10.0</gdx.version>
 
+        <!-- plugins versions -->
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!-- modules -->
+            <dependency>
+                <groupId>com.oyealex</groupId>
+                <artifactId>Server</artifactId>
+                <version>${com.oyealex.Server.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oyealex</groupId>
+                <artifactId>easy-kit</artifactId>
+                <version>${com.oyealex.easy-kit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oyealex</groupId>
+                <artifactId>anfs</artifactId>
+                <version>${com.oyealex.anfs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oyealex</groupId>
+                <artifactId>easy-run</artifactId>
+                <version>${com.oyealex.easy-run.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oyealex</groupId>
+                <artifactId>common</artifactId>
+                <version>${com.oyealex.common.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oyealex</groupId>
+                <artifactId>tetris</artifactId>
+                <version>${com.oyealex.tetris.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oyealex</groupId>
+                <artifactId>mq-sdk</artifactId>
+                <version>${com.oyealex.mq-sdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oyealex</groupId>
+                <artifactId>mq-master</artifactId>
+                <version>${com.oyealex.mq-master.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oyealex</groupId>
+                <artifactId>mq-worker</artifactId>
+                <version>${com.oyealex.mq-worker.version}</version>
+            </dependency>
+
+            <!-- dependencies -->
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
@@ -225,11 +283,6 @@
                 <artifactId>jmh-generator-annprocess</artifactId>
                 <version>${jmh-generator-annprocess.version}</version>
                 <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <artifactId>easy-kit</artifactId>
-                <groupId>com.oyealex</groupId>
-                <version>${com.oyealex.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
