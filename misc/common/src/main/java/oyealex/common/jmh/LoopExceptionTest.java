@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.Throughput)
 @Fork(1)
 @Threads(1)
-@Warmup(iterations = 2, batchSize = 1, time = 1, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 10, batchSize = 1, time = 1, timeUnit = TimeUnit.SECONDS)
+@Warmup(iterations = 2, batchSize = 1, time = 1)
+@Measurement(iterations = 10, batchSize = 1, time = 1)
 public class LoopExceptionTest {
     public static void main(String[] args) throws RunnerException {
         new Runner(new OptionsBuilder().include(LoopExceptionTest.class.getSimpleName()).build()).run();

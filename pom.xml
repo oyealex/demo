@@ -45,8 +45,8 @@
 
         <!-- dependencies versions -->
         <slf4j-api.version>1.7.31</slf4j-api.version>
-        <logback-classic.version>1.2.5</logback-classic.version>
-        <logback-core.version>1.2.5</logback-core.version>
+        <logback-classic.version>1.2.9</logback-classic.version>
+        <logback-core.version>1.2.9</logback-core.version>
         <lombok.version>1.18.20</lombok.version>
         <spring-boot.version>2.6.0</spring-boot.version>
         <activemq-pool.version>5.16.0</activemq-pool.version>
@@ -77,6 +77,7 @@
         <gdx-backend-lwjgl3.version>1.10.0</gdx-backend-lwjgl3.version>
         <natives-desktop.version>1.10.0</natives-desktop.version>
         <gdx.version>1.10.0</gdx.version>
+        <streamex.version>0.8.1</streamex.version>
 
         <!-- plugins versions -->
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
@@ -152,6 +153,11 @@
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
                 <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>one.util</groupId>
+                <artifactId>streamex</artifactId>
+                <version>${streamex.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
