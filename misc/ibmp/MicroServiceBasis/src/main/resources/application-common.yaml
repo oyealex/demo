@@ -1,0 +1,3 @@
+app:
+  url:
+    base: /${app.family}/${app.url.version}/${app.name}

@@ -1,0 +1,14 @@
+server:
+  port: 8000
+
+spring:
+  application:
+    name: IBMP-Server
+  profiles:
+    include: common
+
+app:
+  family: ibmp
+  name: server
+  url:
+    version: v1

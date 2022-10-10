@@ -1,0 +1,24 @@
+server:
+  port: 8001
+
+spring:
+  application:
+    name: IBMP-Client
+  profiles:
+    include: common
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: false
+
+app:
+  family: ibmp
+  name: client
+  url:
+    version: v1
+  adaptors:
+    services:
+      server:
+        uri: http://localhost:8000
+        urls:
+          customer: /ibmp/v1/server/customer
