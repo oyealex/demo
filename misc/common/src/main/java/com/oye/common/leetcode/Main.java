@@ -2,7 +2,7 @@
  * Copyright (c) 2021. oyealex. All rights reserved.
  */
 
-package oyealex.leetcode;
+package com.oye.common.leetcode;
 
 /**
  * TODO 2020/9/24 The Main

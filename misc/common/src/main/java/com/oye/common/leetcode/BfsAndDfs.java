@@ -2,7 +2,7 @@
  * Copyright (c) 2021. oyealex. All rights reserved.
  */
 
-package oyealex.leetcode;
+package com.oye.common.leetcode;
 
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Assertions;

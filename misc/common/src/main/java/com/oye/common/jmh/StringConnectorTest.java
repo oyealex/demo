@@ -1,4 +1,4 @@
-package oyealex.common.jmh;
+package com.oye.common.jmh;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;

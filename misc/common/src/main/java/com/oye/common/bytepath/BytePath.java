@@ -2,7 +2,7 @@
  * Copyright (c) 2021. oyealex. All rights reserved.
  */
 
-package oyealex.prototype;
+package com.oye.common.bytepath;
 
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Contract;

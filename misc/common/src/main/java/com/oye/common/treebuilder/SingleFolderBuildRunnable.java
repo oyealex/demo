@@ -2,7 +2,7 @@
  * Copyright (c) 2021. oyealex. All rights reserved.
  */
 
-package oyealex.treebuilder;
+package com.oye.common.treebuilder;
 
 import com.google.common.base.Stopwatch;
 import lombok.extern.slf4j.Slf4j;

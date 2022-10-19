@@ -2,7 +2,7 @@
  * Copyright (c) 2020. oyealex. All rights reserved.
  */
 
-package oyealex.common.temp;
+package com.oye.common;
 
 import lombok.extern.slf4j.Slf4j;
 
