@@ -1,22 +1,14 @@
 package com.oyealex.exp.annotationex.handler;
 
 import com.oyealex.exp.annotationex.annotations.Singleton;
-import com.sun.tools.javac.api.JavacTrees;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
-import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeTranslator;
-import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Name;
-import com.sun.tools.javac.util.Names;
 import org.kohsuke.MetaInfServices;
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.Messager;
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -25,17 +17,15 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-import java.lang.reflect.Method;
 import java.util.Set;
 
 import static com.sun.tools.javac.code.Flags.PRIVATE;
 import static com.sun.tools.javac.code.Flags.PUBLIC;
 import static com.sun.tools.javac.code.Flags.STATIC;
 import static com.sun.tools.javac.util.List.nil;
-import static javax.tools.Diagnostic.Kind.NOTE;
 
 /**
- * SingleTonJavacHandler
+ * {@link Singleton}单例注解处理器
  *
  * @author oyealex
  * @version 1.0
@@ -44,53 +34,15 @@ import static javax.tools.Diagnostic.Kind.NOTE;
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @SupportedAnnotationTypes("com.oyealex.exp.annotationex.annotations.Singleton")
 @MetaInfServices(Processor.class)
-public class SingletonJavacHandler extends AbstractProcessor {
-    /** 消息记录器 */
-    private Messager messager;
-
-    /** 可将Element转换为JCTree的工具 */
-    private JavacTrees trees;
-
-    /** JCTree制作器 */
-    private TreeMaker treeMaker;
-
-    /** 名字处理器 */
-    private Names names;
-
-    @Override
-    public synchronized void init(ProcessingEnvironment env) {
-        ProcessingEnvironment unwrappedEnv = unwrapJetbrains(ProcessingEnvironment.class, env);
-        super.init(unwrappedEnv);
-        this.messager = unwrappedEnv.getMessager();
-        messager.printMessage(NOTE, "annotation-ex: init");
-        this.trees = JavacTrees.instance(unwrappedEnv);
-        Context context = ((JavacProcessingEnvironment) unwrappedEnv).getContext();
-        this.treeMaker = TreeMaker.instance(context);
-        this.names = Names.instance(context);
-    }
-
-    private static <T> T unwrapJetbrains(Class<? extends T> type, T wrapper) {
-        // for idea issue
-        T unwrapped = null;
-        try {
-            final Class<?> apiWrappers = wrapper.getClass().getClassLoader()
-                    .loadClass("org.jetbrains.jps.javac.APIWrappers");
-            final Method unwrapMethod = apiWrappers.getDeclaredMethod("unwrap", Class.class, Object.class);
-            unwrapped = type.cast(unwrapMethod.invoke(null, type, wrapper));
-        } catch (Throwable ignored) {}
-        return unwrapped != null ? unwrapped : wrapper;
-    }
-
+public class SingletonJavacHandler extends BaseProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment env) {
-        messager.printMessage(NOTE, "annotation-ex: start process");
         Set<? extends Element> elements = env.getElementsAnnotatedWith(Singleton.class);
         elements.forEach(this::handleAnnotation);
         return false;
     }
 
     private void handleAnnotation(Element element) {
-        messager.printMessage(NOTE, "annotation-ex: processing " + element);
         if (element.getKind() != ElementKind.CLASS) {
             return;
         }
@@ -146,15 +98,6 @@ public class SingletonJavacHandler extends AbstractProcessor {
         // @formatter:on
         classDecl.defs = classDecl.defs.append(instanceVarExp);
         return classDecl;
-    }
-
-    private JCTree.JCExpression generateTypeExp(String typeFullName) {
-        String[] typeNameParts = typeFullName.split("\\.");
-        JCTree.JCExpression typeExp = treeMaker.Ident(names.fromString(typeNameParts[0]));
-        for (int i = 1; i < typeNameParts.length; i++) {
-            typeExp = treeMaker.Select(typeExp, names.fromString(typeNameParts[i]));
-        }
-        return typeExp;
     }
 
     private Name generateHolderClassName(String name) {

@@ -21,6 +21,6 @@ public class ClientFacade {
 
     @GetMapping("/query")
     public String query() {
-        return customerClient.query("id", "name").toString();
+        return customerClient.query("id").toString();
     }
 }

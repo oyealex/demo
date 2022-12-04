@@ -29,7 +29,7 @@
             <artifactId>tools</artifactId>
             <version>${java.version}</version>
             <scope>system</scope>
-            <systemPath>D:/pg/java/jdk1.8.0_261/lib/tools.jar</systemPath>
+            <systemPath>D:/pg/java/openjdk8u352-hotspot-b08/lib/tools.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.kohsuke.metainf-services</groupId>

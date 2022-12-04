@@ -1,0 +1,2 @@
+### get customer
+GET http://localhost:8000/ibmp/v1/server/customer/query/zdc

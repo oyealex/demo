@@ -6,13 +6,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 单例注解
+ * OptionalGetter
  *
  * @author oyealex
  * @version 1.0
- * @since 2022-11-24
+ * @since 2022-11-30
  */
-@Target(ElementType.TYPE)
+@Target({ElementType.FIELD})
 @Retention(RetentionPolicy.SOURCE)
-public @interface Singleton {
+public @interface OptionalGetter {
 }

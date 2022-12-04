@@ -35,6 +35,11 @@
             </dependency>
             <dependency>
                 <groupId>com.oyealex</groupId>
+                <artifactId>ibmp-common</artifactId>
+                <version>1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oyealex</groupId>
                 <artifactId>ibmp-client</artifactId>
                 <version>1.0</version>
             </dependency>
@@ -61,6 +66,16 @@
             </dependency>
 
             <!-- libs -->
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>3.18.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson</artifactId>
+                <version>3.18.0</version>
+            </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>

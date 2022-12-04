@@ -1,3 +1,10 @@
+app:
+  family: ibmp
+  name: server
+  url:
+    version: v1
+
+
 server:
   port: 8000
 
@@ -6,9 +13,19 @@ spring:
     name: IBMP-Server
   profiles:
     include: common
-
-app:
-  family: ibmp
-  name: server
-  url:
-    version: v1
+  redis:
+#    host: localhost
+#    port: 6379
+#    password: redis
+    redisson:
+      config: |
+        threads: 4
+        nettyThreads: 8
+        codec: !<org.redisson.codec.JsonJacksonCodec> {}
+        singleServerConfig:
+          address: redis://localhost:6379
+          connectionMinimumIdleSize: 1
+          connectionPoolSize: 8
+          database: 0
+          password: redis
+          keepAlive: true
