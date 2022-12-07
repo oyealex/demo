@@ -31,9 +31,9 @@ import static com.sun.tools.javac.util.List.nil;
  * @version 1.0
  * @since 2022-11-25
  */
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
-@SupportedAnnotationTypes("com.oyealex.exp.annotationex.annotations.Singleton")
-@MetaInfServices(Processor.class)
+// @SupportedSourceVersion(SourceVersion.RELEASE_8)
+// @SupportedAnnotationTypes("com.oyealex.exp.annotationex.annotations.Singleton")
+// @MetaInfServices(Processor.class)
 public class SingletonJavacHandler extends BaseProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment env) {
