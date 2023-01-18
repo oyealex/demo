@@ -14,7 +14,7 @@ import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Pipeline1Test
+ * Pipeline Test
  *
  * @author oyealex
  * @since 2022-12-07
