@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * @since 2023-01-18
  */
 @Slf4j
-@Component
+// @Component
 @RequiredArgsConstructor
 public class CacheTestRunner implements ApplicationRunner {
     private final CacheManager cacheManager;

@@ -7,6 +7,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.ClassUtils;
@@ -35,6 +36,7 @@ import java.util.stream.Stream;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
+@ConditionalOnExpression("T(Boolean).parseBoolean(${app.cache.enabled})")
 public class RedissonCacheableAnnotationProcessor implements BeanPostProcessor {
     private final ConfigurableBeanFactory factory;
 

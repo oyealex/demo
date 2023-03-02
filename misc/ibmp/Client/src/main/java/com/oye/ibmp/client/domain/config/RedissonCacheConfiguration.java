@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 import org.redisson.spring.cache.CacheConfig;
 import org.redisson.spring.cache.RedissonSpringCacheManager;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +24,7 @@ import java.util.Map;
 @Slf4j
 @EnableCaching
 @Configuration
+@ConditionalOnExpression("T(Boolean).parseBoolean(${app.cache.enabled})")
 public class RedissonCacheConfiguration {
     @Bean
     public CacheManager redissonCacheManager(RedissonClient client, RedissonCacheConfig config) {

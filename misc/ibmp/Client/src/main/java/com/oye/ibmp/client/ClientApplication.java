@@ -7,6 +7,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+/**
+ * 客户端启动类
+ *
+ * @author oyealex
+ * @since 2023-01-18
+ */
 @Slf4j
 @EnableScheduling
 @SpringBootApplication(scanBasePackages = "com.oye.ibmp")
