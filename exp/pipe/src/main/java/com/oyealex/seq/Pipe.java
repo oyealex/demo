@@ -1,8 +1,12 @@
 package com.oyealex.seq;
 
+import com.oyealex.seq.annotations.Extended;
+import com.oyealex.seq.functional.IntBiConsumer;
+
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
@@ -24,113 +28,264 @@ import java.util.stream.Stream;
  * @author oyealex
  * @since 2023-02-09
  */
-public interface Pipe<T> extends BasePipe<T, Pipe<T>> {
-    /* 继承的非终结操作 */
+public interface Pipe<T> extends BasePipe<Pipe<T>> {
+    default Pipe<T> filter(Predicate<? super T> predicate) {
+        throw new UnsupportedOperationException();
+    }
 
-    Pipe<T> filter(Predicate<? super T> predicate);
+    default <R> Pipe<R> map(Function<? super T, ? extends R> mapper) {
+        throw new UnsupportedOperationException();
+    }
 
-    <R> Pipe<R> map(Function<? super T, ? extends R> mapper);
+    default IntPipe mapToInt(ToIntFunction<? super T> mapper) {
+        throw new UnsupportedOperationException();
+    }
 
-    IntPipe mapToInt(ToIntFunction<? super T> mapper);
+    default LongPipe mapToLong(ToLongFunction<? super T> mapper) {
+        throw new UnsupportedOperationException();
+    }
 
-    LongPipe mapToLong(ToLongFunction<? super T> mapper);
+    default DoublePipe mapToDouble(ToDoubleFunction<? super T> mapper) {
+        throw new UnsupportedOperationException();
+    }
 
-    DoublePipe mapToDouble(ToDoubleFunction<? super T> mapper);
+    default <R> Pipe<R> flatMap(Function<? super T, ? extends Pipe<? extends R>> mapper) {
+        throw new UnsupportedOperationException();
+    }
 
-    <R> Pipe<R> flatMap(Function<? super T, ? extends Pipe<? extends R>> mapper);
+    default IntPipe flatMapToInt(Function<? super T, ? extends IntPipe> mapper) {
+        throw new UnsupportedOperationException();
+    }
 
-    IntPipe flatMapToInt(Function<? super T, ? extends IntPipe> mapper);
+    default LongPipe flatMapToLong(Function<? super T, ? extends LongPipe> mapper) {
+        throw new UnsupportedOperationException();
+    }
 
-    LongPipe flatMapToLong(Function<? super T, ? extends LongPipe> mapper);
+    default DoublePipe flatMapToDouble(Function<? super T, ? extends DoublePipe> mapper) {
+        throw new UnsupportedOperationException();
+    }
 
-    DoublePipe flatMapToDouble(Function<? super T, ? extends DoublePipe> mapper);
+    default Pipe<T> distinct() {
+        throw new UnsupportedOperationException();
+    }
 
-    Pipe<T> distinct();
+    default Pipe<T> sorted() {
+        throw new UnsupportedOperationException();
+    }
 
-    Pipe<T> sorted();
+    default Pipe<T> sorted(Comparator<? super T> comparator) {
+        Objects.requireNonNull(comparator);
+        throw new UnsupportedOperationException();
+    }
 
-    Pipe<T> peek(Consumer<? super T> action);
+    @Extended
+    default Pipe<T> reversed() {
+        throw new UnsupportedOperationException();
+    }
 
-    Pipe<T> limit(long maxSize);
+    default Pipe<T> peek(Consumer<? super T> action) {
+        throw new UnsupportedOperationException();
+    }
 
-    Pipe<T> skip(long n);
+    @Extended
+    default Pipe<T> peekEnumerated(IntBiConsumer<? super T> consumer) {
+        throw new UnsupportedOperationException();
+    }
 
-    /* 扩展的非终结操作 */
+    default Pipe<T> limit(long maxSize) {
+        throw new UnsupportedOperationException();
+    }
 
+    default Pipe<T> skip(long n) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Extended
     @SuppressWarnings({"unchecked", "varargs"})
-    Pipe<T> prepend(T... values);
+    default Pipe<T> prepend(T... values) {
+        throw new UnsupportedOperationException();
+    }
 
-    Pipe<T> prepend(Iterator<? extends T> iterator);
+    @Extended
+    default Pipe<T> prepend(Iterator<? extends T> iterator) {
+        throw new UnsupportedOperationException();
+    }
 
-    Pipe<T> prepend(Pipe<? extends T> pipe);
+    @Extended
+    default Pipe<T> prepend(Pipe<? extends T> pipe) {
+        throw new UnsupportedOperationException();
+    }
 
-    Pipe<T> prepend(Stream<? extends T> stream);
+    @Extended
+    default Pipe<T> prepend(Stream<? extends T> stream) {
+        return prepend(Pipe.from(stream));
+    }
 
+    @Extended
     @SuppressWarnings({"unchecked", "varargs"})
-    Pipe<T> append(T... values);
+    default Pipe<T> append(T... values) {
+        throw new UnsupportedOperationException();
+    }
 
-    Pipe<T> append(Iterator<? extends T> iterator);
+    @Extended
+    default Pipe<T> append(Iterator<? extends T> iterator) {
+        throw new UnsupportedOperationException();
+    }
 
-    Pipe<T> append(Pipe<? extends T> pipe);
+    @Extended
+    default Pipe<T> append(Pipe<? extends T> pipe) {
+        throw new UnsupportedOperationException();
+    }
 
-    Pipe<T> append(Stream<? extends T> stream);
+    @Extended
+    default Pipe<T> append(Stream<? extends T> stream) {
+        return append(Pipe.from(stream));
+    }
 
+    @Extended
+    default Pipe<T> dropUntil(Predicate<? super T> predicate) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Extended
+    default Pipe<T> keepUntil(Predicate<? super T> predicate) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Extended
     default Pipe<T> nonNull() {
         return filter(Objects::nonNull);
     }
 
-    /* 继承的终结操作 */
+    @Extended
+    default Pipe<List<T>> partition(int size) {
+        return flatPartition(size).map(Pipe::toList);
+    }
 
-    void forEach(Consumer<? super T> action);
+    @Extended
+    default Pipe<Pipe<T>> flatPartition(int size) {
+        throw new UnsupportedOperationException();
+    }
 
-    <A> A[] toArray(IntFunction<A[]> generator);
+    default void forEach(Consumer<? super T> action) {
+        throw new UnsupportedOperationException();
+    }
 
-    T reduce(T identity, BinaryOperator<T> accumulator);
+    default void forEachEnumerated(IntBiConsumer<? super T> consumer) {
+        throw new UnsupportedOperationException();
+    }
 
-    Optional<T> min(Comparator<? super T> comparator);
+    default <A> A[] toArray(IntFunction<A[]> generator) {
+        throw new UnsupportedOperationException();
+    }
 
-    Optional<T> max(Comparator<? super T> comparator);
+    default T reduce(T identity, BinaryOperator<T> accumulator) {
+        throw new UnsupportedOperationException();
+    }
 
-    long count();
+    default Optional<T> min(Comparator<? super T> comparator) {
+        throw new UnsupportedOperationException();
+    }
 
-    boolean anyMatch(Predicate<? super T> predicate);
+    default Optional<T> max(Comparator<? super T> comparator) {
+        throw new UnsupportedOperationException();
+    }
 
-    boolean allMatch(Predicate<? super T> predicate);
+    default long count() {
+        throw new UnsupportedOperationException();
+    }
 
-    boolean noneMatch(Predicate<? super T> predicate);
+    default boolean anyMatch(Predicate<? super T> predicate) {
+        throw new UnsupportedOperationException();
+    }
 
-    Optional<T> findFirst();
+    default boolean allMatch(Predicate<? super T> predicate) {
+        throw new UnsupportedOperationException();
+    }
 
-    /* 扩展的终结操作 */
+    default boolean noneMatch(Predicate<? super T> predicate) {
+        throw new UnsupportedOperationException();
+    }
 
-    List<T> toList();
+    default Optional<T> findFirst() {
+        throw new UnsupportedOperationException();
+    }
 
-    /* 继承的其他接口 */
+    default Iterator<T> iterator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Extended
+    default List<T> toList() {
+        throw new UnsupportedOperationException();
+    }
+
+    default List<T> toUnmodifiableList() {
+        throw new UnsupportedOperationException();
+    }
+
+    default <K> Map<K, T> toMap(Function<? super T, ? extends K> keyMapper, BinaryOperator<T> selector) {
+        throw new UnsupportedOperationException();
+    }
+
+    default <K> Map<K, T> toUnmodifiableMap(Function<? super T, ? extends K> keyMapper, BinaryOperator<T> selector) {
+        throw new UnsupportedOperationException();
+    }
+
+    default <K> Map<K, T> toMapWithNew(Function<? super T, ? extends K> keyMapper) {
+        return toMap(keyMapper, (oldOne, newOne) -> newOne);
+    }
+
+    default <K> Map<K, T> toUnmodifiableMapWithNew(Function<? super T, ? extends K> keyMapper) {
+        return toMap(keyMapper, (oldOne, newOne) -> newOne);
+    }
+
+    default <K> Map<K, T> toMapWithOld(Function<? super T, ? extends K> keyMapper) {
+        return toMap(keyMapper, (oldOne, newOne) -> newOne);
+    }
+
+    default <K> Map<K, T> toUnmodifiableMapWithOld(Function<? super T, ? extends K> keyMapper) {
+        return toMap(keyMapper, (oldOne, newOne) -> newOne);
+    }
+
+    @Extended
+    default <K> Map<K, List<T>> group(Function<? super T, ? extends K> classifier) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Extended
+    default String join(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Extended
+    default String join(CharSequence delimiter) {
+        return join(delimiter, "", "");
+    }
 
     static <T> Pipe<T> empty() {
         // TODO 2023-03-03 01:03
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @SafeVarargs
     @SuppressWarnings("varargs")
     static <T> Pipe<T> of(T... values) {
         // TODO 2023-03-03 01:03
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     static <T> Pipe<T> iterate(final T seed, final UnaryOperator<T> generator) {
         // TODO 2023-03-03 01:05
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     static <T> Pipe<T> generate(Supplier<T> supplier) {
         // TODO 2023-03-03 01:06
-        return null;
+        throw new UnsupportedOperationException();
     }
 
-    /* 扩展的其他接口 */
-
+    @Extended
     @SafeVarargs
     @SuppressWarnings("varargs")
     static <T> Pipe<T> concat(Pipe<? extends T>... pipe) {
@@ -138,16 +293,23 @@ public interface Pipe<T> extends BasePipe<T, Pipe<T>> {
             return empty();
         }
         // TODO 2023-03-03 01:07
-        return null;
+        throw new UnsupportedOperationException();
     }
 
+    @Extended
     static <T> Pipe<T> from(Stream<? extends T> stream) {
         // TODO 2023-03-03 01:24
-        return null;
+        throw new UnsupportedOperationException();
     }
 
+    @Extended
     static <T> Pipe<T> from(Iterator<? extends T> iterator) {
         // TODO 2023-03-03 01:24
-        return null;
+        throw new UnsupportedOperationException();
+    }
+
+    @Extended
+    static <T> Pipe<T> from(Iterable<? extends T> iterable) {
+        return from(iterable.iterator());
     }
 }

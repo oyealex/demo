@@ -1,6 +1,7 @@
 package com.oyealex.seq;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Main
@@ -10,12 +11,15 @@ import java.util.Arrays;
  */
 public class Main {
     public static void main(String[] args) {
-        test("", "");
-    }
-
-    // @SafeVarargs
-    @SuppressWarnings("varargs")
-    public static <T> void test(T... values) {
-        System.out.println(Arrays.toString(values));
+        List<String> list = Arrays.asList("a", "b", "c", "d", "e", "f", "g");
+        Pipe.from(list)
+            .sorted()
+            .map(String::toUpperCase)
+            .reversed()
+            .peek(System.out::println)
+            .peekEnumerated((index, value) -> System.out.println("the " + index + " element is " + value))
+            .prepend("1", "2", "3")
+            .append("4", "5", "6")
+            .flatPartition(2)
     }
 }

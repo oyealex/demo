@@ -6,5 +6,5 @@ package com.oyealex.seq;
  * @author oyealex
  * @since 2023-03-03
  */
-public interface LongPipe extends BasePipe<Integer, LongPipe> {
+public interface LongPipe extends BasePipe<LongPipe> {
 }

@@ -6,5 +6,5 @@ package com.oyealex.seq;
  * @author oyealex
  * @since 2023-03-03
  */
-public interface DoublePipe extends BasePipe<Double, DoublePipe> {
+public interface DoublePipe extends BasePipe<DoublePipe> {
 }

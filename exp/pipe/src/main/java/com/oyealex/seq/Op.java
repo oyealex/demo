@@ -3,7 +3,7 @@ package com.oyealex.seq;
 import java.util.function.Consumer;
 
 /**
- * 操作接口，
+ * 操作接口
  *
  * @author oyealex
  * @since 2023-02-09
@@ -21,10 +21,13 @@ public interface Op<T> extends Consumer<T> {
      */
     default void end() {}
 
+    @Override
+    void accept(T t);
+
     /**
-     * 判断是否拒绝接收更多的元素
+     * 判断是否需要取消后续循环
      *
-     * @return true 拒绝接收更多元素
+     * @return true 需要取消后续循环
      */
-    default boolean refuseAccept() {return false;}
+    default boolean cancellationRequested() {return false;}
 }
