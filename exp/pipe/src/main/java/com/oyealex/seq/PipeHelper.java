@@ -8,25 +8,25 @@ import java.util.Objects;
  * @author oyealex
  * @since 2023-03-04
  */
-abstract class AbstractPipeNode<P extends BasePipe<P>> implements BasePipe<P> {
+abstract class PipeHelper<P extends BasePipe<P>> implements BasePipe<P> {
     /** 流水线的源节点，不会为null */
-    protected final AbstractPipeNode sourceNode;
+    private final PipeHelper<?> sourceNode;
 
     /** 此节点的前置节点，当且仅当此节点为源节点时为null */
-    protected final AbstractPipeNode<?> preNode;
+    private final PipeHelper<?> preNode;
 
     /** 此节点的后置节点，当且仅当此节点为末端节点时为null */
-    protected AbstractPipeNode nextNode;
+    private PipeHelper<?> nextNode;
 
     /** 流水线关闭时执行的动作 */
     private Runnable closeAction;
 
-    AbstractPipeNode() {
+    PipeHelper() {
         this.sourceNode = this;
         this.preNode = null;
     }
 
-    AbstractPipeNode(AbstractPipeNode<?> preNode) {
+    PipeHelper(PipeHelper<?> preNode) {
         this.sourceNode = preNode.sourceNode;
         this.preNode = preNode;
         preNode.nextNode = this;

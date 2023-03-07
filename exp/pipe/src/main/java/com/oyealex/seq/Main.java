@@ -20,6 +20,7 @@ public class Main {
             .peekEnumerated((index, value) -> System.out.println("the " + index + " element is " + value))
             .prepend("1", "2", "3")
             .append("4", "5", "6")
-            .flatPartition(2)
+            .partition(2)
+            .count();
     }
 }

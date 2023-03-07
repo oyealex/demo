@@ -2,13 +2,18 @@ package com.oyealex.seq;
 
 import com.oyealex.seq.annotations.Extended;
 import com.oyealex.seq.functional.IntBiConsumer;
+import com.oyealex.seq.functional.IntBiFunction;
+import com.oyealex.seq.functional.IntBiPredicate;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -33,7 +38,17 @@ public interface Pipe<T> extends BasePipe<Pipe<T>> {
         throw new UnsupportedOperationException();
     }
 
+    @Extended
+    default Pipe<T> filterEnumerated(IntBiPredicate<? super T> predicate) {
+        throw new UnsupportedOperationException();
+    }
+
     default <R> Pipe<R> map(Function<? super T, ? extends R> mapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Extended
+    default <R> Pipe<R> mapEnumerated(IntBiFunction<? super T, ? extends R> mapper) {
         throw new UnsupportedOperationException();
     }
 
@@ -66,6 +81,11 @@ public interface Pipe<T> extends BasePipe<Pipe<T>> {
     }
 
     default Pipe<T> distinct() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Extended
+    default Pipe<T> distinct(Function<? super T, ?> mapper) {
         throw new UnsupportedOperationException();
     }
 
@@ -158,8 +178,24 @@ public interface Pipe<T> extends BasePipe<Pipe<T>> {
     }
 
     @Extended
+    default Pipe<T> nonNull(Function<? super T, ?> mapper) {
+        Objects.requireNonNull(mapper);
+        return filter(value -> mapper.apply(value) != null);
+    }
+
+    @Extended
     default Pipe<List<T>> partition(int size) {
         return flatPartition(size).map(Pipe::toList);
+    }
+
+    @Extended
+    default <R> Pipe<R> partitionAndThen(int size, Function<List<T>, R> finisher) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Extended
+    default Pipe<List<T>> partitionAndExecute(int size, Consumer<List<T>> action) {
+        throw new UnsupportedOperationException();
     }
 
     @Extended
@@ -175,11 +211,15 @@ public interface Pipe<T> extends BasePipe<Pipe<T>> {
         throw new UnsupportedOperationException();
     }
 
-    default <A> A[] toArray(IntFunction<A[]> generator) {
+    default T reduce(T identity, BinaryOperator<T> op) {
         throw new UnsupportedOperationException();
     }
 
-    default T reduce(T identity, BinaryOperator<T> accumulator) {
+    default Optional<T> reduce(BinaryOperator<T> op) {
+        throw new UnsupportedOperationException();
+    }
+
+    default <R> R reduce(R identity, Function<? super T, ? extends R> mapper, BinaryOperator<R> op) {
         throw new UnsupportedOperationException();
     }
 
@@ -211,7 +251,15 @@ public interface Pipe<T> extends BasePipe<Pipe<T>> {
         throw new UnsupportedOperationException();
     }
 
+    default Optional<T> findAny() {
+        return findFirst();
+    }
+
     default Iterator<T> iterator() {
+        throw new UnsupportedOperationException();
+    }
+
+    default <A> A[] toArray(IntFunction<A[]> generator) {
         throw new UnsupportedOperationException();
     }
 
@@ -220,36 +268,65 @@ public interface Pipe<T> extends BasePipe<Pipe<T>> {
         throw new UnsupportedOperationException();
     }
 
+    @Extended
     default List<T> toUnmodifiableList() {
         throw new UnsupportedOperationException();
     }
 
-    default <K> Map<K, T> toMap(Function<? super T, ? extends K> keyMapper, BinaryOperator<T> selector) {
+    @Extended
+    default Set<T> toSet() {
         throw new UnsupportedOperationException();
     }
 
-    default <K> Map<K, T> toUnmodifiableMap(Function<? super T, ? extends K> keyMapper, BinaryOperator<T> selector) {
+    @Extended
+    default Set<T> toUnmodifiableSet() {
         throw new UnsupportedOperationException();
     }
 
-    default <K> Map<K, T> toMapWithNew(Function<? super T, ? extends K> keyMapper) {
-        return toMap(keyMapper, (oldOne, newOne) -> newOne);
+    @Extended
+    default <K> Map<K, T> toMap(Function<? super T, ? extends K> keyMapper) {
+        throw new UnsupportedOperationException();
     }
 
-    default <K> Map<K, T> toUnmodifiableMapWithNew(Function<? super T, ? extends K> keyMapper) {
-        return toMap(keyMapper, (oldOne, newOne) -> newOne);
+    @Extended
+    default <K, M extends Map<K, T>> M toMap(Supplier<M> mapSupplier, Function<? super T, ? extends K> keyMapper) {
+        throw new UnsupportedOperationException();
     }
 
-    default <K> Map<K, T> toMapWithOld(Function<? super T, ? extends K> keyMapper) {
-        return toMap(keyMapper, (oldOne, newOne) -> newOne);
+    @Extended
+    default <K, M extends Map<K, T>> M toSizedMap(IntFunction<M> mapSupplier,
+        Function<? super T, ? extends K> keyMapper) {
+        throw new UnsupportedOperationException();
     }
 
-    default <K> Map<K, T> toUnmodifiableMapWithOld(Function<? super T, ? extends K> keyMapper) {
-        return toMap(keyMapper, (oldOne, newOne) -> newOne);
+    @Extended
+    default <K> Map<K, T> toUnmodifiableMap(Function<? super T, ? extends K> keyMapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Extended
+    default <R extends Collection<T>> R toCollection(Supplier<R> collectionSupplier) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Extended
+    default <R extends Collection<T>> R toSizedCollection(IntFunction<R> collectionSupplier) {
+        throw new UnsupportedOperationException();
     }
 
     @Extended
     default <K> Map<K, List<T>> group(Function<? super T, ? extends K> classifier) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Extended
+    default <K, R> Map<K, R> groupAndThen(Function<? super T, ? extends K> classifier, Function<List<T>, R> finisher) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Extended
+    default <K> Map<K, List<T>> groupAndExecute(Function<? super T, ? extends K> classifier,
+        BiConsumer<K, List<T>> action) {
         throw new UnsupportedOperationException();
     }
 
@@ -263,25 +340,26 @@ public interface Pipe<T> extends BasePipe<Pipe<T>> {
         return join(delimiter, "", "");
     }
 
+    @Extended
+    default String join() {
+        return join("", "", "");
+    }
+
     static <T> Pipe<T> empty() {
-        // TODO 2023-03-03 01:03
         throw new UnsupportedOperationException();
     }
 
     @SafeVarargs
     @SuppressWarnings("varargs")
     static <T> Pipe<T> of(T... values) {
-        // TODO 2023-03-03 01:03
         throw new UnsupportedOperationException();
     }
 
     static <T> Pipe<T> iterate(final T seed, final UnaryOperator<T> generator) {
-        // TODO 2023-03-03 01:05
         throw new UnsupportedOperationException();
     }
 
     static <T> Pipe<T> generate(Supplier<T> supplier) {
-        // TODO 2023-03-03 01:06
         throw new UnsupportedOperationException();
     }
 
@@ -292,19 +370,16 @@ public interface Pipe<T> extends BasePipe<Pipe<T>> {
         if (pipe == null || pipe.length == 0) {
             return empty();
         }
-        // TODO 2023-03-03 01:07
         throw new UnsupportedOperationException();
     }
 
     @Extended
     static <T> Pipe<T> from(Stream<? extends T> stream) {
-        // TODO 2023-03-03 01:24
         throw new UnsupportedOperationException();
     }
 
     @Extended
     static <T> Pipe<T> from(Iterator<? extends T> iterator) {
-        // TODO 2023-03-03 01:24
         throw new UnsupportedOperationException();
     }
 
