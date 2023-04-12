@@ -23,7 +23,7 @@ import java.util.function.BiConsumer;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-@Cacheable(value = "")
+@Cacheable
 public @interface RedissonCacheable {
     /** {@link Cacheable#value()}的别名 */
     @AliasFor(annotation = Cacheable.class, value = "value")

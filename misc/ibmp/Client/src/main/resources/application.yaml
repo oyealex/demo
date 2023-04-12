@@ -17,7 +17,7 @@ spring:
         nettyThreads: 8
         codec: !<org.redisson.codec.JsonJacksonCodec> {}
         singleServerConfig:
-          address: redis://172.27.79.196:6379
+          address: redis://172.25.104.13:6379
           password: redis
           subscriptionConnectionPoolSize: 4
           connectionMinimumIdleSize: 1
@@ -36,4 +36,4 @@ app:
         urls:
           customer: /ibmp/v1/server/customer
   cache:
-    enabled: false
+    enabled: true

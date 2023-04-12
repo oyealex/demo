@@ -31,10 +31,6 @@ public class SpelTestRunner implements ApplicationRunner, EnvironmentAware {
 
     @Override
     public void run(ApplicationArguments args) {
-        SpelExpressionParser parser = new SpelExpressionParser();
-        Expression expression = parser.parseExpression("${app.cache.enabled}");
-        StandardEvaluationContext context = new StandardEvaluationContext();
-        context.getPropertyAccessors().add(new EnvironmentAccessor());
-        log.info("value: {}", expression.getValue());
+        log.info("value: {}", environment.resolvePlaceholders("${app.cache.enabled}"));
     }
 }

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * @since 2023-01-18
  */
 @Slf4j
-// @Component
+@Component
 @RequiredArgsConstructor
 public class CacheTestRunner implements ApplicationRunner {
     private final CacheManager cacheManager;
@@ -24,16 +24,9 @@ public class CacheTestRunner implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws InterruptedException {
-        log.info("greeting: {}", greetingService.greet("jack"));
-        log.info("greeting: {}", greetingService.greet("jack"));
-        Thread.sleep(500L);
-        log.info("greeting: {}", greetingService.greet("jack"));
-        Thread.sleep(500L);
-        log.info("greeting: {}", greetingService.greet("jack"));
-        Thread.sleep(500L);
-        log.info("greeting: {}", greetingService.greet("jack"));
-        Thread.sleep(1500L);
-        log.info("greeting: {}", greetingService.greet("jack"));
-        log.info("greeting: {}", greetingService.greet("jack"));
+        for (int i = 0; i < 100; i++) {
+            log.info("greeting: {}", greetingService.greet("jack"));
+            Thread.sleep(1000L);
+        }
     }
 }
