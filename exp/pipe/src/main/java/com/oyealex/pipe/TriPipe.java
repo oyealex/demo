@@ -1,4 +1,4 @@
-package com.oyealex.seq;
+package com.oyealex.pipe;
 
 /**
  * 支持三元组的流水线

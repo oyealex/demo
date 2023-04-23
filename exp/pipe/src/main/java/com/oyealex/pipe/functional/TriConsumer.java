@@ -1,4 +1,4 @@
-package com.oyealex.seq.functional;
+package com.oyealex.pipe.functional;
 
 import java.util.Objects;
 

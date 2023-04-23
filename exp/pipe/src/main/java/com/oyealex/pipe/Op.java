@@ -1,4 +1,4 @@
-package com.oyealex.seq;
+package com.oyealex.pipe;
 
 import java.util.function.Consumer;
 

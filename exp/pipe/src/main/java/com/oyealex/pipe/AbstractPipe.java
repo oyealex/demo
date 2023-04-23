@@ -1,4 +1,4 @@
-package com.oyealex.seq;
+package com.oyealex.pipe;
 
 import java.util.Objects;
 
@@ -8,7 +8,7 @@ import java.util.Objects;
  * @author oyealex
  * @since 2023-03-04
  */
-abstract class AbstractPipe<P extends BasePipe<P>> implements BasePipe<P> {
+abstract class AbstractPipe<T> implements Pipe<T> {
     /** 流水线的源节点，不会为null */
     private final AbstractPipe<?> sourceNode;
 
@@ -33,15 +33,14 @@ abstract class AbstractPipe<P extends BasePipe<P>> implements BasePipe<P> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public P onClose(Runnable closeAction) {
+    public Pipe<T> onClose(Runnable closeAction) {
         Objects.requireNonNull(closeAction);
         if (sourceNode.closeAction == null) {
             sourceNode.closeAction = closeAction;
         } else {
             sourceNode.closeAction = composeCloseAction(sourceNode.closeAction, closeAction);
         }
-        return (P) this;
+        return this;
     }
 
     @Override
