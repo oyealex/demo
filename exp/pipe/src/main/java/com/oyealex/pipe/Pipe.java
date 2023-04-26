@@ -751,7 +751,19 @@ public interface Pipe<T> extends AutoCloseable {
     @SafeVarargs
     @SuppressWarnings("varargs")
     static <T> Pipe<T> of(T... values) {
-        throw new UnsupportedOperationException();
+        return new AbstractPipe.PipeHead<>(new Iterator<T>() {
+            private int index = 0;
+
+            @Override
+            public boolean hasNext() {
+                return index < values.length;
+            }
+
+            @Override
+            public T next() {
+                return values[index++];
+            }
+        });
     }
 
     static <T> Pipe<T> iterate(final T seed, final UnaryOperator<T> generator) {
@@ -779,7 +791,7 @@ public interface Pipe<T> extends AutoCloseable {
 
     @Extended
     static <T> Pipe<T> from(Iterator<? extends T> iterator) {
-        throw new UnsupportedOperationException();
+        return new AbstractPipe.PipeHead<>(iterator);
     }
 
     @Extended
