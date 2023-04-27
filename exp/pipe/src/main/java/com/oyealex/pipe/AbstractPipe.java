@@ -1,10 +1,15 @@
 package com.oyealex.pipe;
 
+import com.oyealex.pipe.functional.IntBiPredicate;
+import com.oyealex.pipe.functional.LongBiPredicate;
+
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * 抽象流水线
@@ -18,9 +23,6 @@ abstract class AbstractPipe<IN, OUT> implements Pipe<OUT> {
 
     /** 此节点的前置节点，当且仅当此节点为源节点时为null */
     private final AbstractPipe<?, ?> prePipe;
-
-    /** 此节点的后置节点，当且仅当此节点为末端节点时为null */
-    private AbstractPipe<?, ?> nextPipe;
 
     private Iterator<?> sourceIterator;
 
@@ -36,7 +38,6 @@ abstract class AbstractPipe<IN, OUT> implements Pipe<OUT> {
     AbstractPipe(AbstractPipe<?, ?> prePipe) {
         this.sourcePipe = prePipe.sourcePipe;
         this.prePipe = prePipe;
-        prePipe.nextPipe = this;
     }
 
     abstract Op<IN> wrapOp(Op<OUT> op);
@@ -64,10 +65,11 @@ abstract class AbstractPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<OUT> filter(Predicate<? super OUT> predicate) {
+        requireNonNull(predicate);
         return new AbstractPipe<OUT, OUT>(this) {
             @Override
             Op<OUT> wrapOp(Op<OUT> op) {
-                return new Op.ChainedOp<OUT, OUT>(op) {
+                return new Op.ChainedOp<>(op) {
                     @Override
                     public void begin(long size) {
                         next.begin(-1);
@@ -85,11 +87,51 @@ abstract class AbstractPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
+    public Pipe<OUT> filterEnumerated(IntBiPredicate<? super OUT> predicate) {
+        requireNonNull(predicate);
+        return new AbstractPipe<OUT, OUT>(this) {
+            @Override
+            Op<OUT> wrapOp(Op<OUT> op) {
+                return new Op.ChainedOp<>(op) {
+                    private int index = 0;
+
+                    @Override
+                    public void accept(OUT out) {
+                        if (predicate.test(index++, out)) {
+                            next.accept(out);
+                        }
+                    }
+                };
+            }
+        };
+    }
+
+    @Override
+    public Pipe<OUT> filterEnumeratedLong(LongBiPredicate<? super OUT> predicate) {
+        requireNonNull(predicate);
+        return new AbstractPipe<OUT, OUT>(this) {
+            @Override
+            Op<OUT> wrapOp(Op<OUT> op) {
+                return new Op.ChainedOp<>(op) {
+                    private long index = 0L;
+
+                    @Override
+                    public void accept(OUT out) {
+                        if (predicate.test(index++, out)) {
+                            next.accept(out);
+                        }
+                    }
+                };
+            }
+        };
+    }
+
+    @Override
     public <R> Pipe<R> map(Function<? super OUT, ? extends R> mapper) {
         return new AbstractPipe<OUT, R>(this) {
             @Override
             Op<OUT> wrapOp(Op<R> op) {
-                return new Op.ChainedOp<OUT, R>(op) {
+                return new Op.ChainedOp<>(op) {
                     @Override
                     public void accept(OUT out) {
                         next.accept(mapper.apply(out));
@@ -100,8 +142,50 @@ abstract class AbstractPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
+    public Pipe<OUT> limit(long size) {
+        if (size < 0) {
+            throw new IllegalArgumentException("limit size cannot be negative, size: " + size);
+        }
+        if (size == 0) {
+            return Pipes.empty();
+        }
+        return new AbstractPipe<OUT, OUT>(this) {
+            @Override
+            Op<OUT> wrapOp(Op<OUT> op) {
+                return new Op.ChainedOp<>(op) {
+                    private long limited = 0L;
+                    @Override
+                    public void accept(OUT out) {
+                        if (limited < size) {
+                            limited++;
+                        }else {
+                            next.accept(out);
+                        }
+                    }
+                };
+            }
+        };
+    }
+
+    @Override
+    public void forEach(Consumer<? super OUT> action) {
+        requireNonNull(action);
+        evaluate(new TerminalOp<OUT, Void>() {
+            @Override
+            public void accept(OUT out) {
+                action.accept(out);
+            }
+
+            @Override
+            public Void get() {
+                return null;
+            }
+        });
+    }
+
+    @Override
     public long count() {
-        return evaluate(new TerminalOp<OUT, Long>() {
+        return evaluate(new TerminalOp<>() {
             private long count;
 
             @Override
@@ -123,7 +207,7 @@ abstract class AbstractPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<OUT> onClose(Runnable closeAction) {
-        Objects.requireNonNull(closeAction);
+        requireNonNull(closeAction);
         if (sourcePipe.closeAction == null) {
             sourcePipe.closeAction = closeAction;
         } else {
