@@ -30,4 +30,22 @@ class Misc {
     static <T> Iterator<T> emptyIterator() {
         return (Iterator<T>) EMPTY_ITERATOR;
     }
+
+    static Runnable composeAction(Runnable action, Runnable anotherAction) {
+        return () -> {
+            try {
+                action.run();
+            } catch (Throwable throwable) {
+                try {
+                    anotherAction.run();
+                } catch (Throwable anotherThrowable) {
+                    try {
+                        throwable.addSuppressed(anotherThrowable);
+                    } catch (Throwable ignore) {}
+                }
+                throw throwable;
+            }
+            anotherAction.run();
+        };
+    }
 }

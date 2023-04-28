@@ -4,6 +4,7 @@ import com.oyealex.pipe.annotations.Extended;
 import com.oyealex.pipe.basis.functional.IntBiConsumer;
 import com.oyealex.pipe.basis.functional.IntBiFunction;
 import com.oyealex.pipe.basis.functional.IntBiPredicate;
+import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import com.oyealex.pipe.bi.BiPipe;
 
@@ -91,12 +92,25 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws NullPointerException 当{@code mapper}为null时抛出
      * @see Stream#map(Function)
      */
-    default <R> Pipe<R> map(Function<? super T, ? extends R> mapper) {
+    <R> Pipe<R> map(Function<? super T, ? extends R> mapper);
+
+    /**
+     * 将此流水线中的元素映射为其他类型，映射方法支持访问元素在流水线中的次序，从0开始计算，使用{@code int}类型的数据表示次序。
+     *
+     * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为访问的元素。
+     * @param <R> 新的类型
+     * @return 包含新类型元素的流水线
+     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @apiNote 如果元素数量超过了 {@link Integer#MAX_VALUE}，则会导致数据溢出为负数，
+     * 如果预估数据数量超过此最大值，请使用 {@link #mapEnumeratedLong(LongBiFunction)}。
+     */
+    @Extended
+    default <R> Pipe<R> mapEnumerated(IntBiFunction<? super T, ? extends R> mapper) {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * 将此流水线中的元素映射为其他类型，映射方法支持访问元素在流水线中的次序，从0开始计算。
+     * 将此流水线中的元素映射为其他类型，映射方法支持访问元素在流水线中的次序，从0开始计算，使用{@code long}类型的数据表示次序。
      *
      * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为访问的元素。
      * @param <R> 新的类型
@@ -104,7 +118,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws NullPointerException 当{@code mapper}为null时抛出
      */
     @Extended
-    default <R> Pipe<R> mapEnumerated(IntBiFunction<? super T, ? extends R> mapper) {
+    default <R> Pipe<R> mapEnumeratedLong(LongBiFunction<? super T, ? extends R> mapper) {
         throw new UnsupportedOperationException();
     }
 
@@ -744,5 +758,5 @@ public interface Pipe<T> extends AutoCloseable {
     Pipe<T> onClose(Runnable closeAction);
 
     @Override
-    void close();
+    default void close() {}
 }

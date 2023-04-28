@@ -1,7 +1,6 @@
-package com.oyealex.pipe;
+package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.basis.Pipe;
-import com.oyealex.pipe.basis.Pipes;
+import com.oyealex.pipe.PipeTestBase;
 import com.oyealex.pipe.basis.functional.IntBiPredicate;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import org.junit.jupiter.api.Disabled;
@@ -21,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 /**
- * 针对Pipe的过滤类方法的测试
+ * 针对Pipe的过滤类方法的测试。
  *
  * @author oyealex
  * @see Pipe#filter(Predicate)
@@ -30,9 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
  * @see Pipe#filterEnumeratedLong(LongBiPredicate)
  * @since 2023-04-28
  */
-class PipeFilterTest {
-    private static final String[] ELEMENTS = "this is a unit test for pipe filter api".split(" ");
-
+class PipeFilterTest extends PipeTestBase {
     @Test
     @DisplayName("应当正确过滤元素")
     void should_filter_elements_rightly() {
@@ -56,7 +53,7 @@ class PipeFilterTest {
     }
 
     @Test
-    @Disabled
+    @Disabled("OOM")
     @DisplayName("应当正确根据次序编号过滤超过整形最大值数量的元素")
     void should_filter_elements_by_enumeration_number_on_elements_more_than_the_max_value_of_integer_rightly() {
         List<Long> res = Pipes.iterate(1L, i -> i + 1).limit(MAX_VALUE + 1L)
@@ -83,6 +80,7 @@ class PipeFilterTest {
     void should_throw_exception_when_given_predicate_is_null() {
         assertThrowsExactly(NullPointerException.class, () -> Pipes.empty().filter(null));
         assertThrowsExactly(NullPointerException.class, () -> Pipes.empty().filterReversed(null));
+        assertThrowsExactly(NullPointerException.class, () -> Pipes.empty().filterEnumerated(null));
         assertThrowsExactly(NullPointerException.class, () -> Pipes.empty().filterEnumeratedLong(null));
     }
 }
