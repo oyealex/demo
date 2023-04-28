@@ -1,4 +1,6 @@
-package com.oyealex.pipe;
+package com.oyealex.pipe.basis;
+
+import com.oyealex.pipe.basis.op.TerminalOp;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +11,8 @@ import java.util.List;
  * @author oyealex
  * @since 2023-04-27
  */
-class CollectorUtil {
-    private CollectorUtil() {
+class Containers {
+    private Containers() {
         throw new IllegalStateException("unavailable");
     }
 

@@ -1,6 +1,5 @@
-package com.oyealex.pipe;
+package com.oyealex.pipe.basis.op;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -31,27 +30,4 @@ public interface Op<T> extends Consumer<T> {
      * @return true 需要取消后续循环
      */
     default boolean cancellationRequested() {return false;}
-
-    abstract class ChainedOp<T, OUT> implements Op<T> {
-        protected final Op<? super OUT> next;
-
-        public ChainedOp(Op<? super OUT> next) {
-            this.next = Objects.requireNonNull(next);
-        }
-
-        @Override
-        public void begin(long size) {
-            next.begin(size);
-        }
-
-        @Override
-        public void end() {
-            next.end();
-        }
-
-        @Override
-        public boolean cancellationRequested() {
-            return next.cancellationRequested();
-        }
-    }
 }

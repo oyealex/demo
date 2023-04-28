@@ -1,6 +1,7 @@
-package com.oyealex.pipe;
+package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.annotations.Extended;
+import com.oyealex.pipe.basis.op.Op;
 
 import java.util.Iterator;
 import java.util.Objects;
@@ -27,7 +28,7 @@ public class Pipes {
      * @see Stream#empty()
      */
     public static <T> Pipe<T> empty() {
-        return new AbstractPipe.PipeHead<>(Misc.emptyIterator());
+        return new PipeHead<>(Misc.emptyIterator());
     }
 
     /**
@@ -40,7 +41,7 @@ public class Pipes {
     @SafeVarargs
     @SuppressWarnings("varargs")
     public static <T> Pipe<T> of(T... values) {
-        return new AbstractPipe.PipeHead<>(new Iterator<T>() {
+        return new PipeHead<>(new Iterator<T>() {
             private int index = 0;
 
             @Override
@@ -67,7 +68,7 @@ public class Pipes {
      */
     public static <T> Pipe<T> iterate(final T seed, final UnaryOperator<T> generator) {
         Objects.requireNonNull(generator);
-        return new AbstractPipe.PipeHead<>(new Iterator<T>() {
+        return new PipeHead<>(new Iterator<T>() {
             private T previous = seed;
 
             private boolean started = false;
@@ -102,7 +103,7 @@ public class Pipes {
      */
     public static <T> Pipe<T> generate(Supplier<? extends T> supplier) {
         Objects.requireNonNull(supplier);
-        return new AbstractPipe.PipeHead<>(new Iterator<T>() {
+        return new PipeHead<>(new Iterator<T>() {
             @Override
             public boolean hasNext() {
                 return true;
@@ -146,7 +147,7 @@ public class Pipes {
      */
     @Extended
     public static <T> Pipe<T> from(Stream<? extends T> stream) {
-        return new AbstractPipe.PipeHead<>(stream.iterator());
+        return new PipeHead<>(stream.iterator());
     }
 
     /**
@@ -158,7 +159,7 @@ public class Pipes {
      */
     @Extended
     public static <T> Pipe<T> from(Iterator<? extends T> iterator) {
-        return new AbstractPipe.PipeHead<>(iterator);
+        return new PipeHead<>(iterator);
     }
 
     /**
@@ -171,5 +172,16 @@ public class Pipes {
     @Extended
     public static <T> Pipe<T> from(Iterable<? extends T> iterable) {
         return from(iterable.iterator());
+    }
+
+    static class PipeHead<IN, OUT> extends AbstractPipe<IN, OUT> {
+        public PipeHead(Iterator<?> sourceIterator) {
+            super(sourceIterator);
+        }
+
+        @Override
+        Op<IN> wrapOp(Op<OUT> op) {
+            throw new UnsupportedOperationException();
+        }
     }
 }

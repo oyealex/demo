@@ -1,6 +1,7 @@
 package com.oyealex.pipe;
 
-import com.oyealex.pipe.functional.IntBiFunction;
+import com.oyealex.pipe.basis.Pipe;
+import com.oyealex.pipe.basis.functional.IntBiFunction;
 
 import java.util.function.Function;
 import java.util.function.ToDoubleFunction;

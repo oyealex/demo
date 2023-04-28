@@ -1,10 +1,11 @@
-package com.oyealex.pipe;
+package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.annotations.Extended;
-import com.oyealex.pipe.functional.IntBiConsumer;
-import com.oyealex.pipe.functional.IntBiFunction;
-import com.oyealex.pipe.functional.IntBiPredicate;
-import com.oyealex.pipe.functional.LongBiPredicate;
+import com.oyealex.pipe.basis.functional.IntBiConsumer;
+import com.oyealex.pipe.basis.functional.IntBiFunction;
+import com.oyealex.pipe.basis.functional.IntBiPredicate;
+import com.oyealex.pipe.basis.functional.LongBiPredicate;
+import com.oyealex.pipe.bi.BiPipe;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
@@ -245,6 +247,25 @@ public interface Pipe<T> extends AutoCloseable {
      */
     @Extended
     default Pipe<T> reversed() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * 随机打乱流水线中的元素。
+     *
+     * @return 元素顺序被打乱后新的流水线
+     */
+    default Pipe<T> shuffle() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * 使用给定的随机对象打乱流水线中的元素。
+     *
+     * @param random 用于随机元素次序的随机对象
+     * @return 元素顺序被打乱后新的流水线
+     */
+    default Pipe<T> shuffle(Random random) {
         throw new UnsupportedOperationException();
     }
 

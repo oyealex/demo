@@ -1,4 +1,4 @@
-package com.oyealex.pipe;
+package com.oyealex.pipe.basis;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -9,7 +9,7 @@ import java.util.NoSuchElementException;
  * @author oyealex
  * @since 2023-04-28
  */
-public class Misc {
+class Misc {
     private Misc() {
         throw new IllegalStateException("no instance available");
     }
@@ -27,7 +27,7 @@ public class Misc {
     };
 
     @SuppressWarnings("unchecked")
-    public static <T> Iterator<T> emptyIterator() {
+    static <T> Iterator<T> emptyIterator() {
         return (Iterator<T>) EMPTY_ITERATOR;
     }
 }

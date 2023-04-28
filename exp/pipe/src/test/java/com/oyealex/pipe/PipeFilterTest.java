@@ -1,7 +1,9 @@
 package com.oyealex.pipe;
 
-import com.oyealex.pipe.functional.IntBiPredicate;
-import com.oyealex.pipe.functional.LongBiPredicate;
+import com.oyealex.pipe.basis.Pipe;
+import com.oyealex.pipe.basis.Pipes;
+import com.oyealex.pipe.basis.functional.IntBiPredicate;
+import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,7 +13,7 @@ import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static com.oyealex.pipe.Pipes.of;
+import static com.oyealex.pipe.basis.Pipes.of;
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;

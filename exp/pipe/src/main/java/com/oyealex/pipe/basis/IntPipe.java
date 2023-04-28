@@ -1,4 +1,4 @@
-package com.oyealex.pipe;
+package com.oyealex.pipe.basis;
 
 /**
  * IntPipe
@@ -6,5 +6,5 @@ package com.oyealex.pipe;
  * @author oyealex
  * @since 2023-03-03
  */
-public interface IntPipe{
+public interface IntPipe {
 }

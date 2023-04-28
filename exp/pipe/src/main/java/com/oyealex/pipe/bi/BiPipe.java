@@ -1,4 +1,4 @@
-package com.oyealex.pipe;
+package com.oyealex.pipe.bi;
 
 /**
  * 支持两元组的流水线

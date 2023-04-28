@@ -1,4 +1,4 @@
-package com.oyealex.pipe.functional;
+package com.oyealex.pipe.basis.functional;
 
 import java.util.Objects;
 

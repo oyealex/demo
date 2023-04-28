@@ -1,4 +1,4 @@
-package com.oyealex.pipe;
+package com.oyealex.pipe.tri;
 
 /**
  * 支持三元组的流水线
