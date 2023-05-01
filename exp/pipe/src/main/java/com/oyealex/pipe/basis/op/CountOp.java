@@ -7,7 +7,7 @@ package com.oyealex.pipe.basis.op;
  * @since 2023-04-28
  */
 class CountOp<IN> implements TerminalOp<IN, Long> {
-    private long count;
+    private long count = 0L;
 
     @Override
     public void accept(IN in) {

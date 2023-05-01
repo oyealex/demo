@@ -1,42 +1,22 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.annotations.Extended;
-import com.oyealex.pipe.basis.functional.IntBiConsumer;
-import com.oyealex.pipe.basis.functional.IntBiFunction;
-import com.oyealex.pipe.basis.functional.IntBiPredicate;
-import com.oyealex.pipe.basis.functional.LongBiFunction;
-import com.oyealex.pipe.basis.functional.LongBiPredicate;
+import com.oyealex.pipe.basis.functional.*;
 import com.oyealex.pipe.bi.BiPipe;
+import com.oyealex.pipe.tri.TriPipe;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.function.ToDoubleFunction;
-import java.util.function.ToIntFunction;
-import java.util.function.ToLongFunction;
+import java.util.*;
+import java.util.function.*;
 import java.util.stream.Stream;
 
 /**
  * 流水线接口
  *
- * @param <T> 数据类型
+ * @param <E> 数据类型
  * @author oyealex
  * @since 2023-02-09
  */
-public interface Pipe<T> extends AutoCloseable {
+public interface Pipe<E> extends AutoCloseable {
     /**
      * 根据给定断言过滤元素。
      *
@@ -45,7 +25,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws NullPointerException 当{@code predicate}为null时抛出
      * @see Stream#filter(Predicate)
      */
-    Pipe<T> filter(Predicate<? super T> predicate);
+    Pipe<E> filter(Predicate<? super E> predicate);
 
     /**
      * 根据给定断言的否定结果过滤元素。
@@ -55,7 +35,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws NullPointerException 当{@code predicate}为null时抛出
      * @see Stream#filter(Predicate)
      */
-    default Pipe<T> filterReversed(Predicate<? super T> predicate) {
+    default Pipe<E> filterReversed(Predicate<? super E> predicate) {
         Objects.requireNonNull(predicate);
         return filter(predicate.negate());
     }
@@ -71,7 +51,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @see #filterEnumeratedLong(LongBiPredicate)
      */
     @Extended
-    Pipe<T> filterEnumerated(IntBiPredicate<? super T> predicate);
+    Pipe<E> filterEnumerated(IntBiPredicate<? super E> predicate);
 
     /**
      * 根据给定断言过滤元素，断言支持访问的元素在流水线中的次序，从0开始计算，使用{@code long}类型的数据表示次序。
@@ -81,7 +61,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws NullPointerException 当{@code predicate}为null时抛出
      */
     @Extended
-    Pipe<T> filterEnumeratedLong(LongBiPredicate<? super T> predicate);
+    Pipe<E> filterEnumeratedLong(LongBiPredicate<? super E> predicate);
 
     /**
      * 将此流水线中的元素映射为其他类型。
@@ -92,7 +72,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws NullPointerException 当{@code mapper}为null时抛出
      * @see Stream#map(Function)
      */
-    <R> Pipe<R> map(Function<? super T, ? extends R> mapper);
+    <R> Pipe<R> map(Function<? super E, ? extends R> mapper);
 
     /**
      * 将此流水线中的元素映射为其他类型，映射方法支持访问元素在流水线中的次序，从0开始计算，使用{@code int}类型的数据表示次序。
@@ -105,9 +85,7 @@ public interface Pipe<T> extends AutoCloseable {
      * 如果预估数据数量超过此最大值，请使用 {@link #mapEnumeratedLong(LongBiFunction)}。
      */
     @Extended
-    default <R> Pipe<R> mapEnumerated(IntBiFunction<? super T, ? extends R> mapper) {
-        throw new UnsupportedOperationException();
-    }
+    <R> Pipe<R> mapEnumerated(IntBiFunction<? super E, ? extends R> mapper);
 
     /**
      * 将此流水线中的元素映射为其他类型，映射方法支持访问元素在流水线中的次序，从0开始计算，使用{@code long}类型的数据表示次序。
@@ -118,9 +96,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws NullPointerException 当{@code mapper}为null时抛出
      */
     @Extended
-    default <R> Pipe<R> mapEnumeratedLong(LongBiFunction<? super T, ? extends R> mapper) {
-        throw new UnsupportedOperationException();
-    }
+    <R> Pipe<R> mapEnumeratedLong(LongBiFunction<? super E, ? extends R> mapper);
 
     /**
      * 将流水线中的元素映射为int类型。
@@ -130,7 +106,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws NullPointerException 当{@code mapper}为null时抛出
      * @see Stream#mapToInt(ToIntFunction)
      */
-    default IntPipe mapToInt(ToIntFunction<? super T> mapper) {
+    default IntPipe mapToInt(ToIntFunction<? super E> mapper) {
         throw new UnsupportedOperationException();
     }
 
@@ -142,7 +118,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws NullPointerException 当{@code mapper}为null时抛出
      * @see Stream#mapToLong(ToLongFunction)
      */
-    default LongPipe mapToLong(ToLongFunction<? super T> mapper) {
+    default LongPipe mapToLong(ToLongFunction<? super E> mapper) {
         throw new UnsupportedOperationException();
     }
 
@@ -154,7 +130,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws NullPointerException 当{@code mapper}为null时抛出
      * @see Stream#mapToDouble(ToDoubleFunction)
      */
-    default DoublePipe mapToDouble(ToDoubleFunction<? super T> mapper) {
+    default DoublePipe mapToDouble(ToDoubleFunction<? super E> mapper) {
         throw new UnsupportedOperationException();
     }
 
@@ -167,7 +143,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws NullPointerException 当{@code mapper}为null时抛出
      * @see Stream#flatMap(Function)
      */
-    default <R> Pipe<R> flatMap(Function<? super T, ? extends Pipe<? extends R>> mapper) {
+    default <R> Pipe<R> flatMap(Function<? super E, ? extends Pipe<? extends R>> mapper) {
         throw new UnsupportedOperationException();
     }
 
@@ -179,7 +155,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws NullPointerException 当{@code mapper}为null时抛出
      * @see Stream#flatMapToInt(Function)
      */
-    default IntPipe flatMapToInt(Function<? super T, ? extends IntPipe> mapper) {
+    default IntPipe flatMapToInt(Function<? super E, ? extends IntPipe> mapper) {
         throw new UnsupportedOperationException();
     }
 
@@ -191,7 +167,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws NullPointerException 当{@code mapper}为null时抛出
      * @see Stream#flatMapToLong(Function)
      */
-    default LongPipe flatMapToLong(Function<? super T, ? extends LongPipe> mapper) {
+    default LongPipe flatMapToLong(Function<? super E, ? extends LongPipe> mapper) {
         throw new UnsupportedOperationException();
     }
 
@@ -203,8 +179,53 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws NullPointerException 当{@code mapper}为null时抛出
      * @see Stream#flatMapToDouble(Function)
      */
-    default DoublePipe flatMapToDouble(Function<? super T, ? extends DoublePipe> mapper) {
+    default DoublePipe flatMapToDouble(Function<? super E, ? extends DoublePipe> mapper) {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * 使用给定的映射方法，将此流水线扩展为两元组的流水线。
+     *
+     * @param firstMapper 两元组第一个元素的映射方法
+     * @param secondMapper 两元组第二个元素的映射方法
+     * @param <F> 两元组第一个元素的类型
+     * @param <S> 两元组第二个元素的类型
+     * @return 映射后的两元组流水线
+     * @throws NullPointerException 当任意映射方法为null时抛出
+     */
+    default <F, S> BiPipe<F, S> extend(Function<? super E, ? extends F> firstMapper,
+            Function<? super E, ? extends S> secondMapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * 使用给定的映射方法，将此流水线扩展为三元组的流水线。
+     *
+     * @param firstMapper 三元组第一个元素的映射方法
+     * @param secondMapper 三元组第二个元素的映射方法
+     * @param thirdMapper 三元组第三个元素的映射方法
+     * @param <F> 三元组第一个元素的类型
+     * @param <S> 三元组第二个元素的类型
+     * @param <T> 三元组第三个元素的类型
+     * @return 映射后的三元组流水线
+     * @throws NullPointerException 当任意映射方法为null时抛出
+     */
+    default <F, S, T> TriPipe<F, S, T> extendTriple(Function<? super E, ? extends F> firstMapper,
+            Function<? super E, ? extends S> secondMapper, Function<? super E, ? extends T> thirdMapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * 使用给定的映射方法，将此流水线扩展为两元组的流水线，其中两元组的第一个元素仍然为当前流水线中的元素。
+     *
+     * @param secondMapper 两元组第二个元素的映射方法
+     * @param <S> 两元组第二个元素的类型
+     * @return 映射后的两元组流水线
+     * @throws NullPointerException 当映射方法为null时抛出
+     */
+    default <S> BiPipe<E, S> extendSelf(Function<? super E, ? extends S> secondMapper) {
+        throw new UnsupportedOperationException();
+
     }
 
     /**
@@ -213,7 +234,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @return 元素去重之后的流水线
      * @see Stream#distinct()
      */
-    default Pipe<T> distinct() {
+    default Pipe<E> distinct() {
         throw new UnsupportedOperationException();
     }
 
@@ -225,7 +246,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws NullPointerException 当{@code mapper}为null时抛出
      */
     @Extended
-    default Pipe<T> distinctBy(Function<? super T, ?> mapper) {
+    default Pipe<E> distinctBy(Function<? super E, ?> mapper) {
         throw new UnsupportedOperationException();
     }
 
@@ -237,7 +258,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @see Stream#sorted()
      */
     // TODO 2023-04-24 00:19 关注排序稳定性
-    default Pipe<T> sorted() {
+    default Pipe<E> sorted() {
         throw new UnsupportedOperationException();
     }
 
@@ -249,7 +270,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @see Stream#sorted(Comparator)
      */
     // TODO 2023-04-24 00:19 关注排序稳定性
-    default Pipe<T> sorted(Comparator<? super T> comparator) {
+    default Pipe<E> sorted(Comparator<? super E> comparator) {
         Objects.requireNonNull(comparator);
         throw new UnsupportedOperationException();
     }
@@ -260,7 +281,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @return 元素顺序颠倒后的流水线
      */
     @Extended
-    default Pipe<T> reversed() {
+    default Pipe<E> reversed() {
         throw new UnsupportedOperationException();
     }
 
@@ -269,7 +290,7 @@ public interface Pipe<T> extends AutoCloseable {
      *
      * @return 元素顺序被打乱后新的流水线
      */
-    default Pipe<T> shuffle() {
+    default Pipe<E> shuffle() {
         throw new UnsupportedOperationException();
     }
 
@@ -279,7 +300,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @param random 用于随机元素次序的随机对象
      * @return 元素顺序被打乱后新的流水线
      */
-    default Pipe<T> shuffle(Random random) {
+    default Pipe<E> shuffle(Random random) {
         throw new UnsupportedOperationException();
     }
 
@@ -291,7 +312,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @apiNote 不同于经典Stream会优化某些场景下的访问方法调用，Pipe不会主动优化此访问方法。
      * @see Stream#peek(Consumer)
      */
-    default Pipe<T> peek(Consumer<? super T> consumer) {
+    default Pipe<E> peek(Consumer<? super E> consumer) {
         if (consumer == null) {
             return this;
         }
@@ -306,7 +327,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @apiNote 不同于经典Stream会优化某些场景下的访问方法调用，Pipe不会主动优化此访问方法。
      */
     @Extended
-    default Pipe<T> peekEnumerated(IntBiConsumer<? super T> consumer) {
+    default Pipe<E> peekEnumerated(IntBiConsumer<? super E> consumer) {
         throw new UnsupportedOperationException();
     }
 
@@ -318,7 +339,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws IllegalArgumentException 当需要保留的元素数量小于0时抛出
      * @see Stream#limit(long)
      */
-    Pipe<T> limit(long size);
+    Pipe<E> limit(long size);
 
     /**
      * 跳过指定数量的元素。
@@ -328,15 +349,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws IllegalArgumentException 当需要保留的元素数量小于0时抛出
      * @see Stream#skip(long)
      */
-    default Pipe<T> skip(long size) {
-        if (size < 0) {
-            throw new IllegalArgumentException("skip size cannot be negative, size: " + size);
-        }
-        if (size == 0) {
-            return this;
-        }
-        throw new UnsupportedOperationException();
-    }
+    Pipe<E> skip(long size);
 
     /**
      * 在流水线头部插入给定的流水线中的元素。
@@ -345,7 +358,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @return 新的流水线
      */
     @Extended
-    default Pipe<T> prepend(Pipe<? extends T> pipe) {
+    default Pipe<E> prepend(Pipe<? extends E> pipe) {
         throw new UnsupportedOperationException();
     }
 
@@ -356,7 +369,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @return 新的流水线
      */
     @Extended
-    default Pipe<T> prepend(Iterator<? extends T> iterator) {
+    default Pipe<E> prepend(Iterator<? extends E> iterator) {
         return prepend(Pipes.from(iterator));
     }
 
@@ -367,7 +380,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @return 新的流水线
      */
     @Extended
-    default Pipe<T> prepend(Stream<? extends T> stream) {
+    default Pipe<E> prepend(Stream<? extends E> stream) {
         return prepend(Pipes.from(stream));
     }
 
@@ -379,7 +392,7 @@ public interface Pipe<T> extends AutoCloseable {
      */
     @Extended
     @SuppressWarnings({"unchecked", "varargs"})
-    default Pipe<T> prepend(T... values) {
+    default Pipe<E> prepend(E... values) {
         throw new UnsupportedOperationException();
     }
 
@@ -390,7 +403,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @return 新的流水线
      */
     @Extended
-    default Pipe<T> append(Pipe<? extends T> pipe) {
+    default Pipe<E> append(Pipe<? extends E> pipe) {
         throw new UnsupportedOperationException();
     }
 
@@ -401,7 +414,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @return 新的流水线
      */
     @Extended
-    default Pipe<T> append(Iterator<? extends T> iterator) {
+    default Pipe<E> append(Iterator<? extends E> iterator) {
         throw new UnsupportedOperationException();
     }
 
@@ -412,7 +425,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @return 新的流水线
      */
     @Extended
-    default Pipe<T> append(Stream<? extends T> stream) {
+    default Pipe<E> append(Stream<? extends E> stream) {
         return append(Pipes.from(stream));
     }
 
@@ -424,7 +437,7 @@ public interface Pipe<T> extends AutoCloseable {
      */
     @Extended
     @SuppressWarnings({"unchecked", "varargs"})
-    default Pipe<T> append(T... values) {
+    default Pipe<E> append(E... values) {
         throw new UnsupportedOperationException();
     }
 
@@ -435,7 +448,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @return 新的流水线
      */
     @Extended
-    default Pipe<T> dropUntil(Predicate<? super T> predicate) {
+    default Pipe<E> dropUntil(Predicate<? super E> predicate) {
         throw new UnsupportedOperationException();
     }
 
@@ -446,7 +459,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @return 新的流水线
      */
     @Extended
-    default Pipe<T> keepUntil(Predicate<? super T> predicate) {
+    default Pipe<E> keepUntil(Predicate<? super E> predicate) {
         throw new UnsupportedOperationException();
     }
 
@@ -456,7 +469,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @return 新的流水线
      */
     @Extended
-    default Pipe<T> nonNull() {
+    default Pipe<E> nonNull() {
         return filter(Objects::nonNull);
     }
 
@@ -467,7 +480,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @return 新的流水线
      */
     @Extended
-    default Pipe<T> nonNullBy(Function<? super T, ?> mapper) {
+    default Pipe<E> nonNullBy(Function<? super E, ?> mapper) {
         Objects.requireNonNull(mapper);
         return filter(value -> mapper.apply(value) != null);
     }
@@ -482,7 +495,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出
      */
     @Extended
-    default Pipe<Pipe<T>> partition(int size) {
+    default Pipe<Pipe<E>> partition(int size) {
         throw new UnsupportedOperationException();
     }
 
@@ -497,7 +510,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @apiNote 封装的列表不保证可变性，如果明确需要分区列表可修改，请使用{@link #partitionToList(int, Supplier)}。
      */
     @Extended
-    default Pipe<List<T>> partitionToList(int size) {
+    default Pipe<List<E>> partitionToList(int size) {
         if (size < 1) {
             throw new IllegalArgumentException("partition size cannot be less then 1, size: " + size);
         }
@@ -515,7 +528,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出
      */
     @Extended
-    default <L extends List<T>> Pipe<List<T>> partitionToList(int size, Supplier<L> listSupplier) {
+    default <L extends List<E>> Pipe<List<E>> partitionToList(int size, Supplier<L> listSupplier) {
         if (size < 1) {
             throw new IllegalArgumentException("partition size cannot be less then 1, size: " + size);
         }
@@ -530,7 +543,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @return 新的两元组流水线
      * @apiNote 当任意流水线耗尽时，新的双元组流水线即耗尽，哪怕还有剩余元素。
      */
-    default <S> BiPipe<T, S> combine(Pipe<S> secondPipe) {
+    default <S> BiPipe<E, S> combine(Pipe<S> secondPipe) {
         throw new UnsupportedOperationException();
     }
 
@@ -540,9 +553,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @param action 访问元素的方法
      * @see Stream#forEach(Consumer)
      */
-    default void forEach(Consumer<? super T> action) {
-        throw new UnsupportedOperationException();
-    }
+    void forEach(Consumer<? super E> action);
 
     /**
      * 访问流水线中的每个元素，支持访问元素的次序。
@@ -550,19 +561,19 @@ public interface Pipe<T> extends AutoCloseable {
      * @param action 访问元素的方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为访问的元素。
      */
     @Extended
-    default void forEachEnumerated(IntBiConsumer<? super T> action) {
+    default void forEachEnumerated(IntBiConsumer<? super E> action) {
         throw new UnsupportedOperationException();
     }
 
-    default T reduce(T identity, BinaryOperator<T> op) {
+    default E reduce(E identity, BinaryOperator<E> op) {
         throw new UnsupportedOperationException();
     }
 
-    default Optional<T> reduce(BinaryOperator<T> op) {
+    default Optional<E> reduce(BinaryOperator<E> op) {
         throw new UnsupportedOperationException();
     }
 
-    default <R> R reduce(R identity, Function<? super T, ? extends R> mapper, BinaryOperator<R> op) {
+    default <R> R reduce(R identity, Function<? super E, ? extends R> mapper, BinaryOperator<R> op) {
         throw new UnsupportedOperationException();
     }
 
@@ -573,7 +584,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @return 最小的元素，如果流水线为空则返回空的{@link Optional}
      * @see Stream#min(Comparator)
      */
-    default Optional<T> min(Comparator<? super T> comparator) {
+    default Optional<E> min(Comparator<? super E> comparator) {
         throw new UnsupportedOperationException();
     }
 
@@ -586,7 +597,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws ClassCastException 当流水线元素无法转换为{@link Comparable}类型时抛出
      */
     @Extended
-    default Optional<T> min() {
+    default Optional<E> min() {
         throw new UnsupportedOperationException();
     }
 
@@ -597,7 +608,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @return 最大的元素，如果流水线为空则返回空的{@link Optional}
      * @see Stream#max(Comparator)
      */
-    default Optional<T> max(Comparator<? super T> comparator) {
+    default Optional<E> max(Comparator<? super E> comparator) {
         throw new UnsupportedOperationException();
     }
 
@@ -610,7 +621,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @throws ClassCastException 当流水线元素无法转换为{@link Comparable}类型时抛出
      */
     @Extended
-    default Optional<T> max() {
+    default Optional<E> max() {
         throw new UnsupportedOperationException();
     }
 
@@ -624,15 +635,15 @@ public interface Pipe<T> extends AutoCloseable {
         throw new UnsupportedOperationException();
     }
 
-    default boolean anyMatch(Predicate<? super T> predicate) {
+    default boolean anyMatch(Predicate<? super E> predicate) {
         throw new UnsupportedOperationException();
     }
 
-    default boolean allMatch(Predicate<? super T> predicate) {
+    default boolean allMatch(Predicate<? super E> predicate) {
         throw new UnsupportedOperationException();
     }
 
-    default boolean noneMatch(Predicate<? super T> predicate) {
+    default boolean noneMatch(Predicate<? super E> predicate) {
         throw new UnsupportedOperationException();
     }
 
@@ -642,7 +653,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @return 流水线中的第一个元素，如果流水线为空则返回空的{@link Optional}
      * @see Stream#findFirst()
      */
-    default Optional<T> findFirst() {
+    default Optional<E> findFirst() {
         throw new UnsupportedOperationException();
     }
 
@@ -652,7 +663,7 @@ public interface Pipe<T> extends AutoCloseable {
      * @return 流水线中的最后一个元素，如果流水线为空则返回空的{@link Optional}
      */
     @Extended
-    default Optional<T> findLast() {
+    default Optional<E> findLast() {
         throw new UnsupportedOperationException();
     }
 
@@ -662,11 +673,11 @@ public interface Pipe<T> extends AutoCloseable {
      * @return 流水线中的任一元素，如果流水线为空则返回空的{@link Optional}
      * @see Stream#findAny()
      */
-    default Optional<T> findAny() {
+    default Optional<E> findAny() {
         return findFirst();
     }
 
-    default Iterator<T> iterator() {
+    default Iterator<E> iterator() {
         throw new UnsupportedOperationException();
     }
 
@@ -675,68 +686,68 @@ public interface Pipe<T> extends AutoCloseable {
     }
 
     @Extended
-    default List<T> toList() {
+    default List<E> toList() {
         throw new UnsupportedOperationException();
     }
 
     @Extended
-    default <L extends List<T>> List<T> toList(Supplier<L> listSupplier) {
+    default <L extends List<E>> List<E> toList(Supplier<L> listSupplier) {
         throw new UnsupportedOperationException();
     }
 
     @Extended
-    default List<T> toUnmodifiableList() {
+    default List<E> toUnmodifiableList() {
         throw new UnsupportedOperationException();
     }
 
     @Extended
-    default Set<T> toSet() {
+    default Set<E> toSet() {
         throw new UnsupportedOperationException();
     }
 
     @Extended
-    default <S extends Set<T>> Set<T> toSet(Supplier<S> setSupplier) {
+    default <S extends Set<E>> Set<E> toSet(Supplier<S> setSupplier) {
         throw new UnsupportedOperationException();
     }
 
     @Extended
-    default Set<T> toUnmodifiableSet() {
+    default Set<E> toUnmodifiableSet() {
         throw new UnsupportedOperationException();
     }
 
     @Extended
-    default <C extends Collection<T>> C toCollection(Supplier<C> collectionSupplier) {
+    default <C extends Collection<E>> C toCollection(Supplier<C> collectionSupplier) {
         throw new UnsupportedOperationException();
     }
 
     @Extended
-    default <K> Map<K, T> toMap(Function<? super T, ? extends K> keyMapper) {
+    default <K> Map<K, E> toMap(Function<? super E, ? extends K> keyMapper) {
         throw new UnsupportedOperationException();
     }
 
     @Extended
-    default <K, M extends Map<K, T>> M toMap(Supplier<M> mapSupplier, Function<? super T, ? extends K> keyMapper) {
+    default <K, M extends Map<K, E>> M toMap(Supplier<M> mapSupplier, Function<? super E, ? extends K> keyMapper) {
         throw new UnsupportedOperationException();
     }
 
     @Extended
-    default <K> Map<K, T> toUnmodifiableMap(Function<? super T, ? extends K> keyMapper) {
+    default <K> Map<K, E> toUnmodifiableMap(Function<? super E, ? extends K> keyMapper) {
         throw new UnsupportedOperationException();
     }
 
     @Extended
-    default <K> Map<K, List<T>> group(Function<? super T, ? extends K> classifier) {
+    default <K> Map<K, List<E>> group(Function<? super E, ? extends K> classifier) {
         throw new UnsupportedOperationException();
     }
 
     @Extended
-    default <K, V> Map<K, V> groupAndThen(Function<? super T, ? extends K> classifier, Function<List<T>, V> finisher) {
+    default <K, V> Map<K, V> groupAndThen(Function<? super E, ? extends K> classifier, Function<List<E>, V> finisher) {
         throw new UnsupportedOperationException();
     }
 
     @Extended
-    default <K> Map<K, List<T>> groupAndExecute(Function<? super T, ? extends K> classifier,
-        BiConsumer<K, List<T>> action) {
+    default <K> Map<K, List<E>> groupAndExecute(Function<? super E, ? extends K> classifier,
+            BiConsumer<K, List<E>> action) {
         throw new UnsupportedOperationException();
     }
 
@@ -755,8 +766,9 @@ public interface Pipe<T> extends AutoCloseable {
         return join("", "", "");
     }
 
-    Pipe<T> onClose(Runnable closeAction);
+    Pipe<E> onClose(Runnable closeAction);
 
     @Override
-    default void close() {}
+    default void close() {
+    }
 }

@@ -8,7 +8,7 @@ import java.util.Objects;
  * @author oyealex
  * @since 2023-04-28
  */
-abstract class ChainedOp<T, OUT> implements Op<T> {
+public abstract class ChainedOp<IN, OUT> implements Op<IN> {
     /** 下一个操作 */
     protected final Op<? super OUT> next;
 

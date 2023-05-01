@@ -11,12 +11,11 @@ import com.oyealex.pipe.basis.functional.LongBiPredicate;
 class FilterEnumeratedLongOp<IN> extends ChainedOp<IN, IN> {
     private final LongBiPredicate<? super IN> predicate;
 
-    private long index;
+    private long index = 0L;
 
     FilterEnumeratedLongOp(Op<IN> op, LongBiPredicate<? super IN> predicate) {
         super(op);
         this.predicate = predicate;
-        index = 0L;
     }
 
     @Override

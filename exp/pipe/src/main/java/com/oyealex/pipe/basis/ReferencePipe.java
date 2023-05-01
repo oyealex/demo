@@ -1,7 +1,10 @@
 package com.oyealex.pipe.basis;
 
+import com.oyealex.pipe.basis.functional.IntBiFunction;
 import com.oyealex.pipe.basis.functional.IntBiPredicate;
+import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
+import com.oyealex.pipe.basis.op.ChainedOp;
 import com.oyealex.pipe.basis.op.Op;
 import com.oyealex.pipe.basis.op.Ops;
 import com.oyealex.pipe.basis.op.TerminalOp;
@@ -21,11 +24,15 @@ import static java.util.Objects.requireNonNull;
  * @since 2023-03-04
  */
 abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
-    /** 源节点，缓存指针以加速访问 */
+    /**
+     * 源节点，缓存指针以加速访问
+     */
     @SuppressWarnings("rawtypes")
     private final ReferencePipe sourcePipe;
 
-    /** 此节点的前置节点，当且仅当此节点为源节点时为null */
+    /**
+     * 此节点的前置节点，当且仅当此节点为源节点时为null
+     */
     @SuppressWarnings("rawtypes")
     private final ReferencePipe prePipe;
 
@@ -107,6 +114,51 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
+    public <R> Pipe<R> mapEnumerated(IntBiFunction<? super OUT, ? extends R> mapper) {
+        requireNonNull(mapper);
+        return new ReferencePipe<>(this) {
+
+            @Override
+            protected Op<OUT> wrapOp(Op<R> op) {
+                return Ops.mapEnumeratedOp(op, mapper);
+            }
+        };
+    }
+
+    @Override
+    public <R> Pipe<R> mapEnumeratedLong(LongBiFunction<? super OUT, ? extends R> mapper) {
+        requireNonNull(mapper);
+        return new ReferencePipe<>(this) {
+
+            @Override
+            protected Op<OUT> wrapOp(Op<R> op) {
+                return Ops.mapEnumeratedLongOp(op, mapper);
+            }
+        };
+    }
+
+    @Override
+    public <R> Pipe<R> flatMap(Function<? super OUT, ? extends Pipe<? extends R>> mapper) {
+        requireNonNull(mapper);
+        return new ReferencePipe<>(this) {
+
+            @Override
+            protected Op<OUT> wrapOp(Op<R> op) {
+                return new ChainedOp<>(op) {
+                    @Override
+                    public void accept(OUT out) {
+                        try (Pipe<? extends R> pipe = mapper.apply(out)) {
+                            if (pipe != null) {
+                                pipe.forEach(next);
+                            }
+                        }
+                    }
+                };
+            }
+        };
+    }
+
+    @Override
     public Pipe<OUT> limit(long size) {
         if (size < 0) {
             throw new IllegalArgumentException("limit size cannot be negative, size: " + size);
@@ -118,6 +170,22 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
                 return Ops.gettLimitOp(op, size);
+            }
+        };
+    }
+
+    @Override
+    public Pipe<OUT> skip(long size) {
+        if (size < 0) {
+            throw new IllegalArgumentException("skip size cannot be negative, size: " + size);
+        }
+        if (size == 0) {
+            return this;
+        }
+        return new ReferencePipe<>(this) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> op) {
+                return Ops.skipOp(op, size);
             }
         };
     }

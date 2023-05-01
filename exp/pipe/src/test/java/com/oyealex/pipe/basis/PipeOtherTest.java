@@ -5,16 +5,21 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.oyealex.pipe.basis.Pipes.of;
+import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * 针对Pipe的其他测试。
  *
  * @author oyealex
+ * @see Pipe#skip(long)
+ * @see Pipe#limit(long)
  * @see Pipe#onClose(Runnable)
  * @see Pipe#close()
  * @since 2023-04-29
@@ -32,4 +37,19 @@ class PipeOtherTest extends PipeTestBase {
             .close();
         assertEquals(List.of("CallAfterInit", "CallAfterInit#2", "callAfterFilter"), callRecords);
     }
+
+    @Test
+    @DisplayName("能够正确限制元素数量")
+    void should_limit_elements_rightly() {
+        List<String> res = of(ELEMENTS).limit(3).toList();
+        assertEquals(Arrays.stream(ELEMENTS).limit(3).collect(toList()), res);
+    }
+
+    @Test
+    @DisplayName("能够正确跳过元素数量")
+    void should_skip_elements_rightly() {
+        List<String> res = of(ELEMENTS).skip(3).toList();
+        assertEquals(Arrays.stream(ELEMENTS).skip(3).collect(toList()), res);
+    }
+
 }

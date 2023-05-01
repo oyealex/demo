@@ -6,20 +6,21 @@ package com.oyealex.pipe.basis.op;
  * @author oyealex
  * @since 2023-04-28
  */
-class LimitOp<IN> extends ChainedOp<IN, IN> {
+class SkipOp<IN> extends ChainedOp<IN, IN> {
     private final long size;
 
-    private long limited = 0L;
+    private long skipped = 0L;
 
-    LimitOp(Op<IN> op, long size) {
+    SkipOp(Op<IN> op, long size) {
         super(op);
         this.size = size;
     }
 
     @Override
     public void accept(IN in) {
-        if (limited < size) {
-            limited++;
+        if (skipped < size) {
+            skipped++;
+        } else {
             next.accept(in);
         }
     }

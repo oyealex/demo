@@ -11,12 +11,11 @@ import com.oyealex.pipe.basis.functional.IntBiPredicate;
 class FilterEnumeratedOp<IN> extends ChainedOp<IN, IN> {
     private final IntBiPredicate<? super IN> predicate;
 
-    private int index;
+    private int index = 0;
 
     FilterEnumeratedOp(Op<IN> op, IntBiPredicate<? super IN> predicate) {
         super(op);
         this.predicate = predicate;
-        index = 0;
     }
 
     @Override
