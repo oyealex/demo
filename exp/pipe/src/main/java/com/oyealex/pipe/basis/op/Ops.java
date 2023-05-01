@@ -61,7 +61,15 @@ public class Ops {
         return new SkipOp<>(op, size);
     }
 
-    public static <IN> Op<IN> flatMapOP(Op<IN> op, Function<? super IN, ? extends Pipe<? extends IN>> mapper) {
-        return new FlatMapOp<>(op, mapper);
+    public static <R, OUT> Op<OUT> flatMapOP(Op<R> op, Function<? super OUT, ? extends Pipe<? extends R>> mapper) {
+        return new FlatMapXOp<>(op, mapper);
+    }
+
+    public static <OUT> Op<OUT> distinctOp(Op<OUT> op) {
+        return new DistinctOp<>(op);
+    }
+
+    public static <OUT, R> Op<OUT> distinctKeyedOp(Op<OUT> op, Function<? super OUT, ? extends R> mapper) {
+        return new DistinctKeyedOp<>(op, mapper);
     }
 }

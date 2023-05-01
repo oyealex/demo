@@ -9,6 +9,7 @@ import com.oyealex.pipe.basis.op.Op;
 import com.oyealex.pipe.basis.op.Ops;
 import com.oyealex.pipe.basis.op.TerminalOp;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
@@ -144,16 +145,28 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
 
             @Override
             protected Op<OUT> wrapOp(Op<R> op) {
-                return new ChainedOp<>(op) {
-                    @Override
-                    public void accept(OUT out) {
-                        try (Pipe<? extends R> pipe = mapper.apply(out)) {
-                            if (pipe != null) {
-                                pipe.forEach(next);
-                            }
-                        }
-                    }
-                };
+                return Ops.flatMapOP(op, mapper);
+            }
+        };
+    }
+
+    @Override
+    public Pipe<OUT> distinct() {
+        return new ReferencePipe<>(this) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> op) {
+                return Ops.distinctOp(op);
+            }
+        };
+    }
+
+    @Override
+    public <R> Pipe<OUT> distinctKeyed(Function<? super OUT, ? extends R> mapper) {
+        requireNonNull(mapper);
+        return new ReferencePipe<>(this) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> op) {
+                return Ops.distinctKeyedOp(op, mapper);
             }
         };
     }
@@ -191,6 +204,62 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
+    public Pipe<OUT> prepend(Iterator<? extends OUT> iterator) {
+        requireNonNull(iterator);
+        // TODO 采用转为迭代器的方式实现，避免内部缓存，参考Stream.concat
+        return new ReferencePipe<>(this) {
+
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> op) {
+                return new ChainedOp<>(op) {
+                    private List<OUT> cached;
+
+                    @Override
+                    public void begin(long size) {
+                        cached = new ArrayList<>();
+                        next.begin(size);
+                    }
+
+                    @Override
+                    public void accept(OUT out) {
+                        cached.add(out);
+                    }
+
+                    @Override
+                    public void end() {
+                        iterator.forEachRemaining(next);
+                        cached.forEach(next);
+                        next.end();
+                    }
+                };
+            }
+        };
+    }
+
+    @Override
+    public Pipe<OUT> append(Iterator<? extends OUT> iterator) {
+        requireNonNull(iterator);
+        return new ReferencePipe<>(this) {
+
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> op) {
+                return new ChainedOp<>(op) {
+                    @Override
+                    public void accept(OUT out) {
+                        next.accept(out);
+                    }
+
+                    @Override
+                    public void end() {
+                        iterator.forEachRemaining(next);
+                        next.end();
+                    }
+                };
+            }
+        };
+    }
+
+    @Override
     public void forEach(Consumer<? super OUT> action) {
         requireNonNull(action);
         evaluate(Ops.foreachOp(action));
@@ -216,4 +285,5 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     public void close() {
         sourcePipe.close();
     }
+
 }

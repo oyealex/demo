@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 class PipeMapTest extends PipeTestBase {
     @Test
-    @DisplayName("能够将元素正确的转换为其他类型")
+    @DisplayName("能够将元素正确地转换为其他类型")
     void should_map_element_to_another_type_rightly() {
         List<Integer> res = of(ELEMENTS).map(String::length).toList();
         assertEquals(stream(ELEMENTS).map(String::length).collect(toList()), res);
@@ -47,5 +47,12 @@ class PipeMapTest extends PipeTestBase {
         List<String> res = of(ELEMENTS).mapEnumerated((index, value) -> String.valueOf(index)).toList();
         int[] index = new int[1];
         assertEquals(stream(ELEMENTS).map(value -> String.valueOf(index[0]++)).collect(toList()), res);
+    }
+
+    @Test
+    @DisplayName("能够将元素正确地转换为其他类型的流水线")
+    void should_flat_map_element_to_another_type_pipe_rightly() {
+        List<Integer> res = of(ELEMENTS).flatMap(value -> Pipes.from(value.chars().iterator())).toList();
+        assertEquals(stream(ELEMENTS).flatMapToInt(String::chars).boxed().collect(toList()), res);
     }
 }

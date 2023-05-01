@@ -9,6 +9,8 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.Stream;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * 流水线接口
  *
@@ -36,7 +38,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @see Stream#filter(Predicate)
      */
     default Pipe<E> filterReversed(Predicate<? super E> predicate) {
-        Objects.requireNonNull(predicate);
+        requireNonNull(predicate);
         return filter(predicate.negate());
     }
 
@@ -143,9 +145,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @throws NullPointerException 当{@code mapper}为null时抛出
      * @see Stream#flatMap(Function)
      */
-    default <R> Pipe<R> flatMap(Function<? super E, ? extends Pipe<? extends R>> mapper) {
-        throw new UnsupportedOperationException();
-    }
+    <R> Pipe<R> flatMap(Function<? super E, ? extends Pipe<? extends R>> mapper);
 
     /**
      * 将流水线中的元素映射为新的int流水线，并按照次序拼接为一条int流水线。
@@ -246,9 +246,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @throws NullPointerException 当{@code mapper}为null时抛出
      */
     @Extended
-    default Pipe<E> distinctBy(Function<? super E, ?> mapper) {
-        throw new UnsupportedOperationException();
-    }
+    <R> Pipe<E> distinctKeyed(Function<? super E, ? extends R> mapper);
 
     /**
      * 对流水线中的元素排序，以默认顺序排序，
@@ -271,7 +269,7 @@ public interface Pipe<E> extends AutoCloseable {
      */
     // TODO 2023-04-24 00:19 关注排序稳定性
     default Pipe<E> sorted(Comparator<? super E> comparator) {
-        Objects.requireNonNull(comparator);
+        requireNonNull(comparator);
         throw new UnsupportedOperationException();
     }
 
@@ -369,9 +367,19 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 新的流水线
      */
     @Extended
-    default Pipe<E> prepend(Iterator<? extends E> iterator) {
-        return prepend(Pipes.from(iterator));
+    Pipe<E> prepend(Iterator<? extends E> iterator);
+
+    /**
+     * 在流水线头部插入给定的可迭代对象中的元素。
+     *
+     * @param iterable 包含需要插入到头部的元素的可迭代对象
+     * @return 新的流水线
+     */
+    @Extended
+    default Pipe<E> prepend(Iterable<? extends E> iterable) {
+        return prepend(iterable.iterator());
     }
+
 
     /**
      * 在流水线头部插入给定的流中的元素。
@@ -393,7 +401,7 @@ public interface Pipe<E> extends AutoCloseable {
     @Extended
     @SuppressWarnings({"unchecked", "varargs"})
     default Pipe<E> prepend(E... values) {
-        throw new UnsupportedOperationException();
+        return prepend(Misc.arrayIterator(values));
     }
 
     /**
@@ -406,6 +414,18 @@ public interface Pipe<E> extends AutoCloseable {
     default Pipe<E> append(Pipe<? extends E> pipe) {
         throw new UnsupportedOperationException();
     }
+
+    /**
+     * 在流水线尾部插入给定的可迭代对象中的元素。
+     *
+     * @param iterable 包含需要插入到尾部的元素的可迭代对象
+     * @return 新的流水线
+     */
+    @Extended
+    default Pipe<E> append(Iterable<? extends E> iterable) {
+        return append(iterable.iterator());
+    }
+
 
     /**
      * 在流水线尾部插入给定的迭代器中的元素。
@@ -438,7 +458,7 @@ public interface Pipe<E> extends AutoCloseable {
     @Extended
     @SuppressWarnings({"unchecked", "varargs"})
     default Pipe<E> append(E... values) {
-        throw new UnsupportedOperationException();
+        return append(Misc.arrayIterator(values));
     }
 
     /**
@@ -481,7 +501,7 @@ public interface Pipe<E> extends AutoCloseable {
      */
     @Extended
     default Pipe<E> nonNullBy(Function<? super E, ?> mapper) {
-        Objects.requireNonNull(mapper);
+        requireNonNull(mapper);
         return filter(value -> mapper.apply(value) != null);
     }
 
