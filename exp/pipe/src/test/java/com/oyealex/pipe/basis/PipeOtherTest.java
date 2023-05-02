@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * @see Pipe#skip(long)
  * @see Pipe#limit(long)
  * @see Pipe#distinct()
- * @see Pipe#distinctKeyed(Function)
+ * @see Pipe#distinctBy(Function)
  * @see Pipe#onClose(Runnable)
  * @see Pipe#close()
  * @since 2023-04-29
@@ -61,7 +61,7 @@ class PipeOtherTest extends PipeTestBase {
     @Test
     @DisplayName("能够根据映射的Key对元素去重")
     void should_distinct_elements_by_key_rightly() {
-        List<String> res = of(ELEMENTS).distinctKeyed(String::length).toList();
+        List<String> res = of(ELEMENTS).distinctBy(String::length).toList();
         Set<Integer> seen = new HashSet<>();
         assertEquals(stream(ELEMENTS).filter(value -> seen.add(value.length())).collect(toList()), res);
     }

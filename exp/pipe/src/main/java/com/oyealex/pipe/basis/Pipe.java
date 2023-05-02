@@ -1,12 +1,33 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.annotations.Extended;
-import com.oyealex.pipe.basis.functional.*;
+import com.oyealex.pipe.basis.functional.IntBiConsumer;
+import com.oyealex.pipe.basis.functional.IntBiFunction;
+import com.oyealex.pipe.basis.functional.IntBiPredicate;
+import com.oyealex.pipe.basis.functional.LongBiFunction;
+import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import com.oyealex.pipe.bi.BiPipe;
 import com.oyealex.pipe.tri.TriPipe;
 
-import java.util.*;
-import java.util.function.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.IntFunction;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.function.ToDoubleFunction;
+import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
 import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
@@ -37,7 +58,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @throws NullPointerException 当{@code predicate}为null时抛出
      * @see Stream#filter(Predicate)
      */
-    default Pipe<E> filterReversed(Predicate<? super E> predicate) {
+    default Pipe<E> filterReversely(Predicate<? super E> predicate) {
         requireNonNull(predicate);
         return filter(predicate.negate());
     }
@@ -184,6 +205,18 @@ public interface Pipe<E> extends AutoCloseable {
     }
 
     /**
+     * 使用给定的映射方法，将此流水线扩展为两元组的流水线，其中两元组的第一个元素仍然为当前流水线中的元素。
+     *
+     * @param secondMapper 两元组第二个元素的映射方法
+     * @param <S> 两元组第二个元素的类型
+     * @return 映射后的两元组流水线
+     * @throws NullPointerException 当映射方法为null时抛出
+     */
+    default <S> BiPipe<E, S> extendToTuple(Function<? super E, ? extends S> secondMapper) {
+        return extendToTuple(Function.identity(), secondMapper);
+    }
+
+    /**
      * 使用给定的映射方法，将此流水线扩展为两元组的流水线。
      *
      * @param firstMapper 两元组第一个元素的映射方法
@@ -193,8 +226,8 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 映射后的两元组流水线
      * @throws NullPointerException 当任意映射方法为null时抛出
      */
-    default <F, S> BiPipe<F, S> extend(Function<? super E, ? extends F> firstMapper,
-            Function<? super E, ? extends S> secondMapper) {
+    default <F, S> BiPipe<F, S> extendToTuple(Function<? super E, ? extends F> firstMapper,
+        Function<? super E, ? extends S> secondMapper) {
         throw new UnsupportedOperationException();
     }
 
@@ -210,22 +243,9 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 映射后的三元组流水线
      * @throws NullPointerException 当任意映射方法为null时抛出
      */
-    default <F, S, T> TriPipe<F, S, T> extendTriple(Function<? super E, ? extends F> firstMapper,
-            Function<? super E, ? extends S> secondMapper, Function<? super E, ? extends T> thirdMapper) {
+    default <F, S, T> TriPipe<F, S, T> extendToTriple(Function<? super E, ? extends F> firstMapper,
+        Function<? super E, ? extends S> secondMapper, Function<? super E, ? extends T> thirdMapper) {
         throw new UnsupportedOperationException();
-    }
-
-    /**
-     * 使用给定的映射方法，将此流水线扩展为两元组的流水线，其中两元组的第一个元素仍然为当前流水线中的元素。
-     *
-     * @param secondMapper 两元组第二个元素的映射方法
-     * @param <S> 两元组第二个元素的类型
-     * @return 映射后的两元组流水线
-     * @throws NullPointerException 当映射方法为null时抛出
-     */
-    default <S> BiPipe<E, S> extendSelf(Function<? super E, ? extends S> secondMapper) {
-        throw new UnsupportedOperationException();
-
     }
 
     /**
@@ -242,23 +262,23 @@ public interface Pipe<E> extends AutoCloseable {
      * 对流水线中的元素去重，以给定的映射结果为依据。
      *
      * @param mapper 去重依据的映射方法
+     * @param <R> 映射结果的类型
      * @return 元素去重之后的流水线
      * @throws NullPointerException 当{@code mapper}为null时抛出
      */
     @Extended
-    <R> Pipe<E> distinctKeyed(Function<? super E, ? extends R> mapper);
+    <R> Pipe<E> distinctBy(Function<? super E, ? extends R> mapper);
 
     /**
-     * 对流水线中的元素排序，以默认顺序排序，
+     * 对流水线中的元素排序，以默认顺序排序。
+     * <p/>
      * 要求元素实现了{@link Comparable}，否则可能在流水线的终结操作中抛出{@link ClassCastException}异常。
      *
      * @return 元素排序后的流水线
      * @see Stream#sorted()
      */
     // TODO 2023-04-24 00:19 关注排序稳定性
-    default Pipe<E> sorted() {
-        throw new UnsupportedOperationException();
-    }
+    Pipe<E> sort();
 
     /**
      * 对流水线中的元素排序，以给定的比较方法排序。
@@ -268,10 +288,32 @@ public interface Pipe<E> extends AutoCloseable {
      * @see Stream#sorted(Comparator)
      */
     // TODO 2023-04-24 00:19 关注排序稳定性
-    default Pipe<E> sorted(Comparator<? super E> comparator) {
-        requireNonNull(comparator);
-        throw new UnsupportedOperationException();
-    }
+    Pipe<E> sort(Comparator<? super E> comparator);
+
+    /**
+     * 对流水线中的元素排序，以默认顺序排序，排序的依据为映射后的结果。
+     * <p/>
+     * 要求元素实现了{@link Comparable}，否则可能在流水线的终结操作中抛出{@link ClassCastException}异常。
+     *
+     * @param mapper 排序依据的映射方法
+     * @param <R> 映射结果的类型
+     * @return 元素排序后的流水线
+     */
+    // TODO 2023-04-24 00:19 关注排序稳定性
+    @Extended
+    <R> Pipe<E> sortBy(Function<? super E, ? extends R> mapper);
+
+    /**
+     * 对流水线中的元素排序，以给定的比较方法排序，排序的依据为映射后的结果。
+     *
+     * @param comparator 元素比较方法
+     * @param mapper 排序依据的映射方法
+     * @param <R> 映射结果的类型
+     * @return 元素排序后的流水线
+     */
+    // TODO 2023-04-24 00:19 关注排序稳定性
+    @Extended
+    <R> Pipe<E> sortBy(Function<? super E, ? extends R> mapper, Comparator<? super E> comparator);
 
     /**
      * 将流水线中的元素按照当前顺序颠倒。
@@ -279,7 +321,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 元素顺序颠倒后的流水线
      */
     @Extended
-    default Pipe<E> reversed() {
+    default Pipe<E> reverse() {
         throw new UnsupportedOperationException();
     }
 
@@ -380,7 +422,6 @@ public interface Pipe<E> extends AutoCloseable {
         return prepend(iterable.iterator());
     }
 
-
     /**
      * 在流水线头部插入给定的流中的元素。
      *
@@ -425,7 +466,6 @@ public interface Pipe<E> extends AutoCloseable {
     default Pipe<E> append(Iterable<? extends E> iterable) {
         return append(iterable.iterator());
     }
-
 
     /**
      * 在流水线尾部插入给定的迭代器中的元素。
@@ -515,9 +555,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出
      */
     @Extended
-    default Pipe<Pipe<E>> partition(int size) {
-        throw new UnsupportedOperationException();
-    }
+    Pipe<Pipe<E>> partition(int size);
 
     /**
      * 按照给定数量，对元素进行分区，并将分区结果封装为列表。
@@ -531,9 +569,6 @@ public interface Pipe<E> extends AutoCloseable {
      */
     @Extended
     default Pipe<List<E>> partitionToList(int size) {
-        if (size < 1) {
-            throw new IllegalArgumentException("partition size cannot be less then 1, size: " + size);
-        }
         return partition(size).map(Pipe::toList);
     }
 
@@ -549,9 +584,7 @@ public interface Pipe<E> extends AutoCloseable {
      */
     @Extended
     default <L extends List<E>> Pipe<List<E>> partitionToList(int size, Supplier<L> listSupplier) {
-        if (size < 1) {
-            throw new IllegalArgumentException("partition size cannot be less then 1, size: " + size);
-        }
+        requireNonNull(listSupplier);
         return partition(size).map(pipe -> pipe.toList(listSupplier));
     }
 
@@ -598,17 +631,6 @@ public interface Pipe<E> extends AutoCloseable {
     }
 
     /**
-     * 获取流水线中最小的元素，以给定的比较器为比较依据。
-     *
-     * @param comparator 比较器
-     * @return 最小的元素，如果流水线为空则返回空的{@link Optional}
-     * @see Stream#min(Comparator)
-     */
-    default Optional<E> min(Comparator<? super E> comparator) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
      * 获取流水线中最小的元素，以自然顺序为比较依据。
      * <p/>
      * 尝试将元素转为{@link Comparable}来进行比较。
@@ -622,13 +644,13 @@ public interface Pipe<E> extends AutoCloseable {
     }
 
     /**
-     * 获取流水线中最大的元素，以给定的比较器为比较依据。
+     * 获取流水线中最小的元素，以给定的比较器为比较依据。
      *
      * @param comparator 比较器
-     * @return 最大的元素，如果流水线为空则返回空的{@link Optional}
-     * @see Stream#max(Comparator)
+     * @return 最小的元素，如果流水线为空则返回空的{@link Optional}
+     * @see Stream#min(Comparator)
      */
-    default Optional<E> max(Comparator<? super E> comparator) {
+    default Optional<E> min(Comparator<? super E> comparator) {
         throw new UnsupportedOperationException();
     }
 
@@ -642,6 +664,17 @@ public interface Pipe<E> extends AutoCloseable {
      */
     @Extended
     default Optional<E> max() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * 获取流水线中最大的元素，以给定的比较器为比较依据。
+     *
+     * @param comparator 比较器
+     * @return 最大的元素，如果流水线为空则返回空的{@link Optional}
+     * @see Stream#max(Comparator)
+     */
+    default Optional<E> max(Comparator<? super E> comparator) {
         throw new UnsupportedOperationException();
     }
 
@@ -767,7 +800,7 @@ public interface Pipe<E> extends AutoCloseable {
 
     @Extended
     default <K> Map<K, List<E>> groupAndExecute(Function<? super E, ? extends K> classifier,
-            BiConsumer<K, List<E>> action) {
+        BiConsumer<K, List<E>> action) {
         throw new UnsupportedOperationException();
     }
 

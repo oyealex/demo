@@ -11,8 +11,8 @@ class LimitOp<IN> extends ChainedOp<IN, IN> {
 
     private long limited = 0L;
 
-    LimitOp(Op<IN> op, long size) {
-        super(op);
+    LimitOp(Op<IN> nextOp, long size) {
+        super(nextOp);
         this.size = size;
     }
 
@@ -20,7 +20,7 @@ class LimitOp<IN> extends ChainedOp<IN, IN> {
     public void accept(IN in) {
         if (limited < size) {
             limited++;
-            next.accept(in);
+            nextOp.accept(in);
         }
     }
 }

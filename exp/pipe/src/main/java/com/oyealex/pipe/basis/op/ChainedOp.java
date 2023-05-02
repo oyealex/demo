@@ -10,24 +10,24 @@ import java.util.Objects;
  */
 public abstract class ChainedOp<IN, OUT> implements Op<IN> {
     /** 下一个操作 */
-    protected final Op<? super OUT> next;
+    protected final Op<? super OUT> nextOp;
 
-    public ChainedOp(Op<? super OUT> next) {
-        this.next = Objects.requireNonNull(next);
+    public ChainedOp(Op<? super OUT> nextOp) {
+        this.nextOp = Objects.requireNonNull(nextOp);
     }
 
     @Override
     public void begin(long size) {
-        next.begin(size);
+        nextOp.begin(size);
     }
 
     @Override
     public void end() {
-        next.end();
+        nextOp.end();
     }
 
     @Override
     public boolean cancellationRequested() {
-        return next.cancellationRequested();
+        return nextOp.cancellationRequested();
     }
 }

@@ -11,8 +11,8 @@ class SkipOp<IN> extends ChainedOp<IN, IN> {
 
     private long skipped = 0L;
 
-    SkipOp(Op<IN> op, long size) {
-        super(op);
+    SkipOp(Op<IN> nextOp, long size) {
+        super(nextOp);
         this.size = size;
     }
 
@@ -21,7 +21,7 @@ class SkipOp<IN> extends ChainedOp<IN, IN> {
         if (skipped < size) {
             skipped++;
         } else {
-            next.accept(in);
+            nextOp.accept(in);
         }
     }
 }

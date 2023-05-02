@@ -12,20 +12,20 @@ import java.util.Set;
 class DistinctOp<IN> extends ChainedOp<IN, IN> {
     private Set<IN> seen;
 
-    DistinctOp(Op<IN> op) {
-        super(op);
+    DistinctOp(Op<IN> nextOp) {
+        super(nextOp);
     }
 
     @Override
     public void begin(long size) {
         seen = new HashSet<>();
-        next.begin(-1);
+        nextOp.begin(-1);
     }
 
     @Override
     public void accept(IN in) {
         if (seen.add(in)) {
-            next.accept(in);
+            nextOp.accept(in);
         }
     }
 }

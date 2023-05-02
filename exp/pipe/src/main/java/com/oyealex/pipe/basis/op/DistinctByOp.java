@@ -10,26 +10,26 @@ import java.util.function.Function;
  * @author oyealex
  * @since 2023-04-28
  */
-class DistinctKeyedOp<IN, R> extends ChainedOp<IN, IN> {
+class DistinctByOp<IN, R> extends ChainedOp<IN, IN> {
     private final Function<? super IN, ? extends R> mapper;
 
     private Set<R> seen;
 
-    DistinctKeyedOp(Op<IN> op, Function<? super IN, ? extends R> mapper) {
-        super(op);
+    DistinctByOp(Op<IN> nextOp, Function<? super IN, ? extends R> mapper) {
+        super(nextOp);
         this.mapper = mapper;
     }
 
     @Override
     public void begin(long size) {
         seen = new HashSet<>();
-        next.begin(-1);
+        nextOp.begin(-1);
     }
 
     @Override
     public void accept(IN in) {
         if (seen.add(mapper.apply(in))) {
-            next.accept(in);
+            nextOp.accept(in);
         }
     }
 }

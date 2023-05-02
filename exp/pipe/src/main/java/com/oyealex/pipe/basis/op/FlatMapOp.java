@@ -5,24 +5,22 @@ import com.oyealex.pipe.basis.Pipe;
 import java.util.function.Function;
 
 /**
- * MapOp
- *
- * @author oyealex
- * @since 2023-04-28
+ * @param <R>
+ * @param <IN>
  */
-class FlatMapOp<IN, OUT> extends ChainedOp<IN, OUT> {
-    private final Function<? super IN, ? extends Pipe<? extends OUT>> mapper;
+class FlatMapOp<IN, R> extends ChainedOp<IN, R> {
+    private final Function<? super IN, ? extends Pipe<? extends R>> mapper;
 
-    FlatMapOp(Op<? super OUT> op, Function<? super IN, ? extends Pipe<? extends OUT>> mapper) {
-        super(op);
+    FlatMapOp(Op<R> nextOp, Function<? super IN, ? extends Pipe<? extends R>> mapper) {
+        super(nextOp);
         this.mapper = mapper;
     }
 
     @Override
-    public void accept(IN in) {
-        try (Pipe<? extends OUT> pipe = mapper.apply(in)) {
+    public void accept(IN out) {
+        try (Pipe<? extends R> pipe = mapper.apply(out)) {
             if (pipe != null) {
-                pipe.forEach(next);
+                pipe.forEach(nextOp);
             }
         }
     }

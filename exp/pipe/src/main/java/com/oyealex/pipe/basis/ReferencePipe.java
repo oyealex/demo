@@ -1,17 +1,18 @@
 package com.oyealex.pipe.basis;
 
+import com.oyealex.pipe.basis.functional.IntBiConsumer;
 import com.oyealex.pipe.basis.functional.IntBiFunction;
 import com.oyealex.pipe.basis.functional.IntBiPredicate;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
-import com.oyealex.pipe.basis.op.ChainedOp;
 import com.oyealex.pipe.basis.op.Op;
 import com.oyealex.pipe.basis.op.Ops;
 import com.oyealex.pipe.basis.op.TerminalOp;
 
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -118,7 +119,6 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     public <R> Pipe<R> mapEnumerated(IntBiFunction<? super OUT, ? extends R> mapper) {
         requireNonNull(mapper);
         return new ReferencePipe<>(this) {
-
             @Override
             protected Op<OUT> wrapOp(Op<R> op) {
                 return Ops.mapEnumeratedOp(op, mapper);
@@ -130,7 +130,6 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     public <R> Pipe<R> mapEnumeratedLong(LongBiFunction<? super OUT, ? extends R> mapper) {
         requireNonNull(mapper);
         return new ReferencePipe<>(this) {
-
             @Override
             protected Op<OUT> wrapOp(Op<R> op) {
                 return Ops.mapEnumeratedLongOp(op, mapper);
@@ -142,7 +141,6 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     public <R> Pipe<R> flatMap(Function<? super OUT, ? extends Pipe<? extends R>> mapper) {
         requireNonNull(mapper);
         return new ReferencePipe<>(this) {
-
             @Override
             protected Op<OUT> wrapOp(Op<R> op) {
                 return Ops.flatMapOP(op, mapper);
@@ -161,14 +159,52 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public <R> Pipe<OUT> distinctKeyed(Function<? super OUT, ? extends R> mapper) {
+    public <R> Pipe<OUT> distinctBy(Function<? super OUT, ? extends R> mapper) {
         requireNonNull(mapper);
         return new ReferencePipe<>(this) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.distinctKeyedOp(op, mapper);
+                return Ops.distinctByOp(op, mapper);
             }
         };
+    }
+
+    @Override
+    public Pipe<OUT> sort() {
+        return new ReferencePipe<>(this) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> op) {
+                return Ops.sortOp(op, null);
+            }
+        };
+    }
+
+    @Override
+    public Pipe<OUT> sort(Comparator<? super OUT> comparator) {
+        requireNonNull(comparator);
+        return new ReferencePipe<>(this) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> op) {
+                return Ops.sortOp(op, comparator);
+            }
+        };
+    }
+
+    @Override
+    public <R> Pipe<OUT> sortBy(Function<? super OUT, ? extends R> mapper) {
+        requireNonNull(mapper);
+        return new ReferencePipe<>(this) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> op) {
+                return null;
+            }
+        };
+    }
+
+    @Override
+    public <R> Pipe<OUT> sortBy(Function<? super OUT, ? extends R> mapper, Comparator<? super OUT> comparator) {
+        // TODO 2023-05-03 02:25
+        return null;
     }
 
     @Override
@@ -206,32 +242,11 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public Pipe<OUT> prepend(Iterator<? extends OUT> iterator) {
         requireNonNull(iterator);
-        // TODO 采用转为迭代器的方式实现，避免内部缓存，参考Stream.concat
+        // TODO 2023-05-03 01:46 采用转为迭代器的方式实现，避免内部缓存，参考Stream.concat
         return new ReferencePipe<>(this) {
-
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
-                return new ChainedOp<>(op) {
-                    private List<OUT> cached;
-
-                    @Override
-                    public void begin(long size) {
-                        cached = new ArrayList<>();
-                        next.begin(size);
-                    }
-
-                    @Override
-                    public void accept(OUT out) {
-                        cached.add(out);
-                    }
-
-                    @Override
-                    public void end() {
-                        iterator.forEachRemaining(next);
-                        cached.forEach(next);
-                        next.end();
-                    }
-                };
+                return Ops.prependOp(op, iterator);
             }
         };
     }
@@ -240,21 +255,22 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     public Pipe<OUT> append(Iterator<? extends OUT> iterator) {
         requireNonNull(iterator);
         return new ReferencePipe<>(this) {
-
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
-                return new ChainedOp<>(op) {
-                    @Override
-                    public void accept(OUT out) {
-                        next.accept(out);
-                    }
+                return Ops.appendOp(op, iterator);
+            }
+        };
+    }
 
-                    @Override
-                    public void end() {
-                        iterator.forEachRemaining(next);
-                        next.end();
-                    }
-                };
+    @Override
+    public Pipe<Pipe<OUT>> partition(int size) {
+        if (size < 1) {
+            throw new IllegalArgumentException("partition size cannot be less then 1, size: " + size);
+        }
+        return new ReferencePipe<>(this) {
+            @Override
+            protected Op<OUT> wrapOp(Op<Pipe<OUT>> op) {
+                return Ops.partitionOp(op, size);
             }
         };
     }
@@ -262,7 +278,33 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public void forEach(Consumer<? super OUT> action) {
         requireNonNull(action);
-        evaluate(Ops.foreachOp(action));
+        evaluate(Ops.forEachOp(action));
+    }
+
+    @Override
+    public void forEachEnumerated(IntBiConsumer<? super OUT> action) {
+        requireNonNull(action);
+        evaluate(Ops.forEachEnumeratedOp(action));
+    }
+
+    @Override
+    public Optional<OUT> min() {
+        return evaluate(Ops.minMaxOp(true, null));
+    }
+
+    @Override
+    public Optional<OUT> min(Comparator<? super OUT> comparator) {
+        return evaluate(Ops.minMaxOp(true, comparator));
+    }
+
+    @Override
+    public Optional<OUT> max() {
+        return evaluate(Ops.minMaxOp(false, null));
+    }
+
+    @Override
+    public Optional<OUT> max(Comparator<? super OUT> comparator) {
+        return evaluate(Ops.minMaxOp(false, comparator));
     }
 
     @Override
@@ -285,5 +327,4 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     public void close() {
         sourcePipe.close();
     }
-
 }

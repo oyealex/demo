@@ -11,13 +11,13 @@ import java.util.function.Function;
 class MapOp<IN, OUT> extends ChainedOp<IN, OUT> {
     private final Function<? super IN, ? extends OUT> mapper;
 
-    MapOp(Op<OUT> op, Function<? super IN, ? extends OUT> mapper) {
-        super(op);
+    MapOp(Op<OUT> nextOp, Function<? super IN, ? extends OUT> mapper) {
+        super(nextOp);
         this.mapper = mapper;
     }
 
     @Override
     public void accept(IN in) {
-        next.accept(mapper.apply(in));
+        nextOp.accept(mapper.apply(in));
     }
 }

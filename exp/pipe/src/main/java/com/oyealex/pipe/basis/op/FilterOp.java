@@ -11,20 +11,20 @@ import java.util.function.Predicate;
 class FilterOp<IN> extends ChainedOp<IN, IN> {
     private final Predicate<? super IN> predicate;
 
-    FilterOp(Op<IN> op, Predicate<? super IN> predicate) {
-        super(op);
+    FilterOp(Op<IN> nextOp, Predicate<? super IN> predicate) {
+        super(nextOp);
         this.predicate = predicate;
     }
 
     @Override
     public void begin(long size) {
-        next.begin(-1);
+        nextOp.begin(-1);
     }
 
     @Override
     public void accept(IN in) {
         if (predicate.test(in)) {
-            next.accept(in);
+            nextOp.accept(in);
         }
     }
 }

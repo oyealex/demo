@@ -13,13 +13,13 @@ class MapEnumeratedLongOp<IN, OUT> extends ChainedOp<IN, OUT> {
 
     private long index = 0L;
 
-    MapEnumeratedLongOp(Op<OUT> op, LongBiFunction<? super IN, ? extends OUT> mapper) {
-        super(op);
+    MapEnumeratedLongOp(Op<OUT> nextOp, LongBiFunction<? super IN, ? extends OUT> mapper) {
+        super(nextOp);
         this.mapper = mapper;
     }
 
     @Override
     public void accept(IN in) {
-        next.accept(mapper.apply(index++, in));
+        nextOp.accept(mapper.apply(index++, in));
     }
 }

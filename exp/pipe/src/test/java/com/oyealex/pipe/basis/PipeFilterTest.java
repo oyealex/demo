@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
  *
  * @author oyealex
  * @see Pipe#filter(Predicate)
- * @see Pipe#filterReversed(Predicate)
+ * @see Pipe#filterReversely(Predicate)
  * @see Pipe#filterEnumerated(IntBiPredicate)
  * @see Pipe#filterEnumeratedLong(LongBiPredicate)
  * @since 2023-04-28
@@ -40,7 +40,7 @@ class PipeFilterTest extends PipeTestBase {
     @Test
     @DisplayName("应当正确反向过滤元素")
     void should_reversely_filter_elements_rightly() {
-        List<String> res = of(ELEMENTS).filterReversed(str -> str.length() > 3).toList();
+        List<String> res = of(ELEMENTS).filterReversely(str -> str.length() > 3).toList();
         assertEquals(stream(ELEMENTS).filter(str -> str.length() <= 3).collect(toList()), res);
     }
 
@@ -79,7 +79,7 @@ class PipeFilterTest extends PipeTestBase {
     @DisplayName("当给定的断言为空时应当抛出异常")
     void should_throw_exception_when_given_predicate_is_null() {
         assertThrowsExactly(NullPointerException.class, () -> Pipes.empty().filter(null));
-        assertThrowsExactly(NullPointerException.class, () -> Pipes.empty().filterReversed(null));
+        assertThrowsExactly(NullPointerException.class, () -> Pipes.empty().filterReversely(null));
         assertThrowsExactly(NullPointerException.class, () -> Pipes.empty().filterEnumerated(null));
         assertThrowsExactly(NullPointerException.class, () -> Pipes.empty().filterEnumeratedLong(null));
     }

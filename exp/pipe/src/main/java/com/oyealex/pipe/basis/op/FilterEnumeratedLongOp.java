@@ -13,15 +13,15 @@ class FilterEnumeratedLongOp<IN> extends ChainedOp<IN, IN> {
 
     private long index = 0L;
 
-    FilterEnumeratedLongOp(Op<IN> op, LongBiPredicate<? super IN> predicate) {
-        super(op);
+    FilterEnumeratedLongOp(Op<IN> nextOp, LongBiPredicate<? super IN> predicate) {
+        super(nextOp);
         this.predicate = predicate;
     }
 
     @Override
     public void accept(IN in) {
         if (predicate.test(index++, in)) {
-            next.accept(in);
+            nextOp.accept(in);
         }
     }
 }
