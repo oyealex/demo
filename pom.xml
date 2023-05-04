@@ -67,6 +67,12 @@
 
             <!-- libs -->
             <dependency>
+                <groupId>one.util</groupId>
+                <artifactId>streamex</artifactId>
+                <version>0.8.1</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.redisson</groupId>
                 <artifactId>redisson-spring-boot-starter</artifactId>
                 <version>3.18.0</version>

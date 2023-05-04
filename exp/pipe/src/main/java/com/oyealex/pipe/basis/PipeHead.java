@@ -1,8 +1,9 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.basis.op.Op;
+import com.oyealex.pipe.flag.PipeFlag;
 
-import java.util.Iterator;
+import java.util.Spliterator;
 
 /**
  * 流水线头节点，提供将迭代器中的数据泵入流水线的能力，以及一些形如管理关闭动作等的能力。
@@ -13,19 +14,20 @@ import java.util.Iterator;
  */
 class PipeHead<OUT> extends ReferencePipe<Void, OUT> {
     /** 流水线数据源 */
-    private Iterator<? extends OUT> sourceIterator;
+    private Spliterator<? extends OUT> sourceSpliterator;
 
     /** 流水线关闭时执行的动作 */
     private Runnable closeAction;
 
-    public PipeHead(Iterator<? extends OUT> sourceIterator) {
-        this.sourceIterator = sourceIterator;
+    public PipeHead(Spliterator<? extends OUT> sourceSpliterator) {
+        super(PipeFlag.fromSpliterator(sourceSpliterator));
+        this.sourceSpliterator = sourceSpliterator;
     }
 
     @Override
-    protected Iterator<?> getDataSource() {
-        Iterator<? extends OUT> iterator = sourceIterator;
-        sourceIterator = null;
+    protected Spliterator<?> getDataSource() {
+        Spliterator<? extends OUT> iterator = sourceSpliterator;
+        sourceSpliterator = null;
         return iterator;
     }
 

@@ -2,11 +2,18 @@ package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.annotations.Extended;
 
+import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Objects;
+import java.util.Spliterators;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
+
+import static java.lang.Long.MAX_VALUE;
+import static java.util.Objects.requireNonNull;
+import static java.util.Spliterator.IMMUTABLE;
+import static java.util.Spliterator.ORDERED;
 
 /**
  * 流水线的辅助工具类
@@ -27,7 +34,7 @@ public class Pipes {
      * @see Stream#empty()
      */
     public static <T> Pipe<T> empty() {
-        return new PipeHead<>(Misc.emptyIterator());
+        return new PipeHead<>(Spliterators.emptySpliterator());
     }
 
     /**
@@ -40,19 +47,7 @@ public class Pipes {
     @SafeVarargs
     @SuppressWarnings("varargs")
     public static <T> Pipe<T> of(T... values) {
-        return new PipeHead<>(new Iterator<>() {
-            private int index = 0;
-
-            @Override
-            public boolean hasNext() {
-                return index < values.length;
-            }
-
-            @Override
-            public T next() {
-                return values[index++];
-            }
-        });
+        return new PipeHead<>(Arrays.spliterator(values));
     }
 
     /**
@@ -66,28 +61,24 @@ public class Pipes {
      * @see Stream#iterate(Object, UnaryOperator)
      */
     public static <T> Pipe<T> iterate(final T seed, final UnaryOperator<T> generator) {
-        Objects.requireNonNull(generator);
-        return new PipeHead<>(new Iterator<>() {
-            private T previous = seed;
+        requireNonNull(generator);
+        return new PipeHead<>(new Spliterators.AbstractSpliterator<>(MAX_VALUE, ORDERED | IMMUTABLE) {
+            private T previous;
 
-            private boolean started = false;
-
-            @Override
-            public boolean hasNext() {
-                return true;
-            }
+            private boolean started;
 
             @Override
-            public T next() {
-                T res;
+            public boolean tryAdvance(Consumer<? super T> action) {
+                requireNonNull(action);
+                T value;
                 if (started) {
-                    res = generator.apply(previous);
+                    value = generator.apply(previous);
                 } else {
-                    res = seed;
+                    value = seed;
                     started = true;
                 }
-                previous = res;
-                return res;
+                action.accept(previous = value);
+                return true;
             }
         });
     }
@@ -101,16 +92,12 @@ public class Pipes {
      * @see Stream#generate(Supplier)
      */
     public static <T> Pipe<T> generate(Supplier<? extends T> supplier) {
-        Objects.requireNonNull(supplier);
-        return new PipeHead<>(new Iterator<>() {
+        requireNonNull(supplier);
+        return new PipeHead<>(new Spliterators.AbstractSpliterator<>(MAX_VALUE, IMMUTABLE) {
             @Override
-            public boolean hasNext() {
+            public boolean tryAdvance(Consumer<? super T> action) {
+                requireNonNull(action).accept(supplier.get());
                 return true;
-            }
-
-            @Override
-            public T next() {
-                return supplier.get();
             }
         });
     }
@@ -146,7 +133,7 @@ public class Pipes {
      */
     @Extended
     public static <T> Pipe<T> from(Stream<? extends T> stream) {
-        return new PipeHead<>(stream.iterator());
+        return new PipeHead<>(stream.spliterator());
     }
 
     /**
@@ -158,7 +145,7 @@ public class Pipes {
      */
     @Extended
     public static <T> Pipe<T> from(Iterator<? extends T> iterator) {
-        return new PipeHead<>(iterator);
+        return new PipeHead<>(Spliterators.spliteratorUnknownSize(iterator, 0));
     }
 
     /**

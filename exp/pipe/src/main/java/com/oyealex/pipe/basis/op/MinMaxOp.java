@@ -15,7 +15,7 @@ class MinMaxOp<IN> implements TerminalOp<IN, Optional<IN>> {
     private final Comparator<? super IN> comparator;
 
     MinMaxOp(boolean requireMin, Comparator<? super IN> comparator) {
-        // TODO 2023-05-03 02:27 
+        // TODO 2023-05-03 02:27
         this.comparator = comparator;
     }
 

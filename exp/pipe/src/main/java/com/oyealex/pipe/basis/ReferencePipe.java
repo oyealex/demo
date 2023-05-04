@@ -8,11 +8,13 @@ import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import com.oyealex.pipe.basis.op.Op;
 import com.oyealex.pipe.basis.op.Ops;
 import com.oyealex.pipe.basis.op.TerminalOp;
+import com.oyealex.pipe.flag.PipeFlag;
 
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -38,17 +40,22 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     @SuppressWarnings("rawtypes")
     private final ReferencePipe prePipe;
 
-    ReferencePipe() {
+    /** 流水线标记 */
+    private final int flag;
+
+    ReferencePipe(int flag) {
         this.sourcePipe = this;
         this.prePipe = null;
+        this.flag = flag;
     }
 
-    ReferencePipe(ReferencePipe<?, ? extends IN> prePipe) {
+    ReferencePipe(ReferencePipe<?, ? extends IN> prePipe, int opFlag) {
         this.sourcePipe = prePipe.sourcePipe;
         this.prePipe = prePipe;
+        this.flag = PipeFlag.combine(prePipe.flag, opFlag);
     }
 
-    protected Iterator<?> getDataSource() {
+    protected Spliterator<?> getDataSource() {
         throw new UnsupportedOperationException("source pipe required");
     }
 
