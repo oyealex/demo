@@ -1,8 +1,6 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.basis.functional.IntBiConsumer;
-import com.oyealex.pipe.basis.functional.IntBiFunction;
-import com.oyealex.pipe.basis.functional.IntBiPredicate;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import com.oyealex.pipe.basis.op.Op;
@@ -19,6 +17,14 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import static com.oyealex.pipe.basis.Pipes.empty;
+import static com.oyealex.pipe.flag.PipeFlag.IS_DISTINCT;
+import static com.oyealex.pipe.flag.PipeFlag.IS_SHORT_CIRCUIT;
+import static com.oyealex.pipe.flag.PipeFlag.IS_SORTED;
+import static com.oyealex.pipe.flag.PipeFlag.NOT_DISTINCT;
+import static com.oyealex.pipe.flag.PipeFlag.NOT_REVERSED_SORTED;
+import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
+import static com.oyealex.pipe.flag.PipeFlag.NOT_SORTED;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -79,9 +85,9 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Pipe<OUT> filter(Predicate<? super OUT> predicate) {
+    public Pipe<OUT> keepIf(Predicate<? super OUT> predicate) {
         requireNonNull(predicate);
-        return new ReferencePipe<>(this) {
+        return new ReferencePipe<>(this, NOT_SIZED) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
                 return Ops.filterOp(op, predicate);
@@ -90,9 +96,39 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Pipe<OUT> filterEnumerated(IntBiPredicate<? super OUT> predicate) {
+    public Pipe<OUT> keepWhile(Predicate<? super OUT> predicate) {
+        return new ReferencePipe<>(this, 0) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> op) {
+                return Ops.keepOrDropWhileOp(op, true, predicate);
+            }
+        };
+    }
+
+    @Override
+    public Pipe<OUT> keepWhileEnumerated(LongBiPredicate<? super OUT> predicate) {
+        return Pipe.super.keepWhileEnumerated(predicate);
+    }
+
+    @Override
+    public Pipe<OUT> dropWhile(Predicate<? super OUT> predicate) {
+        return new ReferencePipe<>(this, 0) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> op) {
+                return Ops.keepOrDropWhileOp(op, false, predicate);
+            }
+        };
+    }
+
+    @Override
+    public Pipe<OUT> dropWhileEnumerated(LongBiPredicate<? super OUT> predicate) {
+        return Pipe.super.dropWhileEnumerated(predicate);
+    }
+
+    @Override
+    public Pipe<OUT> filterEnumerated(LongBiPredicate<? super OUT> predicate) {
         requireNonNull(predicate);
-        return new ReferencePipe<>(this) {
+        return new ReferencePipe<>(this, NOT_SIZED) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
                 return Ops.filterEnumeratedOp(op, predicate);
@@ -101,20 +137,9 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Pipe<OUT> filterEnumeratedLong(LongBiPredicate<? super OUT> predicate) {
-        requireNonNull(predicate);
-        return new ReferencePipe<>(this) {
-            @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.filterEnumeratedLongOp(op, predicate);
-            }
-        };
-    }
-
-    @Override
     public <R> Pipe<R> map(Function<? super OUT, ? extends R> mapper) {
         requireNonNull(mapper);
-        return new ReferencePipe<>(this) {
+        return new ReferencePipe<>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT) {
             @Override
             protected Op<OUT> wrapOp(Op<R> op) {
                 return Ops.mapOp(op, mapper);
@@ -123,9 +148,9 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public <R> Pipe<R> mapEnumerated(IntBiFunction<? super OUT, ? extends R> mapper) {
+    public <R> Pipe<R> mapEnumerated(LongBiFunction<? super OUT, ? extends R> mapper) {
         requireNonNull(mapper);
-        return new ReferencePipe<>(this) {
+        return new ReferencePipe<>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT) {
             @Override
             protected Op<OUT> wrapOp(Op<R> op) {
                 return Ops.mapEnumeratedOp(op, mapper);
@@ -134,20 +159,9 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public <R> Pipe<R> mapEnumeratedLong(LongBiFunction<? super OUT, ? extends R> mapper) {
-        requireNonNull(mapper);
-        return new ReferencePipe<>(this) {
-            @Override
-            protected Op<OUT> wrapOp(Op<R> op) {
-                return Ops.mapEnumeratedLongOp(op, mapper);
-            }
-        };
-    }
-
-    @Override
     public <R> Pipe<R> flatMap(Function<? super OUT, ? extends Pipe<? extends R>> mapper) {
         requireNonNull(mapper);
-        return new ReferencePipe<>(this) {
+        return new ReferencePipe<>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT | NOT_SIZED) {
             @Override
             protected Op<OUT> wrapOp(Op<R> op) {
                 return Ops.flatMapOP(op, mapper);
@@ -157,7 +171,7 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<OUT> distinct() {
-        return new ReferencePipe<>(this) {
+        return new ReferencePipe<>(this, IS_DISTINCT | NOT_SIZED) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
                 return Ops.distinctOp(op);
@@ -168,7 +182,7 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public <R> Pipe<OUT> distinctBy(Function<? super OUT, ? extends R> mapper) {
         requireNonNull(mapper);
-        return new ReferencePipe<>(this) {
+        return new ReferencePipe<>(this, NOT_DISTINCT | NOT_SIZED) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
                 return Ops.distinctByOp(op, mapper);
@@ -178,7 +192,10 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<OUT> sort() {
-        return new ReferencePipe<>(this) {
+        if (PipeFlag.SORTED.isSet(flag)) {
+            return this; // 已经排序了，无需再次排序
+        }
+        return new ReferencePipe<>(this, IS_SORTED | NOT_REVERSED_SORTED) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
                 return Ops.sortOp(op, null);
@@ -189,7 +206,7 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public Pipe<OUT> sort(Comparator<? super OUT> comparator) {
         requireNonNull(comparator);
-        return new ReferencePipe<>(this) {
+        return new ReferencePipe<>(this, NOT_SORTED | NOT_REVERSED_SORTED) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
                 return Ops.sortOp(op, comparator);
@@ -198,20 +215,25 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public <R> Pipe<OUT> sortBy(Function<? super OUT, ? extends R> mapper) {
+    public <R extends Comparable<? super R>> Pipe<OUT> sortBy(Function<? super OUT, ? extends R> mapper) {
         requireNonNull(mapper);
-        return new ReferencePipe<>(this) {
+        return new ReferencePipe<>(this, NOT_SORTED | NOT_REVERSED_SORTED) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
-                return null;
+                return Ops.sortOp(op, Comparator.comparing(mapper));
             }
         };
     }
 
     @Override
-    public <R> Pipe<OUT> sortBy(Function<? super OUT, ? extends R> mapper, Comparator<? super OUT> comparator) {
-        // TODO 2023-05-03 02:25
-        return null;
+    public <R> Pipe<OUT> sortBy(Function<? super OUT, ? extends R> mapper, Comparator<? super R> comparator) {
+        requireNonNull(mapper);
+        return new ReferencePipe<>(this, NOT_SORTED | NOT_REVERSED_SORTED) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> op) {
+                return Ops.sortOp(op, Comparator.comparing(mapper, comparator));
+            }
+        };
     }
 
     @Override
@@ -220,12 +242,15 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
             throw new IllegalArgumentException("limit size cannot be negative, size: " + size);
         }
         if (size == 0) {
-            return Pipes.empty();
+            return empty();
         }
-        return new ReferencePipe<>(this) {
+        if (size == Long.MAX_VALUE) {
+            return this;
+        }
+        return new ReferencePipe<>(this, NOT_SIZED | IS_SHORT_CIRCUIT) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.gettLimitOp(op, size);
+                return Ops.sliceOp(op, 0, size);
             }
         };
     }
@@ -238,10 +263,32 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         if (size == 0) {
             return this;
         }
-        return new ReferencePipe<>(this) {
+        if (size == Long.MAX_VALUE) {
+            return empty();
+        }
+        return new ReferencePipe<>(this, NOT_SIZED) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.skipOp(op, size);
+                return Ops.sliceOp(op, size, Long.MAX_VALUE);
+            }
+        };
+    }
+
+    @Override
+    public Pipe<OUT> slice(long startInclusive, long endExclusive) {
+        if (startInclusive < 0 || endExclusive < 0 || startInclusive > endExclusive) {
+            throw new IllegalArgumentException("invalid slice bound: [" + startInclusive + ", " + endExclusive + ")");
+        }
+        if (startInclusive == endExclusive) {
+            return empty();
+        }
+        if (startInclusive == 0 && endExclusive == Long.MAX_VALUE) {
+            return this;
+        }
+        return new ReferencePipe<>(this, NOT_SIZED | IS_SHORT_CIRCUIT) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> op) {
+                return Ops.sliceOp(op, startInclusive, endExclusive - startInclusive);
             }
         };
     }
@@ -250,7 +297,7 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     public Pipe<OUT> prepend(Iterator<? extends OUT> iterator) {
         requireNonNull(iterator);
         // TODO 2023-05-03 01:46 采用转为迭代器的方式实现，避免内部缓存，参考Stream.concat
-        return new ReferencePipe<>(this) {
+        return new ReferencePipe<>(this, 0) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
                 return Ops.prependOp(op, iterator);
@@ -261,7 +308,7 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public Pipe<OUT> append(Iterator<? extends OUT> iterator) {
         requireNonNull(iterator);
-        return new ReferencePipe<>(this) {
+        return new ReferencePipe<>(this, 0) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
                 return Ops.appendOp(op, iterator);
@@ -274,7 +321,7 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         if (size < 1) {
             throw new IllegalArgumentException("partition size cannot be less then 1, size: " + size);
         }
-        return new ReferencePipe<>(this) {
+        return new ReferencePipe<>(this, 0) {
             @Override
             protected Op<OUT> wrapOp(Op<Pipe<OUT>> op) {
                 return Ops.partitionOp(op, size);
@@ -317,6 +364,21 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public long count() {
         return evaluate(Ops.countOp());
+    }
+
+    @Override
+    public Optional<OUT> findFirst() {
+        return Pipe.super.findFirst();
+    }
+
+    @Override
+    public Optional<OUT> findLast() {
+        return Pipe.super.findLast();
+    }
+
+    @Override
+    public Optional<OUT> findAny() {
+        return Pipe.super.findAny();
     }
 
     @Override

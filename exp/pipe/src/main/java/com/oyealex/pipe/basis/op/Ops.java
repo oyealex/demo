@@ -2,8 +2,6 @@ package com.oyealex.pipe.basis.op;
 
 import com.oyealex.pipe.basis.Pipe;
 import com.oyealex.pipe.basis.functional.IntBiConsumer;
-import com.oyealex.pipe.basis.functional.IntBiFunction;
-import com.oyealex.pipe.basis.functional.IntBiPredicate;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
 
@@ -29,11 +27,7 @@ public class Ops {
         return new CountOp<>();
     }
 
-    public static <T> Op<T> filterEnumeratedLongOp(Op<T> op, LongBiPredicate<? super T> predicate) {
-        return new FilterEnumeratedLongOp<>(op, predicate);
-    }
-
-    public static <T> Op<T> filterEnumeratedOp(Op<T> op, IntBiPredicate<? super T> predicate) {
+    public static <T> Op<T> filterEnumeratedOp(Op<T> op, LongBiPredicate<? super T> predicate) {
         return new FilterEnumeratedOp<>(op, predicate);
     }
 
@@ -45,24 +39,16 @@ public class Ops {
         return new ForEachOp<>(action);
     }
 
-    public static <T> Op<T> gettLimitOp(Op<T> op, long size) {
-        return new LimitOp<>(op, size);
+    public static <T> Op<T> sliceOp(Op<T> op, long skip, long limit) {
+        return new SliceOp<>(op, skip, limit);
     }
 
     public static <IN, OUT> ChainedOp<IN, OUT> mapOp(Op<OUT> op, Function<? super IN, ? extends OUT> mapper) {
         return new MapOp<>(op, mapper);
     }
 
-    public static <T, R> Op<T> mapEnumeratedOp(Op<R> op, IntBiFunction<? super T, ? extends R> mapper) {
+    public static <T, R> Op<T> mapEnumeratedOp(Op<R> op, LongBiFunction<? super T, ? extends R> mapper) {
         return new MapEnumeratedOp<>(op, mapper);
-    }
-
-    public static <T, R> Op<T> mapEnumeratedLongOp(Op<R> op, LongBiFunction<? super T, ? extends R> mapper) {
-        return new MapEnumeratedLongOp<>(op, mapper);
-    }
-
-    public static <T> Op<T> skipOp(Op<T> op, long size) {
-        return new SkipOp<>(op, size);
     }
 
     public static <T, R> Op<T> flatMapOP(Op<R> op, Function<? super T, ? extends Pipe<? extends R>> mapper) {
@@ -99,5 +85,10 @@ public class Ops {
 
     public static <T> TerminalOp<T, Optional<T>> minMaxOp(boolean requireMin, Comparator<? super T> comparator) {
         return new MinMaxOp<>(requireMin, comparator);
+    }
+
+    public static <OUT> Op<OUT> keepOrDropWhileOp(Op<OUT> op, boolean isKeep, Predicate<? super OUT> predicate) {
+        return isKeep ? new KeepOrDropWhileOps.KeepWhileOp<>(op, predicate) :
+            new KeepOrDropWhileOps.DropWhileOp<>(op, predicate);
     }
 }

@@ -31,7 +31,7 @@ class PipeOtherTest extends PipeTestBase {
         List<String> callRecords = new ArrayList<>();
         of(ELEMENTS).onClose(() -> callRecords.add("CallAfterInit"))
                     .onClose(() -> callRecords.add("CallAfterInit#2"))
-                    .filter(Objects::nonNull)
+                    .keepIf(Objects::nonNull)
                     .onClose(() -> callRecords.add("callAfterFilter"))
                     .close();
         assertEquals(List.of("CallAfterInit", "CallAfterInit#2", "callAfterFilter"), callRecords);
@@ -49,6 +49,13 @@ class PipeOtherTest extends PipeTestBase {
     void should_skip_elements_rightly() {
         List<String> res = of(ELEMENTS).skip(3).toList();
         assertEquals(stream(ELEMENTS).skip(3).collect(toList()), res);
+    }
+
+    @Test
+    @DisplayName("能够正确对元素切片")
+    void should_slice_elements_rightly() {
+        List<String> res = of(ELEMENTS).slice(2, 5).toList();
+        assertEquals(stream(ELEMENTS).skip(2).limit(3).collect(toList()), res);
     }
 
     @Test

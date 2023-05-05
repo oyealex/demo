@@ -1,19 +1,19 @@
 package com.oyealex.pipe.basis.op;
 
-import com.oyealex.pipe.basis.functional.IntBiPredicate;
+import com.oyealex.pipe.basis.functional.LongBiPredicate;
 
 /**
- * 支持
+ * FilterEnumeratedLongOp
  *
  * @author oyealex
  * @since 2023-04-28
  */
 class FilterEnumeratedOp<IN> extends ChainedOp<IN, IN> {
-    private final IntBiPredicate<? super IN> predicate;
+    private final LongBiPredicate<? super IN> predicate;
 
-    private int index = 0;
+    private long index = 0L;
 
-    FilterEnumeratedOp(Op<IN> nextOp, IntBiPredicate<? super IN> predicate) {
+    FilterEnumeratedOp(Op<IN> nextOp, LongBiPredicate<? super IN> predicate) {
         super(nextOp);
         this.predicate = predicate;
     }

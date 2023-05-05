@@ -1,7 +1,6 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.PipeTestBase;
-import com.oyealex.pipe.basis.functional.IntBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,8 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * @author oyealex
  * @see Pipe#map(Function)
- * @see Pipe#mapEnumerated(IntBiFunction)
- * @see Pipe#mapEnumeratedLong(LongBiFunction)
+ * @see Pipe#mapEnumerated(LongBiFunction)
  * @see Pipe#mapToInt(ToIntFunction)
  * @see Pipe#mapToLong(ToLongFunction)
  * @see Pipe#mapToDouble(ToDoubleFunction)

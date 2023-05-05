@@ -2,8 +2,6 @@ package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.annotations.Extended;
 import com.oyealex.pipe.basis.functional.IntBiConsumer;
-import com.oyealex.pipe.basis.functional.IntBiFunction;
-import com.oyealex.pipe.basis.functional.IntBiPredicate;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import com.oyealex.pipe.bi.BiPipe;
@@ -41,40 +39,83 @@ import static java.util.Objects.requireNonNull;
  */
 public interface Pipe<E> extends AutoCloseable {
     /**
-     * 根据给定断言过滤元素。
+     * 根据给定断言保留元素。
+     *
+     * @param predicate 断言方法，满足断言的元素会保留。
+     * @return 新的流水线
+     * @throws NullPointerException 当{@code predicate}为null时抛出
+     * @see #dropIf(Predicate)
+     * @see #keepWhile(Predicate)
+     */
+    Pipe<E> keepIf(Predicate<? super E> predicate);
+
+    /**
+     * 同{@link #keepIf(Predicate)}。
      *
      * @param predicate 断言方法，满足断言的元素会保留下来。
      * @return 新的流水线
      * @throws NullPointerException 当{@code predicate}为null时抛出
      * @see Stream#filter(Predicate)
      */
-    Pipe<E> filter(Predicate<? super E> predicate);
-
-    /**
-     * 根据给定断言的否定结果过滤元素。
-     *
-     * @param predicate 断言方法，不满足断言的元素会保留下来。
-     * @return 新的流水线
-     * @throws NullPointerException 当{@code predicate}为null时抛出
-     * @see Stream#filter(Predicate)
-     */
-    default Pipe<E> filterReversely(Predicate<? super E> predicate) {
-        requireNonNull(predicate);
-        return filter(predicate.negate());
+    default Pipe<E> filter(Predicate<? super E> predicate) {
+        return keepIf(predicate);
     }
 
     /**
-     * 根据给定断言过滤元素，断言支持访问的元素在流水线中的次序，从0开始计算，使用{@code int}类型的数据表示次序。
+     * 根据给定断言的结果丢弃元素。
+     *
+     * @param predicate 断言方法，满足断言的元素会丢弃。
+     * @return 新的流水线
+     * @throws NullPointerException 当{@code predicate}为null时抛出
+     * @see #keepIf(Predicate)
+     * @see #dropWhile(Predicate)
+     */
+    default Pipe<E> dropIf(Predicate<? super E> predicate) {
+        requireNonNull(predicate);
+        return keepIf(predicate.negate());
+    }
+
+    /**
+     * 保留元素直到给定的断言首次为{@code False}，丢弃之后的元素。
+     *
+     * @param predicate 断言方法
+     * @return 新的流水线
+     * @see Stream#takeWhile(Predicate)
+     */
+    @Extended
+    Pipe<E> keepWhile(Predicate<? super E> predicate);
+
+    /**
+     * 保留元素直到给定的断言首次为{@code False}，丢弃之后的元素，断言支持访问{@code long}类型的元素次序。
      *
      * @param predicate 断言方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为访问的元素。
      * @return 新的流水线
-     * @throws NullPointerException 当{@code predicate}为null时抛出
-     * @apiNote 如果元素数量超过了 {@link Integer#MAX_VALUE}，则会导致数据溢出为负数，
-     * 如果预估数据数量超过此最大值，请使用 {@link #filterEnumeratedLong(LongBiPredicate)}。
-     * @see #filterEnumeratedLong(LongBiPredicate)
      */
     @Extended
-    Pipe<E> filterEnumerated(IntBiPredicate<? super E> predicate);
+    default Pipe<E> keepWhileEnumerated(LongBiPredicate<? super E> predicate) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * 丢弃元素直到给定的断言首次为{@code False}，保留之后的元素。
+     *
+     * @param predicate 断言方法
+     * @return 新的流水线
+     * @see Stream#dropWhile(Predicate)
+     */
+    @Extended
+    Pipe<E> dropWhile(Predicate<? super E> predicate);
+
+    /**
+     * 丢弃元素直到给定的断言首次为{@code False}，保留之后的元素，断言支持访问{@code long}类型的元素次序。
+     *
+     * @param predicate 断言方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为访问的元素。
+     * @return 新的流水线
+     */
+    @Extended
+    default Pipe<E> dropWhileEnumerated(LongBiPredicate<? super E> predicate) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * 根据给定断言过滤元素，断言支持访问的元素在流水线中的次序，从0开始计算，使用{@code long}类型的数据表示次序。
@@ -84,7 +125,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @throws NullPointerException 当{@code predicate}为null时抛出
      */
     @Extended
-    Pipe<E> filterEnumeratedLong(LongBiPredicate<? super E> predicate);
+    Pipe<E> filterEnumerated(LongBiPredicate<? super E> predicate);
 
     /**
      * 将此流水线中的元素映射为其他类型。
@@ -98,19 +139,6 @@ public interface Pipe<E> extends AutoCloseable {
     <R> Pipe<R> map(Function<? super E, ? extends R> mapper);
 
     /**
-     * 将此流水线中的元素映射为其他类型，映射方法支持访问元素在流水线中的次序，从0开始计算，使用{@code int}类型的数据表示次序。
-     *
-     * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为访问的元素。
-     * @param <R> 新的类型
-     * @return 包含新类型元素的流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
-     * @apiNote 如果元素数量超过了 {@link Integer#MAX_VALUE}，则会导致数据溢出为负数，
-     * 如果预估数据数量超过此最大值，请使用 {@link #mapEnumeratedLong(LongBiFunction)}。
-     */
-    @Extended
-    <R> Pipe<R> mapEnumerated(IntBiFunction<? super E, ? extends R> mapper);
-
-    /**
      * 将此流水线中的元素映射为其他类型，映射方法支持访问元素在流水线中的次序，从0开始计算，使用{@code long}类型的数据表示次序。
      *
      * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为访问的元素。
@@ -119,7 +147,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @throws NullPointerException 当{@code mapper}为null时抛出
      */
     @Extended
-    <R> Pipe<R> mapEnumeratedLong(LongBiFunction<? super E, ? extends R> mapper);
+    <R> Pipe<R> mapEnumerated(LongBiFunction<? super E, ? extends R> mapper);
 
     /**
      * 将流水线中的元素映射为int类型。
@@ -277,7 +305,6 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 元素排序后的流水线
      * @see Stream#sorted()
      */
-    // TODO 2023-04-24 00:19 关注排序稳定性
     Pipe<E> sort();
 
     /**
@@ -287,21 +314,19 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 元素排序后的流水线
      * @see Stream#sorted(Comparator)
      */
-    // TODO 2023-04-24 00:19 关注排序稳定性
     Pipe<E> sort(Comparator<? super E> comparator);
 
     /**
      * 对流水线中的元素排序，以默认顺序排序，排序的依据为映射后的结果。
      * <p/>
-     * 要求元素实现了{@link Comparable}，否则可能在流水线的终结操作中抛出{@link ClassCastException}异常。
+     * 要求映射后的结果类型{@code R}实现了{@link Comparable}。
      *
      * @param mapper 排序依据的映射方法
      * @param <R> 映射结果的类型
      * @return 元素排序后的流水线
      */
-    // TODO 2023-04-24 00:19 关注排序稳定性
     @Extended
-    <R> Pipe<E> sortBy(Function<? super E, ? extends R> mapper);
+    <R extends Comparable<? super R>> Pipe<E> sortBy(Function<? super E, ? extends R> mapper);
 
     /**
      * 对流水线中的元素排序，以给定的比较方法排序，排序的依据为映射后的结果。
@@ -311,9 +336,8 @@ public interface Pipe<E> extends AutoCloseable {
      * @param <R> 映射结果的类型
      * @return 元素排序后的流水线
      */
-    // TODO 2023-04-24 00:19 关注排序稳定性
     @Extended
-    <R> Pipe<E> sortBy(Function<? super E, ? extends R> mapper, Comparator<? super E> comparator);
+    <R> Pipe<E> sortBy(Function<? super E, ? extends R> mapper, Comparator<? super R> comparator);
 
     /**
      * 将流水线中的元素按照当前顺序颠倒。
@@ -390,6 +414,15 @@ public interface Pipe<E> extends AutoCloseable {
      * @see Stream#skip(long)
      */
     Pipe<E> skip(long size);
+
+    /**
+     * 对元素执行切片，即仅保留{@code startInclusive}到{@code endExclusive}之间的元素。
+     *
+     * @param startInclusive 切片范围起始索引，包含。
+     * @param endExclusive 切片范围结束索引，不包含。
+     * @return 新的流水线
+     */
+    Pipe<E> slice(long startInclusive, long endExclusive);
 
     /**
      * 在流水线头部插入给定的流水线中的元素。
@@ -502,35 +535,13 @@ public interface Pipe<E> extends AutoCloseable {
     }
 
     /**
-     * 丢弃元素直到给定的断言首次为{@code True}。
-     *
-     * @param predicate 断言
-     * @return 新的流水线
-     */
-    @Extended
-    default Pipe<E> dropUntil(Predicate<? super E> predicate) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * 保留元素直到给定的断言首次为{@code True}。
-     *
-     * @param predicate 断言
-     * @return 新的流水线
-     */
-    @Extended
-    default Pipe<E> keepUntil(Predicate<? super E> predicate) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
      * 仅保留非空的元素。
      *
      * @return 新的流水线
      */
     @Extended
     default Pipe<E> nonNull() {
-        return filter(Objects::nonNull);
+        return keepIf(Objects::nonNull);
     }
 
     /**
@@ -542,7 +553,7 @@ public interface Pipe<E> extends AutoCloseable {
     @Extended
     default Pipe<E> nonNullBy(Function<? super E, ?> mapper) {
         requireNonNull(mapper);
-        return filter(value -> mapper.apply(value) != null);
+        return keepIf(value -> mapper.apply(value) != null);
     }
 
     /**
