@@ -4,7 +4,11 @@ import com.oyealex.pipe.PipeTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 
 import static com.oyealex.pipe.basis.Pipes.of;
@@ -30,10 +34,10 @@ class PipeOtherTest extends PipeTestBase {
     void should_execute_close_action_when_pipe_close() {
         List<String> callRecords = new ArrayList<>();
         of(ELEMENTS).onClose(() -> callRecords.add("CallAfterInit"))
-                    .onClose(() -> callRecords.add("CallAfterInit#2"))
-                    .keepIf(Objects::nonNull)
-                    .onClose(() -> callRecords.add("callAfterFilter"))
-                    .close();
+            .onClose(() -> callRecords.add("CallAfterInit#2"))
+            .keepIf(Objects::nonNull)
+            .onClose(() -> callRecords.add("callAfterFilter"))
+            .close();
         assertEquals(List.of("CallAfterInit", "CallAfterInit#2", "callAfterFilter"), callRecords);
     }
 

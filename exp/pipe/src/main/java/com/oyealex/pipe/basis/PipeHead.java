@@ -25,7 +25,7 @@ class PipeHead<OUT> extends ReferencePipe<Void, OUT> {
     }
 
     @Override
-    protected Spliterator<?> getDataSource() {
+    protected Spliterator<?> takeDataSource() {
         Spliterator<? extends OUT> iterator = sourceSpliterator;
         sourceSpliterator = null;
         return iterator;

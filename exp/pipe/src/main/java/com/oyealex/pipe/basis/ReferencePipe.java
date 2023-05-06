@@ -7,9 +7,9 @@ import com.oyealex.pipe.basis.op.Op;
 import com.oyealex.pipe.basis.op.Ops;
 import com.oyealex.pipe.basis.op.TerminalOp;
 import com.oyealex.pipe.flag.PipeFlag;
+import com.oyealex.pipe.spliterator.ConcatSpliterator;
 
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Spliterator;
@@ -25,6 +25,7 @@ import static com.oyealex.pipe.flag.PipeFlag.NOT_DISTINCT;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_REVERSED_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SORTED;
+import static java.lang.Long.MAX_VALUE;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -33,6 +34,7 @@ import static java.util.Objects.requireNonNull;
  * @author oyealex
  * @since 2023-03-04
  */
+// TODO 2023-05-06 22:43 关注流水线的重复消费问题，参见 java.util.stream.AbstractPipeline.linkedOrConsumed
 abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     /**
      * 源节点，缓存指针以加速访问
@@ -61,7 +63,7 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         this.flag = PipeFlag.combine(prePipe.flag, opFlag);
     }
 
-    protected Spliterator<?> getDataSource() {
+    protected Spliterator<?> takeDataSource() {
         throw new UnsupportedOperationException("source pipe required");
     }
 
@@ -69,19 +71,29 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
 
     @SuppressWarnings("unchecked")
     private <R> R evaluate(TerminalOp<OUT, R> terminalOp) {
-        Op<IN> op = wrapAllOp(terminalOp);
-        op.begin(-1);
-        sourcePipe.getDataSource().forEachRemaining(value -> op.accept((IN) value));
-        op.end();
+        processDataWithOp(sourcePipe.takeDataSource(), terminalOp);
         return terminalOp.get();
     }
 
-    @SuppressWarnings("unchecked")
-    private Op<IN> wrapAllOp(Op<OUT> op) {
-        for (@SuppressWarnings("rawtypes") ReferencePipe pipe = this; pipe.prePipe != null; pipe = pipe.prePipe) {
-            op = pipe.wrapOp(op);
+    private <OP extends Op<OUT>> void processDataWithOp(Spliterator<IN> dataSource, OP tailOp) {
+        Op<IN> wrappedOp = wrapAllOp(tailOp);
+        wrappedOp.begin(dataSource.getExactSizeIfKnown());
+        if (PipeFlag.SHORT_CIRCUIT.isSet(flag)) {
+            // 如果允许短路，则尝试短路处理
+            do {/*noop*/} while (!wrappedOp.cancellationRequested() && dataSource.tryAdvance(wrappedOp));
+        } else {
+            dataSource.forEachRemaining(wrappedOp);
         }
-        return (Op<IN>) op;
+        wrappedOp.end();
+    }
+
+    @SuppressWarnings("unchecked")
+    private Op<IN> wrapAllOp(Op<OUT> tailOp) {
+        Op<?> resultOp = tailOp;
+        for (@SuppressWarnings("rawtypes") ReferencePipe pipe = this; pipe.prePipe != null; pipe = pipe.prePipe) {
+            resultOp = pipe.wrapOp(resultOp);
+        }
+        return (Op<IN>) resultOp;
     }
 
     @Override
@@ -237,6 +249,17 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
+    public Pipe<OUT> peek(Consumer<? super OUT> consumer) {
+        requireNonNull(consumer);
+        return new ReferencePipe<>(this, 0) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> op) {
+                return Ops.peekOp(op, consumer);
+            }
+        };
+    }
+
+    @Override
     public Pipe<OUT> limit(long size) {
         if (size < 0) {
             throw new IllegalArgumentException("limit size cannot be negative, size: " + size);
@@ -244,7 +267,7 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         if (size == 0) {
             return empty();
         }
-        if (size == Long.MAX_VALUE) {
+        if (size == MAX_VALUE) {
             return this;
         }
         return new ReferencePipe<>(this, NOT_SIZED | IS_SHORT_CIRCUIT) {
@@ -263,13 +286,13 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         if (size == 0) {
             return this;
         }
-        if (size == Long.MAX_VALUE) {
+        if (size == MAX_VALUE) {
             return empty();
         }
         return new ReferencePipe<>(this, NOT_SIZED) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.sliceOp(op, size, Long.MAX_VALUE);
+                return Ops.sliceOp(op, size, MAX_VALUE);
             }
         };
     }
@@ -282,7 +305,7 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         if (startInclusive == endExclusive) {
             return empty();
         }
-        if (startInclusive == 0 && endExclusive == Long.MAX_VALUE) {
+        if (startInclusive == 0 && endExclusive == MAX_VALUE) {
             return this;
         }
         return new ReferencePipe<>(this, NOT_SIZED | IS_SHORT_CIRCUIT) {
@@ -294,26 +317,21 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Pipe<OUT> prepend(Iterator<? extends OUT> iterator) {
-        requireNonNull(iterator);
-        // TODO 2023-05-03 01:46 采用转为迭代器的方式实现，避免内部缓存，参考Stream.concat
-        return new ReferencePipe<>(this, 0) {
-            @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.prependOp(op, iterator);
-            }
-        };
+    public Pipe<OUT> prepend(Spliterator<? extends OUT> spliterator) {
+        requireNonNull(spliterator);
+        @SuppressWarnings("unchecked") ConcatSpliterator<OUT, Spliterator<OUT>> finalSpliterator
+            = new ConcatSpliterator<>((Spliterator<OUT>) spliterator, toSpliterator());
+        Pipe<OUT> pipe = Pipes.pipe(finalSpliterator);
+        return pipe.onClose(this::close);
     }
 
     @Override
-    public Pipe<OUT> append(Iterator<? extends OUT> iterator) {
-        requireNonNull(iterator);
-        return new ReferencePipe<>(this, 0) {
-            @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.appendOp(op, iterator);
-            }
-        };
+    public Pipe<OUT> append(Spliterator<? extends OUT> spliterator) {
+        requireNonNull(spliterator);
+        @SuppressWarnings("unchecked") ConcatSpliterator<OUT, Spliterator<OUT>> finalSpliterator
+            = new ConcatSpliterator<>(toSpliterator(), (Spliterator<OUT>) spliterator);
+        Pipe<OUT> pipe = Pipes.pipe(finalSpliterator);
+        return pipe.onClose(this::close);
     }
 
     @Override
@@ -379,6 +397,53 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public Optional<OUT> findAny() {
         return Pipe.super.findAny();
+    }
+
+    @Override
+    public Spliterator<OUT> toSpliterator() {
+        @SuppressWarnings("unchecked") Spliterator<OUT> split = (Spliterator<OUT>) sourcePipe.takeDataSource();
+        if (this == sourcePipe) {
+            return split;
+        }
+        return new Spliterator<>() {
+            @Override
+            public boolean tryAdvance(Consumer<? super OUT> action) {
+                return false;
+            }
+
+            @Override
+            public void forEachRemaining(Consumer<? super OUT> action) {
+                Spliterator.super.forEachRemaining(action);
+            }
+
+            @Override
+            public Spliterator<OUT> trySplit() {
+                return null;
+            }
+
+            @Override
+            public long estimateSize() {
+                return 0;
+            }
+
+            @Override
+            public long getExactSizeIfKnown() {
+                return PipeFlag.SIZED.isSet(flag) ? split.getExactSizeIfKnown() : -1;
+            }
+
+            @Override
+            public int characteristics() {
+                return 0;
+            }
+
+            @Override
+            public Comparator<? super OUT> getComparator() {
+                if (hasCharacteristics(Spliterator.ORDERED)) {
+                    return null;
+                }
+                throw new IllegalStateException();
+            }
+        };
     }
 
     @Override

@@ -87,8 +87,12 @@ public class Ops {
         return new MinMaxOp<>(requireMin, comparator);
     }
 
-    public static <OUT> Op<OUT> keepOrDropWhileOp(Op<OUT> op, boolean isKeep, Predicate<? super OUT> predicate) {
+    public static <T> Op<T> keepOrDropWhileOp(Op<T> op, boolean isKeep, Predicate<? super T> predicate) {
         return isKeep ? new KeepOrDropWhileOps.KeepWhileOp<>(op, predicate) :
             new KeepOrDropWhileOps.DropWhileOp<>(op, predicate);
+    }
+
+    public static <T> Op<T> peekOp(Op<T> op, Consumer<? super T> consumer) {
+        return new PeekOp<>(op, consumer);
     }
 }

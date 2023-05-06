@@ -7,6 +7,7 @@ import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import com.oyealex.pipe.bi.BiPipe;
 import com.oyealex.pipe.tri.TriPipe;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -16,6 +17,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
@@ -376,12 +379,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @apiNote 不同于经典Stream会优化某些场景下的访问方法调用，Pipe不会主动优化此访问方法。
      * @see Stream#peek(Consumer)
      */
-    default Pipe<E> peek(Consumer<? super E> consumer) {
-        if (consumer == null) {
-            return this;
-        }
-        throw new UnsupportedOperationException();
-    }
+    Pipe<E> peek(Consumer<? super E> consumer);
 
     /**
      * 以给定方法访问流水线中的元素，访问方法支持访问元素在流水线中的次序。
@@ -425,15 +423,13 @@ public interface Pipe<E> extends AutoCloseable {
     Pipe<E> slice(long startInclusive, long endExclusive);
 
     /**
-     * 在流水线头部插入给定的流水线中的元素。
+     * 在流水线头部插入给定的拆分器中的元素。
      *
-     * @param pipe 包含需要插入到头部的元素的流水线
+     * @param spliterator 包含需要插入到头部的元素的拆分器
      * @return 新的流水线
      */
     @Extended
-    default Pipe<E> prepend(Pipe<? extends E> pipe) {
-        throw new UnsupportedOperationException();
-    }
+    Pipe<E> prepend(Spliterator<? extends E> spliterator);
 
     /**
      * 在流水线头部插入给定的迭代器中的元素。
@@ -442,17 +438,19 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 新的流水线
      */
     @Extended
-    Pipe<E> prepend(Iterator<? extends E> iterator);
+    default Pipe<E> prepend(Iterator<? extends E> iterator) {
+        return prepend(Spliterators.spliteratorUnknownSize(iterator, 0));
+    }
 
     /**
-     * 在流水线头部插入给定的可迭代对象中的元素。
+     * 在流水线头部插入给定的流水线中的元素。
      *
-     * @param iterable 包含需要插入到头部的元素的可迭代对象
+     * @param pipe 包含需要插入到头部的元素的流水线
      * @return 新的流水线
      */
     @Extended
-    default Pipe<E> prepend(Iterable<? extends E> iterable) {
-        return prepend(iterable.iterator());
+    default Pipe<E> prepend(Pipe<? extends E> pipe) {
+        return prepend(pipe.toSpliterator());
     }
 
     /**
@@ -463,7 +461,7 @@ public interface Pipe<E> extends AutoCloseable {
      */
     @Extended
     default Pipe<E> prepend(Stream<? extends E> stream) {
-        return prepend(Pipes.from(stream));
+        return prepend(stream.spliterator());
     }
 
     /**
@@ -475,7 +473,49 @@ public interface Pipe<E> extends AutoCloseable {
     @Extended
     @SuppressWarnings({"unchecked", "varargs"})
     default Pipe<E> prepend(E... values) {
-        return prepend(Misc.arrayIterator(values));
+        return prepend(Arrays.spliterator(values));
+    }
+
+    /**
+     * 在流水线头部插入给定的Map中的键。
+     *
+     * @param map 包含需要插入到头部的键的Map
+     * @return 新的流水线
+     */
+    @Extended
+    default Pipe<E> prependKeys(Map<? extends E, ?> map) {
+        return prepend(map.keySet().spliterator());
+    }
+
+    /**
+     * 在流水线头部插入给定的Map中的值。
+     *
+     * @param map 包含需要插入到头部的值的Map
+     * @return 新的流水线
+     */
+    @Extended
+    default Pipe<E> prependValues(Map<?, ? extends E> map) {
+        return prepend(map.values().spliterator());
+    }
+
+    /**
+     * 在流水线尾部插入给定的拆分器中的元素。
+     *
+     * @param spliterator 包含需要插入到尾部的元素的拆分器
+     * @return 新的流水线
+     */
+    @Extended
+    Pipe<E> append(Spliterator<? extends E> spliterator);
+
+    /**
+     * 在流水线尾部插入给定的迭代器中的元素。
+     *
+     * @param iterator 包含需要插入到尾部的元素的迭代器
+     * @return 新的流水线
+     */
+    @Extended
+    default Pipe<E> append(Iterator<? extends E> iterator) {
+        return append(Spliterators.spliteratorUnknownSize(iterator, 0));
     }
 
     /**
@@ -486,29 +526,7 @@ public interface Pipe<E> extends AutoCloseable {
      */
     @Extended
     default Pipe<E> append(Pipe<? extends E> pipe) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * 在流水线尾部插入给定的可迭代对象中的元素。
-     *
-     * @param iterable 包含需要插入到尾部的元素的可迭代对象
-     * @return 新的流水线
-     */
-    @Extended
-    default Pipe<E> append(Iterable<? extends E> iterable) {
-        return append(iterable.iterator());
-    }
-
-    /**
-     * 在流水线尾部插入给定的迭代器中的元素。
-     *
-     * @param iterator 包含需要插入到尾部的元素的迭代器
-     * @return 新的流水线
-     */
-    @Extended
-    default Pipe<E> append(Iterator<? extends E> iterator) {
-        throw new UnsupportedOperationException();
+        return append(pipe.toSpliterator());
     }
 
     /**
@@ -519,7 +537,7 @@ public interface Pipe<E> extends AutoCloseable {
      */
     @Extended
     default Pipe<E> append(Stream<? extends E> stream) {
-        return append(Pipes.from(stream));
+        return append(stream.spliterator());
     }
 
     /**
@@ -531,7 +549,29 @@ public interface Pipe<E> extends AutoCloseable {
     @Extended
     @SuppressWarnings({"unchecked", "varargs"})
     default Pipe<E> append(E... values) {
-        return append(Misc.arrayIterator(values));
+        return append(Arrays.spliterator(values));
+    }
+
+    /**
+     * 在流水线尾部插入给定的Map中的键。
+     *
+     * @param map 包含需要插入到尾部的键的Map
+     * @return 新的流水线
+     */
+    @Extended
+    default Pipe<E> appendKeys(Map<? extends E, ?> map) {
+        return append(map.keySet().spliterator());
+    }
+
+    /**
+     * 在流水线尾部插入给定的Map中的值。
+     *
+     * @param map 包含需要插入到尾部的值的Map
+     * @return 新的流水线
+     */
+    @Extended
+    default Pipe<E> appendValues(Map<?, ? extends E> map) {
+        return append(map.values().spliterator());
     }
 
     /**
@@ -747,6 +787,10 @@ public interface Pipe<E> extends AutoCloseable {
 
     default <A> A[] toArray(IntFunction<A[]> generator) {
         throw new UnsupportedOperationException();
+    }
+
+    default Spliterator<E> toSpliterator() {
+        return Spliterators.emptySpliterator();
     }
 
     @Extended

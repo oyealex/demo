@@ -1,6 +1,7 @@
 package com.oyealex.pipe.flag;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Spliterator;
 
@@ -14,23 +15,45 @@ import static java.util.stream.Collectors.toList;
  * @since 2023-05-05
  */
 public enum PipeFlag {
-    /** 所有数据基于{@link Object#equals(Object)}比较规则判定为唯一 */
+    /**
+     * 所有数据基于{@link Object#equals(Object)}比较规则判定为唯一
+     *
+     * @see Spliterator#DISTINCT
+     */
     DISTINCT(0),
 
-    /** 所有数据均实现了{@link Comparable}并按照自然顺序排序 */
+    /**
+     * 所有数据均实现了{@link Comparable}并按照自然顺序排序
+     *
+     * @see Spliterator#SORTED
+     */
     SORTED(1),
 
-    /** 所有数据均实现了{@link Comparable}并按照自然顺序逆序排序 */
-    REVERSED_SORTED(2),
+    // offset = 2 for Spliterator.ORDERED
 
-    /** 数据源是有限的 */
+    /**
+     * 数据源是有限的
+     *
+     * @see Spliterator#SIZED
+     */
     SIZED(3),
 
-    /** 所有数据都不为{@code null} */
+    /**
+     * 所有数据都不为{@code null}
+     *
+     * @see Spliterator#NONNULL
+     */
     NONNULL(4),
 
+    // offset = 5 for Spliterator.IMMUTABLE
+    // offset = 6 for Spliterator.CONCURRENT
+    // offset = 7 for Spliterator.SUBSIZED
+
     /** 流水线操作可以被短路 */
-    SHORT_CIRCUIT(5),
+    SHORT_CIRCUIT(12),
+
+    /** 所有数据均实现了{@link Comparable}并按照自然顺序逆序排序 */
+    REVERSED_SORTED(13),
     ;
 
     public static final int IS_DISTINCT = DISTINCT.setBit;
@@ -40,10 +63,6 @@ public enum PipeFlag {
     public static final int IS_SORTED = SORTED.setBit;
 
     public static final int NOT_SORTED = SORTED.clearBit;
-
-    public static final int IS_REVERSED_SORTED = REVERSED_SORTED.setBit;
-
-    public static final int NOT_REVERSED_SORTED = REVERSED_SORTED.clearBit;
 
     public static final int IS_SIZED = SIZED.setBit;
 
@@ -56,6 +75,13 @@ public enum PipeFlag {
     public static final int IS_SHORT_CIRCUIT = SHORT_CIRCUIT.setBit;
 
     public static final int NOT_SHORT_CIRCUIT = SHORT_CIRCUIT.clearBit;
+
+    public static final int IS_REVERSED_SORTED = REVERSED_SORTED.setBit;
+
+    public static final int NOT_REVERSED_SORTED = REVERSED_SORTED.clearBit;
+
+    public static final int SPLIT_MASK = Spliterator.DISTINCT | Spliterator.SORTED | Spliterator.SIZED |
+        Spliterator.NONNULL;
 
     private static final int SET_BIT = 0B01;
 
@@ -139,24 +165,35 @@ public enum PipeFlag {
      */
     public static int fromSpliterator(Spliterator<?> spliterator) {
         int characteristics = spliterator.characteristics();
-        int flag = 0;
-        if ((characteristics & Spliterator.DISTINCT) == Spliterator.DISTINCT) {
-            flag |= IS_DISTINCT;
-        }
-        if ((characteristics & Spliterator.SORTED) == Spliterator.SORTED && spliterator.getComparator() == null) {
-            flag |= IS_SORTED;
-        }
-        if ((characteristics & Spliterator.SIZED) == Spliterator.SIZED) {
-            flag |= IS_SIZED;
-        }
-        if ((characteristics & Spliterator.NONNULL) == Spliterator.NONNULL) {
-            flag |= IS_NONNULL;
+        int flag = characteristics & SPLIT_MASK;
+        if ((characteristics & Spliterator.SORTED) == Spliterator.SORTED && spliterator.getComparator() != null) {
+            flag &= ~Spliterator.SORTED;
+            flag |= NOT_SORTED;
         }
         return flag;
     }
 
-    static List<String> readable(int flagValue) {
+    static List<String> toReadablePipeFlag(int flagValue) {
         return stream(values()).map(flag -> flag.isSet(flagValue) ? "IS_" + flag.name() :
             flag.isCleared(flagValue) ? "NOT_" + flag.name() : null).filter(Objects::nonNull).collect(toList());
+    }
+
+    private static final Map<Integer, String> SPLITERATOR_CHARACTERISTICS_MAP = Map.of(
+        // @formatter:off
+        Spliterator.ORDERED, "ORDERED",
+        Spliterator.DISTINCT, "DISTINCT",
+        Spliterator.SORTED, "SORTED",
+        Spliterator.SIZED, "SIZED",
+        Spliterator.NONNULL, "NONNULL",
+        Spliterator.IMMUTABLE, "IMMUTABLE",
+        Spliterator.CONCURRENT, "CONCURRENT",
+        Spliterator.SUBSIZED, "SUBSIZED"
+        // @formatter:on
+    );
+
+    static List<String> toReadableSplitCharacteristics(int flagVale) {
+        return SPLITERATOR_CHARACTERISTICS_MAP.entrySet().stream()
+            .map(entry -> (flagVale & entry.getKey()) == entry.getKey() ? entry.getValue() : null)
+            .filter(Objects::nonNull).collect(toList());
     }
 }

@@ -4,6 +4,7 @@ import com.oyealex.pipe.annotations.Extended;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -38,6 +39,17 @@ public class Pipes {
     }
 
     /**
+     * 从给定的拆分器中构建新的流水线实例。
+     *
+     * @param spliterator 拆分器
+     * @param <T> 拆分器中的元素类型
+     * @return 新的流水线实例
+     */
+    public static <T> Pipe<T> pipe(Spliterator<T> spliterator) {
+        return new PipeHead<>(spliterator);
+    }
+
+    /**
      * 根据给定的元素构造一个新的流水线实例。
      *
      * @param values 包含在流水线中的元素
@@ -47,7 +59,7 @@ public class Pipes {
     @SafeVarargs
     @SuppressWarnings("varargs")
     public static <T> Pipe<T> of(T... values) {
-        return new PipeHead<>(Arrays.spliterator(values));
+        return pipe(Arrays.spliterator(values));
     }
 
     /**
