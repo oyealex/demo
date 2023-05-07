@@ -31,23 +31,23 @@ import static java.util.Objects.requireNonNull;
  * @author oyealex
  * @since 2023-05-08
  */
-class PipeSpliterator<IN, OUT> implements Spliterator<OUT> {
+class PipeSpliterator<OUT> implements Spliterator<OUT> {
     /** 被包装的流水线 */
-    private final ReferencePipe<IN, OUT> pipe;
+    private final ReferencePipe<?, OUT> pipe;
 
     /** 被包装流水线的数据源 */
-    private final Spliterator<IN> split;
+    private final Spliterator<Object> split;
 
     /** 用于缓存短路遍历元素的队列 */
     private Queue<OUT> cachedQueue;
 
     /** 已经封装了流水线全部节点操作，并最终将元素流入缓存队列的操作方法 */
-    private Op<IN> wrappedOfferOp;
+    private Op<Object> wrappedOfferOp;
 
     /** 是否已经完整遍历 */
     private boolean isTravelledFully = false;
 
-    PipeSpliterator(ReferencePipe<IN, OUT> pipe, Spliterator<IN> split) {
+    PipeSpliterator(ReferencePipe<?, OUT> pipe, Spliterator<Object> split) {
         this.pipe = pipe;
         this.split = split;
     }
@@ -93,7 +93,7 @@ class PipeSpliterator<IN, OUT> implements Spliterator<OUT> {
     @Override
     public void forEachRemaining(Consumer<? super OUT> action) {
         if (cachedQueue == null && !isTravelledFully) {
-            pipe.processDataWithOp(split, action::accept);
+            pipe.processData(split, action::accept);
             isTravelledFully = true;
         } else {
             do {/*noop*/} while (tryAdvance(action));

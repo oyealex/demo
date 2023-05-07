@@ -1,7 +1,7 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.annotations.Extended;
-import com.oyealex.pipe.basis.functional.IntBiConsumer;
+import com.oyealex.pipe.basis.functional.LongBiConsumer;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import com.oyealex.pipe.bi.BiPipe;
@@ -281,9 +281,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 元素去重之后的流水线
      * @see Stream#distinct()
      */
-    default Pipe<E> distinct() {
-        throw new UnsupportedOperationException();
-    }
+    Pipe<E> distinct();
 
     /**
      * 对流水线中的元素去重，以给定的映射结果为依据。
@@ -344,9 +342,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 元素顺序颠倒后的流水线
      */
     @Extended
-    default Pipe<E> reverse() {
-        throw new UnsupportedOperationException();
-    }
+    Pipe<E> reverse();
 
     /**
      * 随机打乱流水线中的元素。
@@ -354,7 +350,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 元素顺序被打乱后新的流水线
      */
     default Pipe<E> shuffle() {
-        throw new UnsupportedOperationException();
+        return shuffle(new Random());
     }
 
     /**
@@ -385,9 +381,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @apiNote 不同于经典Stream会优化某些场景下的访问方法调用，Pipe不会主动优化此访问方法。
      */
     @Extended
-    default Pipe<E> peekEnumerated(IntBiConsumer<? super E> consumer) {
-        throw new UnsupportedOperationException();
-    }
+    Pipe<E> peekEnumerated(LongBiConsumer<? super E> consumer);
 
     /**
      * 仅保留给定数量的元素。
@@ -661,9 +655,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @param action 访问元素的方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为访问的元素。
      */
     @Extended
-    default void forEachEnumerated(IntBiConsumer<? super E> action) {
-        throw new UnsupportedOperationException();
-    }
+    void forEachEnumerated(LongBiConsumer<? super E> action);
 
     default E reduce(E identity, BinaryOperator<E> op) {
         throw new UnsupportedOperationException();

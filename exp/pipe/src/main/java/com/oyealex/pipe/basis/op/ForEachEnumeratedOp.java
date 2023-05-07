@@ -1,6 +1,6 @@
 package com.oyealex.pipe.basis.op;
 
-import com.oyealex.pipe.basis.functional.IntBiConsumer;
+import com.oyealex.pipe.basis.functional.LongBiConsumer;
 
 /**
  * ForEachOp
@@ -9,11 +9,11 @@ import com.oyealex.pipe.basis.functional.IntBiConsumer;
  * @since 2023-04-28
  */
 class ForEachEnumeratedOp<IN> implements TerminalOp<IN, Void> {
-    private final IntBiConsumer<? super IN> action;
+    private final LongBiConsumer<? super IN> action;
 
-    private int index = 0;
+    private long index = 0L;
 
-    ForEachEnumeratedOp(IntBiConsumer<? super IN> action) {this.action = action;}
+    ForEachEnumeratedOp(LongBiConsumer<? super IN> action) {this.action = action;}
 
     @Override
     public void accept(IN in) {

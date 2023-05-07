@@ -25,10 +25,11 @@ class PipeHead<OUT> extends ReferencePipe<Void, OUT> {
     }
 
     @Override
-    protected Spliterator<?> takeDataSource() {
+    @SuppressWarnings("unchecked")
+    protected Spliterator<Object> takeDataSource() {
         Spliterator<? extends OUT> iterator = sourceSpliterator;
         sourceSpliterator = null;
-        return iterator;
+        return (Spliterator<Object>) iterator;
     }
 
     @Override
@@ -41,7 +42,7 @@ class PipeHead<OUT> extends ReferencePipe<Void, OUT> {
     }
 
     @Override
-    protected Op<Void> wrapOp(Op<OUT> op) {
+    protected Op<Void> wrapOp(Op<OUT> nextOp) {
         throw new UnsupportedOperationException();
     }
 

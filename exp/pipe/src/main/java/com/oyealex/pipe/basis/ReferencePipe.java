@@ -1,6 +1,7 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.basis.functional.IntBiConsumer;
+import com.oyealex.pipe.basis.functional.LongBiConsumer;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import com.oyealex.pipe.basis.op.Op;
@@ -19,6 +20,7 @@ import java.util.function.Predicate;
 
 import static com.oyealex.pipe.basis.Pipes.empty;
 import static com.oyealex.pipe.flag.PipeFlag.IS_DISTINCT;
+import static com.oyealex.pipe.flag.PipeFlag.IS_REVERSED_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.IS_SHORT_CIRCUIT;
 import static com.oyealex.pipe.flag.PipeFlag.IS_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.NOTHING;
@@ -26,6 +28,8 @@ import static com.oyealex.pipe.flag.PipeFlag.NOT_DISTINCT;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_REVERSED_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SORTED;
+import static com.oyealex.pipe.flag.PipeFlag.REVERSED_SORTED;
+import static com.oyealex.pipe.flag.PipeFlag.SORTED;
 import static java.lang.Long.MAX_VALUE;
 import static java.util.Objects.requireNonNull;
 
@@ -37,64 +41,79 @@ import static java.util.Objects.requireNonNull;
  */
 // TODO 2023-05-06 22:43 关注流水线的重复消费问题，参见 java.util.stream.AbstractPipeline.linkedOrConsumed
 abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
-    /**
-     * 源节点，缓存指针以加速访问
-     */
-    @SuppressWarnings("rawtypes")
-    private final ReferencePipe sourcePipe;
+    /** 整条流水线的头节点，元素类型未知，非{@code null}。 */
+    private final ReferencePipe<?, ?> headPipe;
 
-    /**
-     * 此节点的前置节点，当且仅当此节点为源节点时为null
-     */
-    @SuppressWarnings("rawtypes")
-    private final ReferencePipe prePipe;
+    /** 此节点的前置节点，当且仅当此节点为头节点时为{@code null}。 */
+    private final ReferencePipe<?, ? extends IN> prePipe;
 
     /** 流水线标记 */
     final int flag;
 
     ReferencePipe(int flag) {
-        this.sourcePipe = this;
+        this.headPipe = this;
         this.prePipe = null;
         this.flag = flag;
     }
 
     ReferencePipe(ReferencePipe<?, ? extends IN> prePipe, int opFlag) {
-        this.sourcePipe = prePipe.sourcePipe;
+        this.headPipe = prePipe.headPipe;
         this.prePipe = prePipe;
         this.flag = PipeFlag.combine(prePipe.flag, opFlag);
     }
 
+    /**
+     * 获取流水线的数据源，此数据源来自头节点。
+     *
+     * @return 流水线的数据源
+     * @apiNote 此方法仅允许调用一次。
+     * @implNote 仅头节点可以重写此方法。
+     */
     protected Spliterator<?> takeDataSource() {
-        throw new UnsupportedOperationException("source pipe required");
+        return headPipe.takeDataSource();
     }
 
-    protected abstract Op<IN> wrapOp(Op<OUT> op);
+    /**
+     * 将当前节点的操作和下游节点的操作封装为一个操作，此操作接受的元素为上游节点的输出元素。
+     *
+     * @param nextOp 下游节点的操作
+     * @return 封装之后的操作
+     */
+    protected abstract Op<IN> wrapOp(Op<OUT> nextOp);
 
     @SuppressWarnings("unchecked")
     private <R> R evaluate(TerminalOp<OUT, R> terminalOp) {
-        processDataWithOp(sourcePipe.takeDataSource(), terminalOp);
+        processData((Spliterator<Object>) headPipe.takeDataSource(), terminalOp);
         return terminalOp.get();
     }
 
-    <OP extends Op<OUT>> void processDataWithOp(Spliterator<IN> dataSource, OP tailOp) {
-        Op<IN> wrappedOp = wrapAllOp(tailOp);
+    <OP extends Op<OUT>> void processData(Spliterator<Object> dataSource, OP tailOp) {
+        Op<Object> wrappedOp = wrapAllOp(tailOp);
         wrappedOp.begin(dataSource.getExactSizeIfKnown());
         if (PipeFlag.SHORT_CIRCUIT.isSet(flag)) {
-            // 如果允许短路，则尝试短路处理
+            // 如果允许短路，则尝试短路遍历
             do {/*noop*/} while (!wrappedOp.cancellationRequested() && dataSource.tryAdvance(wrappedOp));
         } else {
+            // 否则直接执行全量遍历
             dataSource.forEachRemaining(wrappedOp);
         }
         wrappedOp.end();
     }
 
+    /**
+     * 以给定的操作作为流水线尾部操作，将整条流水线的所有节点的操作按顺序封装为一个操作。
+     *
+     * @param tailOp 流水线尾部操作
+     * @return 封装了所有流水线节点操作的操作方法
+     */
     @SuppressWarnings("unchecked")
-    Op<IN> wrapAllOp(Op<OUT> tailOp) {
-        Op<?> resultOp = tailOp;
+    Op<Object> wrapAllOp(Op<OUT> tailOp) {
+        Op<?> wrappedOp = tailOp;
         for (@SuppressWarnings("rawtypes") ReferencePipe pipe = this; pipe.prePipe != null; pipe = pipe.prePipe) {
-            resultOp = pipe.wrapOp(resultOp);
+            // 从尾部到头部，逐级逆向封装
+            wrappedOp = pipe.wrapOp(wrappedOp);
         }
-        return (Op<IN>) resultOp;
+        return (Op<Object>) wrappedOp;
     }
 
     @Override
@@ -102,8 +121,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         requireNonNull(predicate);
         return new ReferencePipe<>(this, NOT_SIZED) {
             @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.filterOp(op, predicate);
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return Ops.filterOp(nextOp, predicate);
             }
         };
     }
@@ -112,8 +131,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     public Pipe<OUT> keepWhile(Predicate<? super OUT> predicate) {
         return new ReferencePipe<>(this, NOTHING) {
             @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.keepOrDropWhileOp(op, true, predicate);
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return Ops.keepOrDropWhileOp(nextOp, true, predicate);
             }
         };
     }
@@ -122,8 +141,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     public Pipe<OUT> keepWhileEnumerated(LongBiPredicate<? super OUT> predicate) {
         return new ReferencePipe<>(this, NOTHING) {
             @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.keepOrDropWhileEnumeratedOp(op, true, predicate);
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return Ops.keepOrDropWhileEnumeratedOp(nextOp, true, predicate);
             }
         };
     }
@@ -132,8 +151,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     public Pipe<OUT> dropWhile(Predicate<? super OUT> predicate) {
         return new ReferencePipe<>(this, NOTHING) {
             @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.keepOrDropWhileOp(op, false, predicate);
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return Ops.keepOrDropWhileOp(nextOp, false, predicate);
             }
         };
     }
@@ -142,8 +161,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     public Pipe<OUT> dropWhileEnumerated(LongBiPredicate<? super OUT> predicate) {
         return new ReferencePipe<>(this, NOTHING) {
             @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.keepOrDropWhileEnumeratedOp(op, false, predicate);
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return Ops.keepOrDropWhileEnumeratedOp(nextOp, false, predicate);
             }
         };
     }
@@ -153,8 +172,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         requireNonNull(predicate);
         return new ReferencePipe<>(this, NOT_SIZED) {
             @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.filterEnumeratedOp(op, predicate);
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return Ops.filterEnumeratedOp(nextOp, predicate);
             }
         };
     }
@@ -164,8 +183,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         requireNonNull(mapper);
         return new ReferencePipe<>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT) {
             @Override
-            protected Op<OUT> wrapOp(Op<R> op) {
-                return Ops.mapOp(op, mapper);
+            protected Op<OUT> wrapOp(Op<R> nextOp) {
+                return Ops.mapOp(nextOp, mapper);
             }
         };
     }
@@ -175,8 +194,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         requireNonNull(mapper);
         return new ReferencePipe<>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT) {
             @Override
-            protected Op<OUT> wrapOp(Op<R> op) {
-                return Ops.mapEnumeratedOp(op, mapper);
+            protected Op<OUT> wrapOp(Op<R> nextOp) {
+                return Ops.mapEnumeratedOp(nextOp, mapper);
             }
         };
     }
@@ -186,8 +205,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         requireNonNull(mapper);
         return new ReferencePipe<>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT | NOT_SIZED) {
             @Override
-            protected Op<OUT> wrapOp(Op<R> op) {
-                return Ops.flatMapOP(op, mapper);
+            protected Op<OUT> wrapOp(Op<R> nextOp) {
+                return Ops.flatMapOP(nextOp, mapper);
             }
         };
     }
@@ -196,8 +215,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     public Pipe<OUT> distinct() {
         return new ReferencePipe<>(this, IS_DISTINCT | NOT_SIZED) {
             @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.distinctOp(op);
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return Ops.distinctOp(nextOp);
             }
         };
     }
@@ -207,8 +226,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         requireNonNull(mapper);
         return new ReferencePipe<>(this, NOT_DISTINCT | NOT_SIZED) {
             @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.distinctByOp(op, mapper);
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return Ops.distinctByOp(nextOp, mapper);
             }
         };
     }
@@ -220,8 +239,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         }
         return new ReferencePipe<>(this, IS_SORTED | NOT_REVERSED_SORTED) {
             @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.sortOp(op, null);
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return Ops.sortOp(nextOp, null);
             }
         };
     }
@@ -231,8 +250,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         requireNonNull(comparator);
         return new ReferencePipe<>(this, NOT_SORTED | NOT_REVERSED_SORTED) {
             @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.sortOp(op, comparator);
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return Ops.sortOp(nextOp, comparator);
             }
         };
     }
@@ -242,8 +261,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         requireNonNull(mapper);
         return new ReferencePipe<>(this, NOT_SORTED | NOT_REVERSED_SORTED) {
             @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.sortOp(op, Comparator.comparing(mapper));
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return Ops.sortOp(nextOp, Comparator.comparing(mapper));
             }
         };
     }
@@ -253,8 +272,28 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         requireNonNull(mapper);
         return new ReferencePipe<>(this, NOT_SORTED | NOT_REVERSED_SORTED) {
             @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.sortOp(op, Comparator.comparing(mapper, comparator));
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return Ops.sortOp(nextOp, Comparator.comparing(mapper, comparator));
+            }
+        };
+    }
+
+    @Override
+    public Pipe<OUT> reverse() {
+        int opFlag = NOTHING;
+        if (SORTED.isSet(flag)) {
+            // 如果已排序，则标记逆排序
+            opFlag |= NOT_SORTED | IS_REVERSED_SORTED;
+        }
+        if (REVERSED_SORTED.isSet(flag)) {
+            // 如果已逆排序，则标记排序
+            opFlag |= IS_SORTED | NOT_REVERSED_SORTED;
+        }
+        return new ReferencePipe<>(this, opFlag) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                // TODO 2023-05-08 02:02
+                return null;
             }
         };
     }
@@ -264,8 +303,19 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         requireNonNull(consumer);
         return new ReferencePipe<>(this, NOTHING) {
             @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.peekOp(op, consumer);
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return Ops.peekOp(nextOp, consumer);
+            }
+        };
+    }
+
+    @Override
+    public Pipe<OUT> peekEnumerated(LongBiConsumer<? super OUT> consumer) {
+        requireNonNull(consumer);
+        return new ReferencePipe<>(this, NOTHING) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return Ops.peekEnumeratedOp(nextOp, consumer);
             }
         };
     }
@@ -283,8 +333,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         }
         return new ReferencePipe<>(this, NOT_SIZED | IS_SHORT_CIRCUIT) {
             @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.sliceOp(op, 0, size);
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return Ops.sliceOp(nextOp, 0, size);
             }
         };
     }
@@ -302,8 +352,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         }
         return new ReferencePipe<>(this, NOT_SIZED) {
             @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.sliceOp(op, size, MAX_VALUE);
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return Ops.sliceOp(nextOp, size, MAX_VALUE);
             }
         };
     }
@@ -321,8 +371,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         }
         return new ReferencePipe<>(this, NOT_SIZED | IS_SHORT_CIRCUIT) {
             @Override
-            protected Op<OUT> wrapOp(Op<OUT> op) {
-                return Ops.sliceOp(op, startInclusive, endExclusive - startInclusive);
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return Ops.sliceOp(nextOp, startInclusive, endExclusive - startInclusive);
             }
         };
     }
@@ -352,8 +402,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         }
         return new ReferencePipe<>(this, NOTHING) {
             @Override
-            protected Op<OUT> wrapOp(Op<Pipe<OUT>> op) {
-                return Ops.partitionOp(op, size);
+            protected Op<OUT> wrapOp(Op<Pipe<OUT>> nextOp) {
+                return Ops.partitionOp(nextOp, size);
             }
         };
     }
@@ -365,7 +415,7 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public void forEachEnumerated(IntBiConsumer<? super OUT> action) {
+    public void forEachEnumerated(LongBiConsumer<? super OUT> action) {
         requireNonNull(action);
         evaluate(Ops.forEachEnumeratedOp(action));
     }
@@ -413,8 +463,8 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     @Override
     @SuppressWarnings("unchecked")
     public Spliterator<OUT> toSpliterator() {
-        return this == sourcePipe ? (Spliterator<OUT>) sourcePipe.takeDataSource() :
-            new PipeSpliterator<>(this, (Spliterator<IN>) sourcePipe.takeDataSource());
+        return this == headPipe ? (Spliterator<OUT>) headPipe.takeDataSource() :
+            new PipeSpliterator<>(this, (Spliterator<Object>) headPipe.takeDataSource());
     }
 
     @Override
@@ -424,12 +474,12 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<OUT> onClose(Runnable closeAction) {
-        sourcePipe.onClose(requireNonNull(closeAction));
+        headPipe.onClose(requireNonNull(closeAction));
         return this;
     }
 
     @Override
     public void close() {
-        sourcePipe.close();
+        headPipe.close();
     }
 }

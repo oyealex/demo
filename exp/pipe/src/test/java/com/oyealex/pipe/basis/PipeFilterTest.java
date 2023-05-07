@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
  *
  * @author oyealex
  * @see Pipe#keepIf(Predicate)
+ * @see Pipe#filter(Predicate)
  * @see Pipe#dropIf(Predicate)
  * @see Pipe#filterEnumerated(LongBiPredicate)
  * @since 2023-04-28
