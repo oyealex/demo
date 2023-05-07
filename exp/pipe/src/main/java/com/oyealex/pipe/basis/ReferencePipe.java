@@ -21,6 +21,7 @@ import static com.oyealex.pipe.basis.Pipes.empty;
 import static com.oyealex.pipe.flag.PipeFlag.IS_DISTINCT;
 import static com.oyealex.pipe.flag.PipeFlag.IS_SHORT_CIRCUIT;
 import static com.oyealex.pipe.flag.PipeFlag.IS_SORTED;
+import static com.oyealex.pipe.flag.PipeFlag.NOTHING;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_DISTINCT;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_REVERSED_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
@@ -49,7 +50,7 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     private final ReferencePipe prePipe;
 
     /** 流水线标记 */
-    private final int flag;
+    final int flag;
 
     ReferencePipe(int flag) {
         this.sourcePipe = this;
@@ -75,7 +76,7 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         return terminalOp.get();
     }
 
-    private <OP extends Op<OUT>> void processDataWithOp(Spliterator<IN> dataSource, OP tailOp) {
+    <OP extends Op<OUT>> void processDataWithOp(Spliterator<IN> dataSource, OP tailOp) {
         Op<IN> wrappedOp = wrapAllOp(tailOp);
         wrappedOp.begin(dataSource.getExactSizeIfKnown());
         if (PipeFlag.SHORT_CIRCUIT.isSet(flag)) {
@@ -88,7 +89,7 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @SuppressWarnings("unchecked")
-    private Op<IN> wrapAllOp(Op<OUT> tailOp) {
+    Op<IN> wrapAllOp(Op<OUT> tailOp) {
         Op<?> resultOp = tailOp;
         for (@SuppressWarnings("rawtypes") ReferencePipe pipe = this; pipe.prePipe != null; pipe = pipe.prePipe) {
             resultOp = pipe.wrapOp(resultOp);
@@ -109,7 +110,7 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<OUT> keepWhile(Predicate<? super OUT> predicate) {
-        return new ReferencePipe<>(this, 0) {
+        return new ReferencePipe<>(this, NOTHING) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
                 return Ops.keepOrDropWhileOp(op, true, predicate);
@@ -119,12 +120,17 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<OUT> keepWhileEnumerated(LongBiPredicate<? super OUT> predicate) {
-        return Pipe.super.keepWhileEnumerated(predicate);
+        return new ReferencePipe<>(this, NOTHING) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> op) {
+                return Ops.keepOrDropWhileEnumeratedOp(op, true, predicate);
+            }
+        };
     }
 
     @Override
     public Pipe<OUT> dropWhile(Predicate<? super OUT> predicate) {
-        return new ReferencePipe<>(this, 0) {
+        return new ReferencePipe<>(this, NOTHING) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
                 return Ops.keepOrDropWhileOp(op, false, predicate);
@@ -134,7 +140,12 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<OUT> dropWhileEnumerated(LongBiPredicate<? super OUT> predicate) {
-        return Pipe.super.dropWhileEnumerated(predicate);
+        return new ReferencePipe<>(this, NOTHING) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> op) {
+                return Ops.keepOrDropWhileEnumeratedOp(op, false, predicate);
+            }
+        };
     }
 
     @Override
@@ -251,7 +262,7 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public Pipe<OUT> peek(Consumer<? super OUT> consumer) {
         requireNonNull(consumer);
-        return new ReferencePipe<>(this, 0) {
+        return new ReferencePipe<>(this, NOTHING) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> op) {
                 return Ops.peekOp(op, consumer);
@@ -339,7 +350,7 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         if (size < 1) {
             throw new IllegalArgumentException("partition size cannot be less then 1, size: " + size);
         }
-        return new ReferencePipe<>(this, 0) {
+        return new ReferencePipe<>(this, NOTHING) {
             @Override
             protected Op<OUT> wrapOp(Op<Pipe<OUT>> op) {
                 return Ops.partitionOp(op, size);
@@ -400,50 +411,10 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Spliterator<OUT> toSpliterator() {
-        @SuppressWarnings("unchecked") Spliterator<OUT> split = (Spliterator<OUT>) sourcePipe.takeDataSource();
-        if (this == sourcePipe) {
-            return split;
-        }
-        return new Spliterator<>() {
-            @Override
-            public boolean tryAdvance(Consumer<? super OUT> action) {
-                return false;
-            }
-
-            @Override
-            public void forEachRemaining(Consumer<? super OUT> action) {
-                Spliterator.super.forEachRemaining(action);
-            }
-
-            @Override
-            public Spliterator<OUT> trySplit() {
-                return null;
-            }
-
-            @Override
-            public long estimateSize() {
-                return 0;
-            }
-
-            @Override
-            public long getExactSizeIfKnown() {
-                return PipeFlag.SIZED.isSet(flag) ? split.getExactSizeIfKnown() : -1;
-            }
-
-            @Override
-            public int characteristics() {
-                return 0;
-            }
-
-            @Override
-            public Comparator<? super OUT> getComparator() {
-                if (hasCharacteristics(Spliterator.ORDERED)) {
-                    return null;
-                }
-                throw new IllegalStateException();
-            }
-        };
+        return this == sourcePipe ? (Spliterator<OUT>) sourcePipe.takeDataSource() :
+            new PipeSpliterator<>(this, (Spliterator<IN>) sourcePipe.takeDataSource());
     }
 
     @Override

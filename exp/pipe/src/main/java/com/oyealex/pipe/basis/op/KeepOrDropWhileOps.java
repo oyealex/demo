@@ -11,7 +11,7 @@ import java.util.function.Predicate;
 abstract class KeepOrDropWhileOps<IN> extends ChainedOp<IN, IN> {
     protected final Predicate<? super IN> predicate;
 
-    protected boolean shouldTake = true;
+    protected boolean shouldTake;
 
     KeepOrDropWhileOps(Op<IN> nextOp, Predicate<? super IN> predicate, boolean shouldTakeInit) {
         super(nextOp);

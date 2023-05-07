@@ -92,6 +92,12 @@ public class Ops {
             new KeepOrDropWhileOps.DropWhileOp<>(op, predicate);
     }
 
+    public static <T> Op<T> keepOrDropWhileEnumeratedOp(Op<T> op, boolean isKeep,
+        LongBiPredicate<? super T> predicate) {
+        return isKeep ? new KeepOrDropWhileEnumeratedOps.KeepWhileOp<>(op, predicate) :
+            new KeepOrDropWhileEnumeratedOps.DropWhileOp<>(op, predicate);
+    }
+
     public static <T> Op<T> peekOp(Op<T> op, Consumer<? super T> consumer) {
         return new PeekOp<>(op, consumer);
     }

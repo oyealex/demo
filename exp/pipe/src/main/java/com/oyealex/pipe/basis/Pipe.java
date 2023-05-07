@@ -95,9 +95,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 新的流水线
      */
     @Extended
-    default Pipe<E> keepWhileEnumerated(LongBiPredicate<? super E> predicate) {
-        throw new UnsupportedOperationException();
-    }
+    Pipe<E> keepWhileEnumerated(LongBiPredicate<? super E> predicate);
 
     /**
      * 丢弃元素直到给定的断言首次为{@code False}，保留之后的元素。
@@ -116,9 +114,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 新的流水线
      */
     @Extended
-    default Pipe<E> dropWhileEnumerated(LongBiPredicate<? super E> predicate) {
-        throw new UnsupportedOperationException();
-    }
+    Pipe<E> dropWhileEnumerated(LongBiPredicate<? super E> predicate);
 
     /**
      * 根据给定断言过滤元素，断言支持访问的元素在流水线中的次序，从0开始计算，使用{@code long}类型的数据表示次序。

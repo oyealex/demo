@@ -56,6 +56,8 @@ public enum PipeFlag {
     REVERSED_SORTED(13),
     ;
 
+    public static final int NOTHING = 0;
+
     public static final int IS_DISTINCT = DISTINCT.setBit;
 
     public static final int NOT_DISTINCT = DISTINCT.clearBit;
