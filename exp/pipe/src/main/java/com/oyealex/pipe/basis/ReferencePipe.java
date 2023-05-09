@@ -1,22 +1,37 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.basis.functional.IntBiConsumer;
+import com.oyealex.pipe.basis.api.DoublePipe;
+import com.oyealex.pipe.basis.api.IntPipe;
+import com.oyealex.pipe.basis.api.LongPipe;
+import com.oyealex.pipe.basis.api.Pipe;
 import com.oyealex.pipe.basis.functional.LongBiConsumer;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
-import com.oyealex.pipe.basis.op.Op;
-import com.oyealex.pipe.basis.op.Ops;
-import com.oyealex.pipe.basis.op.TerminalOp;
+import com.oyealex.pipe.bi.BiPipe;
 import com.oyealex.pipe.flag.PipeFlag;
 import com.oyealex.pipe.spliterator.ConcatSpliterator;
+import com.oyealex.pipe.tri.TriPipe;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
 import java.util.Spliterator;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.function.ToDoubleFunction;
+import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
 
 import static com.oyealex.pipe.basis.Pipes.empty;
 import static com.oyealex.pipe.flag.PipeFlag.IS_DISTINCT;
@@ -122,60 +137,40 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         return new ReferencePipe<>(this, NOT_SIZED) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return Ops.filterOp(nextOp, predicate);
+                return Ops.keepIfOp(nextOp, predicate);
+            }
+        };
+    }
+
+    @Override
+    public Pipe<OUT> keepIfOrderly(LongBiPredicate<? super OUT> predicate) {
+        requireNonNull(predicate);
+        return new ReferencePipe<>(this, NOT_SIZED) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return Ops.keepIfOrderlyOp(nextOp, predicate);
             }
         };
     }
 
     @Override
     public Pipe<OUT> keepWhile(Predicate<? super OUT> predicate) {
-        return new ReferencePipe<>(this, NOTHING) {
-            @Override
-            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return Ops.keepOrDropWhileOp(nextOp, true, predicate);
-            }
-        };
+        return new KeepOrDropWhileStage.KeepWhile<>(this, predicate);
     }
 
     @Override
-    public Pipe<OUT> keepWhileEnumerated(LongBiPredicate<? super OUT> predicate) {
-        return new ReferencePipe<>(this, NOTHING) {
-            @Override
-            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return Ops.keepOrDropWhileEnumeratedOp(nextOp, true, predicate);
-            }
-        };
+    public Pipe<OUT> keepWhileOrderly(LongBiPredicate<? super OUT> predicate) {
+        return new KeepOrDropWhileStage.KeepWhileOrderly<>(this, predicate);
     }
 
     @Override
     public Pipe<OUT> dropWhile(Predicate<? super OUT> predicate) {
-        return new ReferencePipe<>(this, NOTHING) {
-            @Override
-            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return Ops.keepOrDropWhileOp(nextOp, false, predicate);
-            }
-        };
+        return new KeepOrDropWhileStage.DropWhile<>(this, predicate);
     }
 
     @Override
-    public Pipe<OUT> dropWhileEnumerated(LongBiPredicate<? super OUT> predicate) {
-        return new ReferencePipe<>(this, NOTHING) {
-            @Override
-            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return Ops.keepOrDropWhileEnumeratedOp(nextOp, false, predicate);
-            }
-        };
-    }
-
-    @Override
-    public Pipe<OUT> filterEnumerated(LongBiPredicate<? super OUT> predicate) {
-        requireNonNull(predicate);
-        return new ReferencePipe<>(this, NOT_SIZED) {
-            @Override
-            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return Ops.filterEnumeratedOp(nextOp, predicate);
-            }
-        };
+    public Pipe<OUT> dropWhileOrderly(LongBiPredicate<? super OUT> predicate) {
+        return new KeepOrDropWhileStage.DropWhileOrderly<>(this, predicate);
     }
 
     @Override
@@ -190,14 +185,44 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public <R> Pipe<R> mapEnumerated(LongBiFunction<? super OUT, ? extends R> mapper) {
+    public <R> Pipe<R> mapOrderly(LongBiFunction<? super OUT, ? extends R> mapper) {
         requireNonNull(mapper);
         return new ReferencePipe<>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT) {
             @Override
             protected Op<OUT> wrapOp(Op<R> nextOp) {
-                return Ops.mapEnumeratedOp(nextOp, mapper);
+                return Ops.mapOrderlyOp(nextOp, mapper);
             }
         };
+    }
+
+    @Override
+    public IntPipe mapToInt(ToIntFunction<? super OUT> mapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public IntPipe mapToIntOrderly(ToIntFunction<? super OUT> mapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public LongPipe mapToLong(ToLongFunction<? super OUT> mapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public LongPipe mapToLongOrderly(ToLongFunction<? super OUT> mapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public DoublePipe mapToDouble(ToDoubleFunction<? super OUT> mapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public DoublePipe mapToDoubleOrderly(ToDoubleFunction<? super OUT> mapper) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -209,6 +234,53 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
                 return Ops.flatMapOP(nextOp, mapper);
             }
         };
+    }
+
+    @Override
+    public <R> Pipe<R> flatMapOrderly(LongBiFunction<? super OUT, ? extends Pipe<? extends R>> mapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public IntPipe flatMapToInt(Function<? super OUT, ? extends IntPipe> mapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public IntPipe flatMapToIntOrderly(LongBiFunction<? super OUT, ? extends IntPipe> mapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public LongPipe flatMapToLong(Function<? super OUT, ? extends LongPipe> mapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public LongPipe flatMapToLongOrderly(LongBiFunction<? super OUT, ? extends LongPipe> mapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public DoublePipe flatMapToDouble(Function<? super OUT, ? extends DoublePipe> mapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public DoublePipe flatMapToDoubleOrderly(LongBiFunction<? super OUT, ? extends DoublePipe> mapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <F, S> BiPipe<F, S> extendToTuple(Function<? super OUT, ? extends F> firstMapper,
+        Function<? super OUT, ? extends S> secondMapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <F, S, T> TriPipe<F, S, T> extendToTriple(Function<? super OUT, ? extends F> firstMapper,
+        Function<? super OUT, ? extends S> secondMapper, Function<? super OUT, ? extends T> thirdMapper) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -230,6 +302,11 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
                 return Ops.distinctByOp(nextOp, mapper);
             }
         };
+    }
+
+    @Override
+    public <R> Pipe<OUT> distinctByOrderly(LongBiFunction<? super OUT, ? extends R> mapper) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -268,6 +345,11 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
+    public <R extends Comparable<? super R>> Pipe<OUT> sortByOrderly(LongBiFunction<? super OUT, ? extends R> mapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public <R> Pipe<OUT> sortBy(Function<? super OUT, ? extends R> mapper, Comparator<? super R> comparator) {
         requireNonNull(mapper);
         return new ReferencePipe<>(this, NOT_SORTED | NOT_REVERSED_SORTED) {
@@ -276,6 +358,11 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
                 return Ops.sortOp(nextOp, Comparator.comparing(mapper, comparator));
             }
         };
+    }
+
+    @Override
+    public <R> Pipe<OUT> sortBy(LongBiFunction<? super OUT, ? extends R> mapper, Comparator<? super R> comparator) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -292,10 +379,45 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
         return new ReferencePipe<>(this, opFlag) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                // TODO 2023-05-08 02:02
-                return null;
+                return PipeFlag.SIZED.isSet(ReferencePipe.this.flag) ? new ChainedOp<>(nextOp) {
+                    private OUT[] elements;
+
+                    private int index;
+
+                    @Override
+                    @SuppressWarnings("unchecked")
+                    public void begin(long size) {
+                        if (size >= Integer.MAX_VALUE - 8) {
+                            throw new IllegalArgumentException("elements size exceeds max array size");
+                        }
+                        elements = (OUT[]) new Object[(int) size];
+                        index = 0;
+                    }
+
+                    @Override
+                    public void accept(OUT out) {
+                        elements[index++] = out;
+                    }
+
+                    @Override
+                    public void end() {
+
+                    }
+                } : new ChainedOp<>(nextOp) {
+                    private ArrayList<OUT> unsizedElements;
+
+                    @Override
+                    public void accept(OUT out) {
+
+                    }
+                };
             }
         };
+    }
+
+    @Override
+    public Pipe<OUT> shuffle(Random random) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -310,12 +432,12 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Pipe<OUT> peekEnumerated(LongBiConsumer<? super OUT> consumer) {
+    public Pipe<OUT> peekOrderly(LongBiConsumer<? super OUT> consumer) {
         requireNonNull(consumer);
         return new ReferencePipe<>(this, NOTHING) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return Ops.peekEnumeratedOp(nextOp, consumer);
+                return Ops.peekOrderlyOp(nextOp, consumer);
             }
         };
     }
@@ -409,15 +531,40 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
+    public <S> BiPipe<OUT, S> combine(Pipe<S> secondPipe) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T, R> Pipe<R> merge(Pipe<T> pipe) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void forEach(Consumer<? super OUT> action) {
         requireNonNull(action);
         evaluate(Ops.forEachOp(action));
     }
 
     @Override
-    public void forEachEnumerated(LongBiConsumer<? super OUT> action) {
+    public void forEachOrderly(LongBiConsumer<? super OUT> action) {
         requireNonNull(action);
-        evaluate(Ops.forEachEnumeratedOp(action));
+        evaluate(Ops.forEachOrderlyOp(action));
+    }
+
+    @Override
+    public OUT reduce(OUT identity, BinaryOperator<OUT> op) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Optional<OUT> reduce(BinaryOperator<OUT> op) {
+        return Optional.empty();
+    }
+
+    @Override
+    public <R> R reduce(R identity, Function<? super OUT, ? extends R> mapper, BinaryOperator<R> op) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -446,18 +593,38 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
+    public boolean anyMatch(Predicate<? super OUT> predicate) {
+        return false;
+    }
+
+    @Override
+    public boolean allMatch(Predicate<? super OUT> predicate) {
+        return false;
+    }
+
+    @Override
+    public boolean noneMatch(Predicate<? super OUT> predicate) {
+        return false;
+    }
+
+    @Override
     public Optional<OUT> findFirst() {
-        return Pipe.super.findFirst();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Optional<OUT> findLast() {
-        return Pipe.super.findLast();
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public Optional<OUT> findAny() {
-        return Pipe.super.findAny();
+    public Iterator<OUT> iterator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <A> A[] toArray(IntFunction<A[]> generator) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -470,6 +637,73 @@ abstract class ReferencePipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public List<OUT> toList() {
         return evaluate(Containers.makeToListTerminalOp());
+    }
+
+    @Override
+    public <L extends List<OUT>> List<OUT> toList(Supplier<L> listSupplier) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<OUT> toUnmodifiableList() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<OUT> toSet() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <S extends Set<OUT>> Set<OUT> toSet(Supplier<S> setSupplier) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<OUT> toUnmodifiableSet() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <C extends Collection<OUT>> C toCollection(Supplier<C> collectionSupplier) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <K> Map<K, OUT> toMap(Function<? super OUT, ? extends K> keyMapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <K, M extends Map<K, OUT>> M toMap(Supplier<M> mapSupplier, Function<? super OUT, ? extends K> keyMapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <K> Map<K, OUT> toUnmodifiableMap(Function<? super OUT, ? extends K> keyMapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <K> Map<K, List<OUT>> group(Function<? super OUT, ? extends K> classifier) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <K, V> Map<K, V> groupAndThen(Function<? super OUT, ? extends K> classifier,
+        Function<List<OUT>, V> finisher) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <K> Map<K, List<OUT>> groupAndExecute(Function<? super OUT, ? extends K> classifier,
+        BiConsumer<K, List<OUT>> action) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String join(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

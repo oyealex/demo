@@ -1,6 +1,7 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.PipeTestBase;
+import com.oyealex.pipe.basis.api.Pipe;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,9 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
  *
  * @author oyealex
  * @see Pipe#keepIf(Predicate)
- * @see Pipe#filter(Predicate)
  * @see Pipe#dropIf(Predicate)
- * @see Pipe#filterEnumerated(LongBiPredicate)
+ * @see Pipe#keepIfOrderly(LongBiPredicate)
  * @since 2023-04-28
  */
 class PipeFilterTest extends PipeTestBase {
@@ -43,7 +43,7 @@ class PipeFilterTest extends PipeTestBase {
     @Test
     @DisplayName("应当正确根据次序编号过滤元素")
     void should_filter_elements_by_enumeration_number_rightly() {
-        List<String> res = of(ELEMENTS).filterEnumerated((index, value) -> index <= 3 || value.length() > 5).toList();
+        List<String> res = of(ELEMENTS).keepIfOrderly((index, value) -> index <= 3 || value.length() > 5).toList();
         int[] index = new int[1];
         assertEquals(stream(ELEMENTS).filter(value -> index[0]++ <= 3 || value.length() > 5).collect(toList()), res);
     }
@@ -53,7 +53,7 @@ class PipeFilterTest extends PipeTestBase {
     void should_be_able_to_visit_enumeration_number_rightly() {
         TreeMap<Long, String> visited = new TreeMap<>();
         TreeMap<Long, String> expected = new TreeMap<>();
-        of(ELEMENTS).filterEnumerated((index, value) -> visited.put(index, value) != null).forEach(v -> {});
+        of(ELEMENTS).keepIfOrderly((index, value) -> visited.put(index, value) != null).forEach(v -> {});
         int[] index = new int[1];
         stream(ELEMENTS).forEach(value -> expected.put((long) index[0]++, value));
         assertEquals(expected, visited);
@@ -78,6 +78,6 @@ class PipeFilterTest extends PipeTestBase {
     void should_throw_exception_when_given_predicate_is_null() {
         assertThrowsExactly(NullPointerException.class, () -> Pipes.empty().keepIf(null));
         assertThrowsExactly(NullPointerException.class, () -> Pipes.empty().dropIf(null));
-        assertThrowsExactly(NullPointerException.class, () -> Pipes.empty().filterEnumerated(null));
+        assertThrowsExactly(NullPointerException.class, () -> Pipes.empty().keepIfOrderly(null));
     }
 }

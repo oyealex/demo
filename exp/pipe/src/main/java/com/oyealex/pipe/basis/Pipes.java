@@ -1,6 +1,6 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.annotations.Extended;
+import com.oyealex.pipe.basis.api.Pipe;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -121,7 +121,6 @@ public class Pipes {
      * @param <T> 元素类型
      * @return 拼接后的流水线
      */
-    @Extended
     @SafeVarargs
     @SuppressWarnings("varargs")
     public static <T> Pipe<T> concat(Pipe<? extends T>... pipes) {
@@ -143,7 +142,6 @@ public class Pipes {
      * @return 新的流水线
      * @apiNote 此方法通过调用 {@link Stream#iterator()}方法获取流元素的迭代器来组装流水线，此操作会终结给定的流。
      */
-    @Extended
     public static <T> Pipe<T> from(Stream<? extends T> stream) {
         return new PipeHead<>(stream.spliterator());
     }
@@ -155,7 +153,6 @@ public class Pipes {
      * @param <T> 元素类型
      * @return 新的流水线
      */
-    @Extended
     public static <T> Pipe<T> from(Iterator<? extends T> iterator) {
         return new PipeHead<>(Spliterators.spliteratorUnknownSize(iterator, 0));
     }
@@ -167,7 +164,6 @@ public class Pipes {
      * @param <T> 元素类型
      * @return 新的流水线
      */
-    @Extended
     public static <T> Pipe<T> from(Iterable<? extends T> iterable) {
         return from(iterable.iterator());
     }

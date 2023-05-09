@@ -1,6 +1,7 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.PipeTestBase;
+import com.oyealex.pipe.basis.api.Pipe;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * @author oyealex
  * @see Pipe#map(Function)
- * @see Pipe#mapEnumerated(LongBiFunction)
+ * @see Pipe#mapOrderly(LongBiFunction)
  * @see Pipe#mapToInt(ToIntFunction)
  * @see Pipe#mapToLong(ToLongFunction)
  * @see Pipe#mapToDouble(ToDoubleFunction)
@@ -42,7 +43,7 @@ class PipeMapTest extends PipeTestBase {
     @Test
     @DisplayName("当以支持枚举的方式映射元素时能够正常访问元素的枚举次序")
     void should_access_enumeration_number_rightly_when_map_elements_enumerated() {
-        List<String> res = of(ELEMENTS).mapEnumerated((index, value) -> String.valueOf(index)).toList();
+        List<String> res = of(ELEMENTS).mapOrderly((index, value) -> String.valueOf(index)).toList();
         int[] index = new int[1];
         assertEquals(stream(ELEMENTS).map(value -> String.valueOf(index[0]++)).collect(toList()), res);
     }

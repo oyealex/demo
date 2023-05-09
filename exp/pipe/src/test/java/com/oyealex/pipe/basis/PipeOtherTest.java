@@ -1,6 +1,7 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.PipeTestBase;
+import com.oyealex.pipe.basis.api.Pipe;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

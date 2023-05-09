@@ -1,7 +1,6 @@
-package com.oyealex.pipe.basis.op;
+package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.basis.Pipe;
-import com.oyealex.pipe.basis.functional.IntBiConsumer;
+import com.oyealex.pipe.basis.api.Pipe;
 import com.oyealex.pipe.basis.functional.LongBiConsumer;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
@@ -18,7 +17,7 @@ import java.util.function.Predicate;
  * @author oyealex
  * @since 2023-04-28
  */
-public class Ops {
+class Ops {
     private Ops() {
         throw new IllegalStateException("no instance available");
     }
@@ -27,12 +26,38 @@ public class Ops {
         return new CountOp<>();
     }
 
-    public static <T> Op<T> filterEnumeratedOp(Op<T> nextOp, LongBiPredicate<? super T> predicate) {
-        return new FilterEnumeratedOp<>(nextOp, predicate);
+    public static <T> Op<T> keepIfOp(Op<T> nextOp, Predicate<? super T> predicate) {
+        return new ChainedOp<>(nextOp) {
+            @Override
+            public void begin(long size) {
+                nextOp.begin(-1);
+            }
+
+            @Override
+            public void accept(T in) {
+                if (predicate.test(in)) {
+                    nextOp.accept(in);
+                }
+            }
+        };
     }
 
-    public static <T> Op<T> filterOp(Op<T> nextOp, Predicate<? super T> predicate) {
-        return new FilterOp<>(nextOp, predicate);
+    public static <T> Op<T> keepIfOrderlyOp(Op<T> nextOp, LongBiPredicate<? super T> predicate) {
+        return new ChainedOp<>(nextOp) {
+            private long index = 0L;
+
+            @Override
+            public void begin(long size) {
+                nextOp.begin(-1);
+            }
+
+            @Override
+            public void accept(T in) {
+                if (predicate.test(index++, in)) {
+                    nextOp.accept(in);
+                }
+            }
+        };
     }
 
     public static <T> TerminalOp<T, Void> forEachOp(Consumer<? super T> action) {
@@ -47,8 +72,8 @@ public class Ops {
         return new MapOp<>(nextOp, mapper);
     }
 
-    public static <T, R> Op<T> mapEnumeratedOp(Op<R> nextOp, LongBiFunction<? super T, ? extends R> mapper) {
-        return new MapEnumeratedOp<>(nextOp, mapper);
+    public static <T, R> Op<T> mapOrderlyOp(Op<R> nextOp, LongBiFunction<? super T, ? extends R> mapper) {
+        return new MapOrderlyOp<>(nextOp, mapper);
     }
 
     public static <T, R> Op<T> flatMapOP(Op<R> nextOp, Function<? super T, ? extends Pipe<? extends R>> mapper) {
@@ -71,30 +96,19 @@ public class Ops {
         return new PartitionOp<>(nextOp, size);
     }
 
-    public static <T> TerminalOp<T, Void> forEachEnumeratedOp(LongBiConsumer<? super T> action) {
-        return new ForEachEnumeratedOp<>(action);
+    public static <T> TerminalOp<T, Void> forEachOrderlyOp(LongBiConsumer<? super T> action) {
+        return new ForEachOrderlyOp<>(action);
     }
 
     public static <T> TerminalOp<T, Optional<T>> minMaxOp(boolean requireMin, Comparator<? super T> comparator) {
         return new MinMaxOp<>(requireMin, comparator);
     }
 
-    public static <T> Op<T> keepOrDropWhileOp(Op<T> nextOp, boolean isKeep, Predicate<? super T> predicate) {
-        return isKeep ? new KeepOrDropWhileOps.KeepWhileOp<>(nextOp, predicate) :
-            new KeepOrDropWhileOps.DropWhileOp<>(nextOp, predicate);
-    }
-
-    public static <T> Op<T> keepOrDropWhileEnumeratedOp(Op<T> nextOp, boolean isKeep,
-        LongBiPredicate<? super T> predicate) {
-        return isKeep ? new KeepOrDropWhileEnumeratedOps.KeepWhileOp<>(nextOp, predicate) :
-            new KeepOrDropWhileEnumeratedOps.DropWhileOp<>(nextOp, predicate);
-    }
-
     public static <T> Op<T> peekOp(Op<T> nextOp, Consumer<? super T> consumer) {
         return new PeekOp<>(nextOp, consumer);
     }
 
-    public static <T> Op<T> peekEnumeratedOp(Op<T> nextOp, LongBiConsumer<? super T> consumer) {
-        return new PeekEnumeratedOp<>(nextOp, consumer);
+    public static <T> Op<T> peekOrderlyOp(Op<T> nextOp, LongBiConsumer<? super T> consumer) {
+        return new PeekOrderlyOp<>(nextOp, consumer);
     }
 }

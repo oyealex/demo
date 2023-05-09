@@ -1,7 +1,5 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.basis.op.TerminalOp;
-
 import java.util.ArrayList;
 import java.util.List;
 

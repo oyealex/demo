@@ -1,4 +1,4 @@
-package com.oyealex.pipe.basis.op;
+package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.basis.functional.LongBiConsumer;
 
@@ -8,12 +8,12 @@ import com.oyealex.pipe.basis.functional.LongBiConsumer;
  * @author oyealex
  * @since 2023-04-28
  */
-class PeekEnumeratedOp<IN> extends ChainedOp<IN, IN> {
+class PeekOrderlyOp<IN> extends ChainedOp<IN, IN> {
     private final LongBiConsumer<? super IN> consumer;
 
     private long index = 0L;
 
-    PeekEnumeratedOp(Op<IN> nextOp, LongBiConsumer<? super IN> consumer) {
+    PeekOrderlyOp(Op<IN> nextOp, LongBiConsumer<? super IN> consumer) {
         super(nextOp);
         this.consumer = consumer;
     }

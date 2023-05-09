@@ -1,4 +1,4 @@
-package com.oyealex.pipe.basis;
+package com.oyealex.pipe.basis.api;
 
 /**
  * DoublePipe

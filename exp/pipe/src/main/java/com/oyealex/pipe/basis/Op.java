@@ -1,4 +1,4 @@
-package com.oyealex.pipe.basis.op;
+package com.oyealex.pipe.basis;
 
 import java.util.function.Consumer;
 
@@ -8,7 +8,7 @@ import java.util.function.Consumer;
  * @author oyealex
  * @since 2023-02-09
  */
-public interface Op<T> extends Consumer<T> {
+interface Op<T> extends Consumer<T> {
     /**
      * 准备好开始接收元素
      *
@@ -16,13 +16,13 @@ public interface Op<T> extends Consumer<T> {
      */
     default void begin(long size) {}
 
+    @Override
+    void accept(T t);
+
     /**
      * 结束接收元素
      */
     default void end() {}
-
-    @Override
-    void accept(T t);
 
     /**
      * 判断是否需要取消后续循环

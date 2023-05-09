@@ -1,7 +1,6 @@
-package com.oyealex.pipe.basis.op;
+package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.basis.Pipe;
-import com.oyealex.pipe.basis.Pipes;
+import com.oyealex.pipe.basis.api.Pipe;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,6 +1,5 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.basis.op.Op;
 import com.oyealex.pipe.flag.PipeFlag;
 
 import java.util.ArrayDeque;

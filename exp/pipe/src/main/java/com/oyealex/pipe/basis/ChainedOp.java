@@ -1,4 +1,4 @@
-package com.oyealex.pipe.basis.op;
+package com.oyealex.pipe.basis;
 
 import java.util.Objects;
 
@@ -8,7 +8,7 @@ import java.util.Objects;
  * @author oyealex
  * @since 2023-04-28
  */
-public abstract class ChainedOp<IN, OUT> implements Op<IN> {
+abstract class ChainedOp<IN, OUT> implements Op<IN> {
     /** 下一个操作 */
     protected final Op<? super OUT> nextOp;
 

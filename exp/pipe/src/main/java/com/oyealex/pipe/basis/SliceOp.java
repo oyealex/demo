@@ -1,4 +1,4 @@
-package com.oyealex.pipe.basis.op;
+package com.oyealex.pipe.basis;
 
 /**
  * LimitOp

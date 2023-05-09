@@ -1,4 +1,4 @@
-package com.oyealex.pipe.basis.op;
+package com.oyealex.pipe.basis;
 
 import java.util.function.Supplier;
 
@@ -8,4 +8,4 @@ import java.util.function.Supplier;
  * @author oyealex
  * @since 2023-04-27
  */
-public interface TerminalOp<IN, R> extends Op<IN>, Supplier<R> {}
+interface TerminalOp<IN, R> extends Op<IN>, Supplier<R> {}

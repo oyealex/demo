@@ -1,6 +1,6 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.basis.op.Op;
+import com.oyealex.pipe.basis.api.Pipe;
 import com.oyealex.pipe.flag.PipeFlag;
 
 import java.util.Spliterator;
