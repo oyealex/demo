@@ -12,7 +12,7 @@ import java.util.Spliterator;
  * @author oyealex
  * @since 2023-04-29
  */
-class PipeHead<OUT> extends ReferencePipe<Void, OUT> {
+class PipeHead<OUT> extends RefPipe<Void, OUT> {
     /** 流水线数据源 */
     private Spliterator<? extends OUT> sourceSpliterator;
 

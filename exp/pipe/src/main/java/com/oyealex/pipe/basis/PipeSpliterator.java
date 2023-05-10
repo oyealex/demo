@@ -32,7 +32,7 @@ import static java.util.Objects.requireNonNull;
  */
 class PipeSpliterator<OUT> implements Spliterator<OUT> {
     /** 被包装的流水线 */
-    private final ReferencePipe<?, OUT> pipe;
+    private final RefPipe<?, OUT> pipe;
 
     /** 被包装流水线的数据源 */
     private final Spliterator<Object> split;
@@ -46,14 +46,14 @@ class PipeSpliterator<OUT> implements Spliterator<OUT> {
     /** 是否已经完整遍历 */
     private boolean isTravelledFully = false;
 
-    PipeSpliterator(ReferencePipe<?, OUT> pipe, Spliterator<Object> split) {
+    PipeSpliterator(RefPipe<?, OUT> pipe, Spliterator<Object> split) {
         this.pipe = pipe;
         this.split = split;
     }
 
     private boolean fillQueue() {
         while (cachedQueue.isEmpty()) {
-            if (wrappedOfferOp.cancellationRequested() || !split.tryAdvance(wrappedOfferOp)) {
+            if (wrappedOfferOp.canShortCircuit() || !split.tryAdvance(wrappedOfferOp)) {
                 if (isTravelledFully) {
                     return false;
                 } else {

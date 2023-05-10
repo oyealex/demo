@@ -32,7 +32,7 @@ class SliceOp<IN> extends ChainedOp<IN, IN> {
     }
 
     @Override
-    public boolean cancellationRequested() {
-        return limited >= limit || nextOp.cancellationRequested();
+    public boolean canShortCircuit() {
+        return limited >= limit || nextOp.canShortCircuit();
     }
 }

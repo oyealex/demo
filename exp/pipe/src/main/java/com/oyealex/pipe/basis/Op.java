@@ -10,24 +10,24 @@ import java.util.function.Consumer;
  */
 interface Op<T> extends Consumer<T> {
     /**
-     * 准备好开始接收元素
+     * 准备好开始接收元素。
      *
      * @param size 元素数量，-1表示未知或无限
      */
     default void begin(long size) {}
 
     @Override
-    void accept(T t);
+    void accept(T var);
 
     /**
-     * 结束接收元素
+     * 结束接收元素。
      */
     default void end() {}
 
     /**
-     * 判断是否需要取消后续循环
+     * 判断是否可以执行短路操作，提前结束数据流。
      *
-     * @return true 需要取消后续循环
+     * @return {@code true} - 可以提前结束数据流。
      */
-    default boolean cancellationRequested() {return false;}
+    default boolean canShortCircuit() {return false;}
 }

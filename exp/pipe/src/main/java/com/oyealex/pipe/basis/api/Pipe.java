@@ -360,6 +360,9 @@ public interface Pipe<E> extends AutoCloseable {
      * 要求元素实现了{@link Comparable}，否则可能在流水线的终结操作中抛出{@link ClassCastException}异常。
      *
      * @return 元素排序后的流水线
+     * @apiNote 流水线会针对元素的排序情况进行优化：例如如果元素已经处于自然有序状态，则本次排序会被省略；
+     * 或者如果元素已经处于自然逆序状态，则会以相对高效的逆序代替自然排序，
+     * 此时每个元素的{@link Comparable#compareTo(Object)}方法调用会被省略。
      * @see Stream#sorted()
      */
     Pipe<E> sort();
@@ -382,7 +385,21 @@ public interface Pipe<E> extends AutoCloseable {
      * @param <R> 映射结果的类型
      * @return 元素排序后的流水线
      */
-    <R extends Comparable<? super R>> Pipe<E> sortBy(Function<? super E, ? extends R> mapper);
+    default <R extends Comparable<? super R>> Pipe<E> sortBy(Function<? super E, ? extends R> mapper) {
+        return sort(Comparator.comparing(mapper));
+    }
+
+    /**
+     * 对流水线中的元素排序，以给定的比较方法排序，排序的依据为映射后的结果。
+     *
+     * @param mapper 排序依据的映射方法
+     * @param comparator 元素比较方法
+     * @param <R> 映射结果的类型
+     * @return 元素排序后的流水线
+     */
+    default <R> Pipe<E> sortBy(Function<? super E, ? extends R> mapper, Comparator<? super R> comparator) {
+        return sort(Comparator.comparing(mapper, comparator));
+    }
 
     /**
      * 对流水线中的元素排序，以默认顺序排序，排序的依据为映射后的结果，支持访问元素次序。
@@ -398,22 +415,12 @@ public interface Pipe<E> extends AutoCloseable {
     /**
      * 对流水线中的元素排序，以给定的比较方法排序，排序的依据为映射后的结果。
      *
-     * @param mapper 排序依据的映射方法
-     * @param comparator 元素比较方法
-     * @param <R> 映射结果的类型
-     * @return 元素排序后的流水线
-     */
-    <R> Pipe<E> sortBy(Function<? super E, ? extends R> mapper, Comparator<? super R> comparator);
-
-    /**
-     * 对流水线中的元素排序，以给定的比较方法排序，排序的依据为映射后的结果。
-     *
      * @param mapper 排序依据的映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @param comparator 元素比较方法
      * @param <R> 映射结果的类型
      * @return 元素排序后的流水线
      */
-    <R> Pipe<E> sortBy(LongBiFunction<? super E, ? extends R> mapper, Comparator<? super R> comparator);
+    <R> Pipe<E> sortByOrderly(LongBiFunction<? super E, ? extends R> mapper, Comparator<? super R> comparator);
 
     /**
      * 将流水线中的元素按照当前顺序颠倒。

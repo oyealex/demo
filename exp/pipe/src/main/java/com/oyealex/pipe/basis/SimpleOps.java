@@ -17,8 +17,8 @@ import java.util.function.Predicate;
  * @author oyealex
  * @since 2023-04-28
  */
-class Ops {
-    private Ops() {
+class SimpleOps {
+    private SimpleOps() {
         throw new IllegalStateException("no instance available");
     }
 
@@ -43,9 +43,7 @@ class Ops {
     }
 
     public static <T> Op<T> keepIfOrderlyOp(Op<T> nextOp, LongBiPredicate<? super T> predicate) {
-        return new ChainedOp<>(nextOp) {
-            private long index = 0L;
-
+        return new ChainedOp.OrderlyOp<>(nextOp) {
             @Override
             public void begin(long size) {
                 nextOp.begin(-1);
@@ -69,27 +67,21 @@ class Ops {
     }
 
     public static <IN, OUT> ChainedOp<IN, OUT> mapOp(Op<OUT> nextOp, Function<? super IN, ? extends OUT> mapper) {
-        return new MapOp<>(nextOp, mapper);
+        return new ChainedOp<>(nextOp) {
+            @Override
+            public void accept(IN in) {
+                nextOp.accept(mapper.apply(in));
+            }
+        };
     }
 
     public static <T, R> Op<T> mapOrderlyOp(Op<R> nextOp, LongBiFunction<? super T, ? extends R> mapper) {
-        return new MapOrderlyOp<>(nextOp, mapper);
-    }
-
-    public static <T, R> Op<T> flatMapOP(Op<R> nextOp, Function<? super T, ? extends Pipe<? extends R>> mapper) {
-        return new FlatMapOp<>(nextOp, mapper);
-    }
-
-    public static <T> Op<T> distinctOp(Op<T> op) {
-        return new DistinctOp<>(op);
-    }
-
-    public static <T, R> Op<T> distinctByOp(Op<T> nextOp, Function<? super T, ? extends R> mapper) {
-        return new DistinctByOp<>(nextOp, mapper);
-    }
-
-    public static <T> Op<T> sortOp(Op<T> nextOp, Comparator<? super T> comparator) {
-        return new SortOp<>(nextOp, comparator);
+        return new ChainedOp.OrderlyOp<>(nextOp) {
+            @Override
+            public void accept(T in) {
+                nextOp.accept(mapper.apply(index++, in));
+            }
+        };
     }
 
     public static <T> Op<T> partitionOp(Op<Pipe<T>> nextOp, int size) {

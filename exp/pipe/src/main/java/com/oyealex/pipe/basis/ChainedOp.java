@@ -1,5 +1,9 @@
 package com.oyealex.pipe.basis;
 
+import com.oyealex.pipe.utils.CheckUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -27,7 +31,48 @@ abstract class ChainedOp<IN, OUT> implements Op<IN> {
     }
 
     @Override
-    public boolean cancellationRequested() {
-        return nextOp.cancellationRequested();
+    public boolean canShortCircuit() {
+        return nextOp.canShortCircuit();
+    }
+
+    static abstract class OrderlyOp<IN, OUT> extends ChainedOp<IN, OUT> {
+        protected long index = 0L;
+
+        OrderlyOp(Op<? super OUT> nextOp) {
+            super(nextOp);
+        }
+    }
+
+    static abstract class NonShortCircuitOp<IN, OUT> extends ChainedOp<IN, OUT> {
+        protected boolean isShortCircuitRequested = false;
+
+        NonShortCircuitOp(Op<? super OUT> nextOp) {
+            super(nextOp);
+        }
+
+        @Override
+        public boolean canShortCircuit() {
+            isShortCircuitRequested = true;
+            return false;
+        }
+    }
+
+    static abstract class CollectedOp<IN, OUT> extends NonShortCircuitOp<IN, OUT> {
+        protected List<IN> elements;
+
+        CollectedOp(Op<? super OUT> nextOp) {
+            super(nextOp);
+        }
+
+        @Override
+        public void begin(long size) {
+            CheckUtil.checkArraySize(size);
+            elements = size >= 0 ? new ArrayList<>((int) size) : new ArrayList<>();
+        }
+
+        @Override
+        public void accept(IN var) {
+            elements.add(var);
+        }
     }
 }
