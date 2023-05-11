@@ -34,7 +34,6 @@ import java.util.function.ToLongFunction;
 
 import static com.oyealex.pipe.basis.Pipes.empty;
 import static com.oyealex.pipe.flag.PipeFlag.DISTINCT;
-import static com.oyealex.pipe.flag.PipeFlag.IS_SHORT_CIRCUIT;
 import static com.oyealex.pipe.flag.PipeFlag.NOTHING;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_DISTINCT;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_REVERSED_SORTED;
@@ -339,7 +338,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<OUT> shuffle(Random random) {
-        throw new UnsupportedOperationException();
+        return new ShuffleStage<>(this, requireNonNull(random));
     }
 
     @Override
@@ -375,12 +374,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         if (size == MAX_VALUE) {
             return this;
         }
-        return new RefPipe<>(this, NOT_SIZED | IS_SHORT_CIRCUIT) {
-            @Override
-            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return SimpleOps.sliceOp(nextOp, 0, size);
-            }
-        };
+        return new SliceStage<>(this, 0, size);
     }
 
     @Override
@@ -394,12 +388,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         if (size == MAX_VALUE) {
             return empty();
         }
-        return new RefPipe<>(this, NOT_SIZED) {
-            @Override
-            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return SimpleOps.sliceOp(nextOp, size, MAX_VALUE);
-            }
-        };
+        return new SliceStage<>(this, size, MAX_VALUE);
     }
 
     @Override
@@ -413,12 +402,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         if (startInclusive == 0 && endExclusive == MAX_VALUE) {
             return this;
         }
-        return new RefPipe<>(this, NOT_SIZED | IS_SHORT_CIRCUIT) {
-            @Override
-            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return SimpleOps.sliceOp(nextOp, startInclusive, endExclusive - startInclusive);
-            }
-        };
+        return new SliceStage<>(this, startInclusive, endExclusive - startInclusive);
     }
 
     @Override
@@ -491,22 +475,22 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Optional<OUT> min() {
-        return evaluate(SimpleOps.minMaxOp(true, null));
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Optional<OUT> min(Comparator<? super OUT> comparator) {
-        return evaluate(SimpleOps.minMaxOp(true, comparator));
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Optional<OUT> max() {
-        return evaluate(SimpleOps.minMaxOp(false, null));
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Optional<OUT> max(Comparator<? super OUT> comparator) {
-        return evaluate(SimpleOps.minMaxOp(false, comparator));
+        throw new UnsupportedOperationException();
     }
 
     @Override

@@ -30,6 +30,7 @@ import java.util.function.ToIntFunction;
 import java.util.function.ToLongFunction;
 import java.util.stream.Stream;
 
+import static com.oyealex.pipe.flag.PipeFlag.NOTHING;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -119,6 +120,26 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 新的流水线
      */
     Pipe<E> dropWhileOrderly(LongBiPredicate<? super E> predicate);
+
+    /**
+     * 仅保留非空的元素。
+     *
+     * @return 新的流水线
+     */
+    default Pipe<E> nonNull() {
+        return keepIf(Objects::nonNull);
+    }
+
+    /**
+     * 仅保留按照给定映射方法结果非空的元素。
+     *
+     * @param mapper 映射方法
+     * @return 新的流水线
+     */
+    default Pipe<E> nonNullBy(Function<? super E, ?> mapper) {
+        requireNonNull(mapper);
+        return keepIf(value -> mapper.apply(value) != null);
+    }
 
     /**
      * 将此流水线中的元素映射为其他类型。
@@ -578,7 +599,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 新的流水线
      */
     default Pipe<E> append(Iterator<? extends E> iterator) {
-        return append(Spliterators.spliteratorUnknownSize(iterator, 0));
+        return append(Spliterators.spliteratorUnknownSize(iterator, NOTHING));
     }
 
     /**
@@ -633,26 +654,6 @@ public interface Pipe<E> extends AutoCloseable {
     }
 
     /**
-     * 仅保留非空的元素。
-     *
-     * @return 新的流水线
-     */
-    default Pipe<E> nonNull() {
-        return keepIf(Objects::nonNull);
-    }
-
-    /**
-     * 仅保留按照给定映射方法结果非空的元素。
-     *
-     * @param mapper 映射方法
-     * @return 新的流水线
-     */
-    default Pipe<E> nonNullBy(Function<? super E, ?> mapper) {
-        requireNonNull(mapper);
-        return keepIf(value -> mapper.apply(value) != null);
-    }
-
-    /**
      * 按照给定数量，对元素进行分区，并将分区结果封装为新的流水线。
      * <p/>
      * 根据实际情况，最后一个分区包含的元素数量可能不足给定大小，但不会为空分区。
@@ -690,6 +691,50 @@ public interface Pipe<E> extends AutoCloseable {
     default <L extends List<E>> Pipe<List<E>> partitionToList(int size, Supplier<L> listSupplier) {
         requireNonNull(listSupplier);
         return partition(size).map(pipe -> pipe.toList(listSupplier));
+    }
+
+    /**
+     * 按照给定数量，对元素进行分区，并将分区结果封装为集合。
+     * <p/>
+     * 根据实际情况，最后一个分区包含的元素数量可能不足给定大小，但不会为空分区。
+     *
+     * @param size 需要分区的元素数量
+     * @return 新的包含已分区元素集合的流水线
+     * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出
+     * @apiNote 封装的集合不保证可变性，如果明确需要分区集合可修改，请使用{@link #partitionToSet(int, Supplier)}。
+     */
+    default Pipe<Set<E>> partitionToSet(int size) {
+        return partition(size).map(Pipe::toSet);
+    }
+
+    /**
+     * 按照给定数量，对元素进行分区，并将分区结果封装为集合，集合实例由给定的{@link Supplier}提供。
+     * <p/>
+     * 根据实际情况，最后一个分区包含的元素数量可能不足给定大小，但不会为空分区。
+     *
+     * @param size 需要分区的元素数量
+     * @param listSupplier 用于存储分区元素的集合的构造方法
+     * @return 新的包含已分区元素集合的流水线
+     * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出
+     */
+    default <S extends Set<E>> Pipe<Set<E>> partitionToSet(int size, Supplier<S> listSupplier) {
+        requireNonNull(listSupplier);
+        return partition(size).map(pipe -> pipe.toSet(listSupplier));
+    }
+
+    /**
+     * 按照给定数量，对元素进行分区，并将分区结果封装为容器，容器实例由给定的{@link Supplier}提供。
+     * <p/>
+     * 根据实际情况，最后一个分区包含的元素数量可能不足给定大小，但不会为空分区。
+     *
+     * @param size 需要分区的元素数量
+     * @param listSupplier 用于存储分区元素的容器的构造方法
+     * @return 新的包含已分区元素容器的流水线
+     * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出
+     */
+    default <S extends Collection<E>> Pipe<Collection<E>> partitionToCollection(int size, Supplier<S> listSupplier) {
+        requireNonNull(listSupplier);
+        return partition(size).map(pipe -> pipe.toCollection(listSupplier));
     }
 
     /**

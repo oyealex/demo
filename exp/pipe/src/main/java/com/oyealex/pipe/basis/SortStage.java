@@ -36,24 +36,10 @@ abstract class SortStage<T> extends RefPipe<T, T> {
 
         @Override
         protected Op<T> wrapOp(Op<T> nextOp) {
-            return new ChainedOp.CollectedOp<>(nextOp) {
+            return new ChainedOp.ListRepeater<>(nextOp) {
                 @Override
-                public void end() {
+                protected void beforeEnd() {
                     elements.sort(comparator);
-                    // 收集并处理完元素之后开始执行后续操作
-                    nextOp.begin(elements.size());
-                    if (isShortCircuitRequested) {
-                        for (T var : elements) {
-                            if (nextOp.canShortCircuit()) {
-                                break;
-                            }
-                            nextOp.accept(var);
-                        }
-                    } else {
-                        elements.forEach(nextOp);
-                    }
-                    nextOp.end();
-                    elements = null;
                 }
             };
         }
@@ -75,7 +61,7 @@ abstract class SortStage<T> extends RefPipe<T, T> {
 
         @Override
         protected Op<T> wrapOp(Op<T> nextOp) {
-            return new ChainedOp.NonShortCircuitOp<>(nextOp) {
+            return new ChainedOp.NonShortCircuit<>(nextOp) {
                 private List<Object[]> elements;
 
                 private int index = 0; // 排序操作无法处理超过数组最大数量的元素，所以次序字段使用int即可

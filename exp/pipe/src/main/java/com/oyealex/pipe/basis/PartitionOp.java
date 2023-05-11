@@ -11,6 +11,7 @@ import java.util.List;
  * @author oyealex
  * @since 2023-05-03
  */
+@Deprecated
 class PartitionOp<IN> extends ChainedOp<IN, Pipe<IN>> {
     private final int size;
 

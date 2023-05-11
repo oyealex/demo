@@ -16,6 +16,7 @@ import static com.oyealex.pipe.basis.Pipes.of;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
  * 针对Pipe的其他测试。
@@ -76,5 +77,12 @@ class PipeOtherTest extends PipeTestBase {
         List<String> res = of(ELEMENTS).distinctBy(String::length).toList();
         Set<Integer> seen = new HashSet<>();
         assertEquals(stream(ELEMENTS).filter(value -> seen.add(value.length())).collect(toList()), res);
+    }
+
+    @Test
+    @DisplayName("能够正确随机打乱元素次序")
+    void should_shuffle_elements_rightly() {
+        List<String> res = of(ELEMENTS).shuffle().toList();
+        assertNotEquals(List.of(ELEMENTS), res);
     }
 }

@@ -51,8 +51,28 @@ class PipeHead<OUT> extends RefPipe<Void, OUT> {
         if (this.closeAction == null) {
             this.closeAction = closeAction;
         } else {
-            this.closeAction = Misc.composeAction(this.closeAction, closeAction);
+            this.closeAction = composeAction(this.closeAction, closeAction);
         }
         return this;
+    }
+
+    private static Runnable composeAction(Runnable action, Runnable anotherAction) {
+        return () -> {
+            try {
+                action.run();
+            } catch (Throwable throwable) {
+                try {
+                    anotherAction.run();
+                } catch (Throwable anotherThrowable) {
+                    try {
+                        throwable.addSuppressed(anotherThrowable);
+                    } catch (Throwable ignore) {
+                        // noop
+                    }
+                }
+                throw throwable;
+            }
+            anotherAction.run();
+        };
     }
 }

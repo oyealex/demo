@@ -21,7 +21,7 @@ class ReverseStage<T> extends RefPipe<T, T> {
 
     @Override
     protected Op<T> wrapOp(Op<T> nextOp) {
-        return new ChainedOp.CollectedOp<>(nextOp) {
+        return new ChainedOp.ToList<>(nextOp) {
             @Override
             public void end() {
                 nextOp.begin(elements.size());

@@ -35,18 +35,18 @@ abstract class ChainedOp<IN, OUT> implements Op<IN> {
         return nextOp.canShortCircuit();
     }
 
-    static abstract class OrderlyOp<IN, OUT> extends ChainedOp<IN, OUT> {
+    static abstract class Orderly<IN, OUT> extends ChainedOp<IN, OUT> {
         protected long index = 0L;
 
-        OrderlyOp(Op<? super OUT> nextOp) {
+        Orderly(Op<? super OUT> nextOp) {
             super(nextOp);
         }
     }
 
-    static abstract class NonShortCircuitOp<IN, OUT> extends ChainedOp<IN, OUT> {
+    static abstract class NonShortCircuit<IN, OUT> extends ChainedOp<IN, OUT> {
         protected boolean isShortCircuitRequested = false;
 
-        NonShortCircuitOp(Op<? super OUT> nextOp) {
+        NonShortCircuit(Op<? super OUT> nextOp) {
             super(nextOp);
         }
 
@@ -57,10 +57,10 @@ abstract class ChainedOp<IN, OUT> implements Op<IN> {
         }
     }
 
-    static abstract class CollectedOp<IN, OUT> extends NonShortCircuitOp<IN, OUT> {
+    static abstract class ToList<IN, OUT> extends NonShortCircuit<IN, OUT> {
         protected List<IN> elements;
 
-        CollectedOp(Op<? super OUT> nextOp) {
+        ToList(Op<? super OUT> nextOp) {
             super(nextOp);
         }
 
@@ -73,6 +73,39 @@ abstract class ChainedOp<IN, OUT> implements Op<IN> {
         @Override
         public void accept(IN var) {
             elements.add(var);
+        }
+    }
+
+    /**
+     * 数组中继操作，先把元素收集到列表中，执行一些特定操作后再继续传递元素到下游操作。
+     *
+     * @param <T> 元素类型
+     */
+    static abstract class ListRepeater<T> extends ToList<T, T> {
+        ListRepeater(Op<? super T> nextOp) {
+            super(nextOp);
+        }
+
+        @Override
+        public void end() {
+            beforeEnd();
+            nextOp.begin(elements.size());
+            if (isShortCircuitRequested) {
+                for (T var : elements) {
+                    if (nextOp.canShortCircuit()) {
+                        break;
+                    }
+                    nextOp.accept(var);
+                }
+            } else {
+                elements.forEach(nextOp);
+            }
+            nextOp.end();
+            elements = null;
+        }
+
+        protected void beforeEnd() {
+            // override
         }
     }
 }
