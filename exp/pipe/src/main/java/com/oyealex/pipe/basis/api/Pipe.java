@@ -307,6 +307,8 @@ public interface Pipe<E> extends AutoCloseable {
      */
     DoublePipe flatMapToDoubleOrderly(LongBiFunction<? super E, ? extends DoublePipe> mapper);
 
+    Pipe<Pipe<E>> flatMapSingleton();
+
     /**
      * 使用给定的映射方法，将此流水线扩展为两元组的流水线，其中两元组的第一个元素仍然为当前流水线中的元素。
      *

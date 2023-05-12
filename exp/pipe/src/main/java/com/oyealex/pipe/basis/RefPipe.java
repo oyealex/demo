@@ -33,6 +33,7 @@ import java.util.function.ToIntFunction;
 import java.util.function.ToLongFunction;
 
 import static com.oyealex.pipe.basis.Pipes.empty;
+import static com.oyealex.pipe.basis.Pipes.pipe;
 import static com.oyealex.pipe.flag.PipeFlag.DISTINCT;
 import static com.oyealex.pipe.flag.PipeFlag.NOTHING;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_DISTINCT;
@@ -60,7 +61,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     private final RefPipe<?, ? extends IN> prePipe;
 
     /** 流水线标记 */
-    final int flag;
+    final int flag; // MK 2023-05-12 23:04 final标记很重要，如果后续开发移除final，则需要重新审视所有使用flag字段的地方
 
     RefPipe(int flag) {
         this.headPipe = this;
@@ -68,6 +69,12 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         this.flag = flag;
     }
 
+    /**
+     * 以给定的流水线为上游，构造一个新的流水线。
+     *
+     * @param prePipe 上游流水线
+     * @param opFlag 操作标记
+     */
     RefPipe(RefPipe<?, ? extends IN> prePipe, int opFlag) {
         this.headPipe = prePipe.headPipe;
         this.prePipe = prePipe;
@@ -106,10 +113,10 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
      * @param tailOp 结尾操作
      * @param <OP> 结尾操作类型
      */
-    <OP extends Op<OUT>> void processData(Spliterator<Object> dataSource, OP tailOp) {
+    <OP extends TerminalOp<OUT, ?>> void processData(Spliterator<Object> dataSource, OP tailOp) {
         Op<Object> wrappedOp = wrapAllOp(tailOp);
         wrappedOp.begin(dataSource.getExactSizeIfKnown());
-        if (isFlagSet(SHORT_CIRCUIT)) {
+        if (SHORT_CIRCUIT.isSet(flag | tailOp.getOpFlag())) {
             // 如果允许短路，则尝试短路遍历
             do {/*noop*/} while (!wrappedOp.canShortCircuit() && dataSource.tryAdvance(wrappedOp));
         } else {
@@ -274,6 +281,11 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
+    public Pipe<Pipe<OUT>> flatMapSingleton() {
+        return map(var -> pipe(SimpleSpliterators.singleton(var)));
+    }
+
+    @Override
     public <F, S> BiPipe<F, S> extendToTuple(Function<? super OUT, ? extends F> firstMapper,
         Function<? super OUT, ? extends S> secondMapper) {
         throw new UnsupportedOperationException();
@@ -410,7 +422,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         requireNonNull(spliterator);
         @SuppressWarnings("unchecked") ConcatSpliterator<OUT, Spliterator<OUT>> finalSpliterator
             = new ConcatSpliterator<>((Spliterator<OUT>) spliterator, toSpliterator());
-        Pipe<OUT> pipe = Pipes.pipe(finalSpliterator);
+        Pipe<OUT> pipe = pipe(finalSpliterator);
         return pipe.onClose(this::close);
     }
 
@@ -419,7 +431,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         requireNonNull(spliterator);
         @SuppressWarnings("unchecked") ConcatSpliterator<OUT, Spliterator<OUT>> finalSpliterator
             = new ConcatSpliterator<>(toSpliterator(), (Spliterator<OUT>) spliterator);
-        Pipe<OUT> pipe = Pipes.pipe(finalSpliterator);
+        Pipe<OUT> pipe = pipe(finalSpliterator);
         return pipe.onClose(this::close);
     }
 
@@ -428,12 +440,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         if (size < 1) {
             throw new IllegalArgumentException("partition size cannot be less then 1, size: " + size);
         }
-        return new RefPipe<>(this, NOTHING) {
-            @Override
-            protected Op<OUT> wrapOp(Op<Pipe<OUT>> nextOp) {
-                return SimpleOps.partitionOp(nextOp, size);
-            }
-        };
+        return size == 1 ? flatMapSingleton() : new PartitionStage<>(this, size);
     }
 
     @Override

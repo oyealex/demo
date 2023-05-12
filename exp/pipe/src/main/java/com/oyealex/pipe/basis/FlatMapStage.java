@@ -62,12 +62,9 @@ abstract class FlatMapStage<T, R> extends RefPipe<T, R> {
         }
     }
 
-    private static abstract class FlatMapOp<T, R> extends ChainedOp<T, R> {
-        private boolean isShortCircuitRequested;
-
+    private static abstract class FlatMapOp<T, R> extends ChainedOp.ShortCircuitRecorded<T, R> {
         public FlatMapOp(Op<R> nextOp) {
             super(nextOp);
-            isShortCircuitRequested = false;
         }
 
         @Override
@@ -93,13 +90,6 @@ abstract class FlatMapStage<T, R> extends RefPipe<T, R> {
                     pipe.forEach(nextOp);
                 }
             }
-        }
-
-        @Override
-        public boolean canShortCircuit() {
-            // 只要这个方法被调用过，无论结果如何都说明流水线中存在可以短路的操作
-            isShortCircuitRequested = true;
-            return super.canShortCircuit();
         }
 
         protected abstract Pipe<? extends R> mapToPipe(T var);

@@ -92,7 +92,7 @@ class PipeSpliterator<OUT> implements Spliterator<OUT> {
     @Override
     public void forEachRemaining(Consumer<? super OUT> action) {
         if (cachedQueue == null && !isTravelledFully) {
-            pipe.processData(split, action::accept);
+            pipe.processData(split, TerminalOp.wrap(action));
             isTravelledFully = true;
         } else {
             do {/*noop*/} while (tryAdvance(action));

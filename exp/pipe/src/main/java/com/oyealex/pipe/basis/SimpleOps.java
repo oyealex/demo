@@ -1,6 +1,5 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.basis.api.Pipe;
 import com.oyealex.pipe.basis.functional.LongBiConsumer;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
@@ -15,7 +14,7 @@ import java.util.function.Predicate;
  * @author oyealex
  * @since 2023-04-28
  */
-class SimpleOps {
+final class SimpleOps {
     private SimpleOps() {
         throw new IllegalStateException("no instance available");
     }
@@ -98,10 +97,6 @@ class SimpleOps {
                 nextOp.accept(mapper.apply(index++, var));
             }
         };
-    }
-
-    public static <T> Op<T> partitionOp(Op<Pipe<T>> nextOp, int size) {
-        return new PartitionOp<>(nextOp, size);
     }
 
     public static <T> TerminalOp<T, Void> forEachOrderlyOp(LongBiConsumer<? super T> action) {

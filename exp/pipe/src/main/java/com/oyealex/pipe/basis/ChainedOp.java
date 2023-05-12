@@ -43,6 +43,20 @@ abstract class ChainedOp<IN, OUT> implements Op<IN> {
         }
     }
 
+    static abstract class ShortCircuitRecorded<IN, OUT> extends ChainedOp<IN, OUT> {
+        protected boolean isShortCircuitRequested = false;
+
+        ShortCircuitRecorded(Op<? super OUT> nextOp) {
+            super(nextOp);
+        }
+
+        @Override
+        public boolean canShortCircuit() {
+            isShortCircuitRequested = true;
+            return super.canShortCircuit();
+        }
+    }
+
     static abstract class NonShortCircuit<IN, OUT> extends ChainedOp<IN, OUT> {
         protected boolean isShortCircuitRequested = false;
 

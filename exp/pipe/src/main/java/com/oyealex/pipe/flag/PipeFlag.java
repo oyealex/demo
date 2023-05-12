@@ -16,14 +16,14 @@ import static java.util.stream.Collectors.toList;
  */
 public enum PipeFlag {
     /**
-     * 所有数据基于{@link Object#equals(Object)}比较规则判定为唯一
+     * 标记流水线中的数据基于{@link Object#equals(Object)}比较规则判定是否唯一
      *
      * @see Spliterator#DISTINCT
      */
     DISTINCT(0),
 
     /**
-     * 所有数据均实现了{@link Comparable}并按照自然顺序排序
+     * 标记流水线中的数据是否实现了{@link Comparable}并按照自然顺序排序
      *
      * @see Spliterator#SORTED
      */
@@ -32,14 +32,14 @@ public enum PipeFlag {
     // offset = 2 for Spliterator.ORDERED
 
     /**
-     * 数据源是有限的
+     * 标记原始数据源的数据数量是否准确
      *
      * @see Spliterator#SIZED
      */
     SIZED(3),
 
     /**
-     * 所有数据都不为{@code null}
+     * 标记流水线中的数据是否不为{@code null}
      *
      * @see Spliterator#NONNULL
      */
@@ -49,10 +49,10 @@ public enum PipeFlag {
     // offset = 6 for Spliterator.CONCURRENT
     // offset = 7 for Spliterator.SUBSIZED
 
-    /** 流水线操作可以被短路 */
+    /** 标记流水线操作是否可以短路求值 */
     SHORT_CIRCUIT(12),
 
-    /** 所有数据均实现了{@link Comparable}并按照自然顺序逆序排序 */
+    /** 标记流水线中数据是否实现了{@link Comparable}并按照自然顺序逆序排序 */
     REVERSED_SORTED(13),
     ;
 
@@ -173,6 +173,10 @@ public enum PipeFlag {
             flag |= NOT_SORTED;
         }
         return flag;
+    }
+
+    public static int toSpliteratorFlag(int pipeFlag) {
+        return pipeFlag & SPLIT_MASK;
     }
 
     static List<String> toReadablePipeFlag(int flagValue) {
