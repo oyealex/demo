@@ -1,6 +1,6 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.utils.CheckUtil;
+import com.oyealex.pipe.utils.MiscUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,7 +80,7 @@ abstract class ChainedOp<IN, OUT> implements Op<IN> {
 
         @Override
         public void begin(long size) {
-            CheckUtil.checkArraySize(size);
+            MiscUtil.checkArraySize(size);
             elements = size >= 0 ? new ArrayList<>((int) size) : new ArrayList<>();
         }
 

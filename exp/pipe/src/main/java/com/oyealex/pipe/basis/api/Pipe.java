@@ -12,7 +12,6 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
@@ -31,6 +30,10 @@ import java.util.function.ToLongFunction;
 import java.util.stream.Stream;
 
 import static com.oyealex.pipe.flag.PipeFlag.NOTHING;
+import static com.oyealex.pipe.utils.MiscUtil.isStdIdentify;
+import static com.oyealex.pipe.utils.MiscUtil.optimizedReverseOrder;
+import static java.util.Comparator.comparing;
+import static java.util.Comparator.naturalOrder;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -126,9 +129,7 @@ public interface Pipe<E> extends AutoCloseable {
      *
      * @return 新的流水线
      */
-    default Pipe<E> nonNull() {
-        return keepIf(Objects::nonNull);
-    }
+    Pipe<E> nonNull();
 
     /**
      * 仅保留按照给定映射方法结果非空的元素。
@@ -361,21 +362,21 @@ public interface Pipe<E> extends AutoCloseable {
      * 对流水线中的元素去重，以给定的映射结果为依据。
      *
      * @param mapper 去重依据的映射方法
-     * @param <R> 映射结果的类型
+     * @param <K> 映射结果的类型
      * @return 元素去重之后的流水线
      * @throws NullPointerException 当{@code mapper}为null时抛出
      */
-    <R> Pipe<E> distinctBy(Function<? super E, ? extends R> mapper);
+    <K> Pipe<E> distinctBy(Function<? super E, ? extends K> mapper);
 
     /**
      * 对流水线中的元素去重，以给定的映射结果为依据，支持访问元素次序。
      *
      * @param mapper 去重依据的映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
-     * @param <R> 映射结果的类型
+     * @param <K> 映射结果的类型
      * @return 元素去重之后的流水线
      * @throws NullPointerException 当{@code mapper}为null时抛出
      */
-    <R> Pipe<E> distinctByOrderly(LongBiFunction<? super E, ? extends R> mapper);
+    <K> Pipe<E> distinctByOrderly(LongBiFunction<? super E, ? extends K> mapper);
 
     /**
      * 对流水线中的元素排序，以默认顺序排序。
@@ -388,7 +389,9 @@ public interface Pipe<E> extends AutoCloseable {
      * 此时每个元素的{@link Comparable#compareTo(Object)}方法调用会被省略。
      * @see Stream#sorted()
      */
-    Pipe<E> sort();
+    default Pipe<E> sort() {
+        return sort(null);
+    }
 
     /**
      * 对流水线中的元素排序，以给定的比较方法排序。
@@ -405,11 +408,11 @@ public interface Pipe<E> extends AutoCloseable {
      * 要求映射后的结果类型{@code R}实现了{@link Comparable}。
      *
      * @param mapper 排序依据的映射方法
-     * @param <R> 映射结果的类型
+     * @param <K> 映射结果的类型
      * @return 元素排序后的流水线
      */
-    default <R extends Comparable<? super R>> Pipe<E> sortBy(Function<? super E, ? extends R> mapper) {
-        return sort(Comparator.comparing(mapper));
+    default <K extends Comparable<? super K>> Pipe<E> sortBy(Function<? super E, ? extends K> mapper) {
+        return isStdIdentify(mapper) ? sort() : sort(comparing(mapper));
     }
 
     /**
@@ -417,11 +420,12 @@ public interface Pipe<E> extends AutoCloseable {
      *
      * @param mapper 排序依据的映射方法
      * @param comparator 元素比较方法
-     * @param <R> 映射结果的类型
+     * @param <K> 映射结果的类型
      * @return 元素排序后的流水线
      */
-    default <R> Pipe<E> sortBy(Function<? super E, ? extends R> mapper, Comparator<? super R> comparator) {
-        return sort(Comparator.comparing(mapper, comparator));
+    @SuppressWarnings("unchecked")
+    default <K> Pipe<E> sortBy(Function<? super E, ? extends K> mapper, Comparator<? super K> comparator) {
+        return isStdIdentify(mapper) ? sort((Comparator<? super E>) comparator) : sort(comparing(mapper, comparator));
     }
 
     /**
@@ -430,10 +434,12 @@ public interface Pipe<E> extends AutoCloseable {
      * 要求映射后的结果类型{@code R}实现了{@link Comparable}。
      *
      * @param mapper 排序依据的映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
-     * @param <R> 映射结果的类型
+     * @param <K> 映射结果的类型
      * @return 元素排序后的流水线
      */
-    <R extends Comparable<? super R>> Pipe<E> sortByOrderly(LongBiFunction<? super E, ? extends R> mapper);
+    default <K extends Comparable<? super K>> Pipe<E> sortByOrderly(LongBiFunction<? super E, ? extends K> mapper) {
+        return sortByOrderly(mapper, naturalOrder());
+    }
 
     /**
      * 对流水线中的元素排序，以给定的比较方法排序，排序的依据为映射后的结果。
@@ -556,6 +562,14 @@ public interface Pipe<E> extends AutoCloseable {
     }
 
     /**
+     * 在流水线头部插入给定的元素。
+     *
+     * @param value 需要插入到头部的元素
+     * @return 新的流水线
+     */
+    Pipe<E> prepend(E value);
+
+    /**
      * 在流水线头部插入给定的数组中的元素。
      *
      * @param values 需要插入到头部的元素
@@ -623,6 +637,14 @@ public interface Pipe<E> extends AutoCloseable {
     default Pipe<E> append(Stream<? extends E> stream) {
         return append(stream.spliterator());
     }
+
+    /**
+     * 在流水线尾部插入给定的元素。
+     *
+     * @param value 需要插入到尾部的元素
+     * @return 新的流水线
+     */
+    Pipe<E> append(E value);
 
     /**
      * 在流水线尾部插入给定的数组中的元素。
@@ -780,7 +802,9 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 最小的元素，如果流水线为空则返回空的{@link Optional}
      * @throws ClassCastException 当流水线元素无法转换为{@link Comparable}类型时抛出
      */
-    Optional<E> min();
+    default Optional<E> min() {
+        return min(null);
+    }
 
     /**
      * 获取流水线中最小的元素，以给定的比较器为比较依据。
@@ -791,6 +815,21 @@ public interface Pipe<E> extends AutoCloseable {
      */
     Optional<E> min(Comparator<? super E> comparator);
 
+    default <K extends Comparable<? super K>> Optional<E> minBy(Function<? super E, ? extends K> mapper) {
+        return isStdIdentify(mapper) ? min() : min(comparing(mapper));
+    }
+
+    @SuppressWarnings("unchecked")
+    default <K> Optional<E> minBy(Function<? super E, ? extends K> mapper, Comparator<? super K> comparator) {
+        return isStdIdentify(mapper) ? min((Comparator<? super E>) comparator) : min(comparing(mapper, comparator));
+    }
+
+    default <K extends Comparable<? super K>> Optional<E> minByOrderly(LongBiFunction<? super E, ? extends K> mapper) {
+        return minByOrderly(mapper, naturalOrder());
+    }
+
+    <K> Optional<E> minByOrderly(LongBiFunction<? super E, ? extends K> mapper, Comparator<? super K> comparator);
+
     /**
      * 获取流水线中最大的元素，以自然顺序为比较依据。
      * <p/>
@@ -799,7 +838,9 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 最大的元素，如果流水线为空则返回空的{@link Optional}
      * @throws ClassCastException 当流水线元素无法转换为{@link Comparable}类型时抛出
      */
-    Optional<E> max();
+    default Optional<E> max() {
+        return max(null);
+    }
 
     /**
      * 获取流水线中最大的元素，以给定的比较器为比较依据。
@@ -808,7 +849,27 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 最大的元素，如果流水线为空则返回空的{@link Optional}
      * @see Stream#max(Comparator)
      */
-    Optional<E> max(Comparator<? super E> comparator);
+    default Optional<E> max(Comparator<? super E> comparator) {
+        return min(optimizedReverseOrder(comparator));
+    }
+
+    default <K extends Comparable<? super K>> Optional<E> maxBy(Function<? super E, ? extends K> mapper) {
+        return isStdIdentify(mapper) ? max() : max(comparing(mapper));
+    }
+
+    @SuppressWarnings("unchecked")
+    default <K> Optional<E> maxBy(Function<? super E, ? extends K> mapper, Comparator<? super K> comparator) {
+        return isStdIdentify(mapper) ? max((Comparator<? super E>) comparator) : max(comparing(mapper, comparator));
+    }
+
+    default <K extends Comparable<? super K>> Optional<E> maxByOrderly(LongBiFunction<? super E, ? extends K> mapper) {
+        return maxByOrderly(mapper, naturalOrder());
+    }
+
+    default <K> Optional<E> maxByOrderly(LongBiFunction<? super E, ? extends K> mapper,
+        Comparator<? super K> comparator) {
+        return minByOrderly(mapper, optimizedReverseOrder(comparator));
+    }
 
     /**
      * 计算当前流水线中元素的数量。
@@ -823,6 +884,18 @@ public interface Pipe<E> extends AutoCloseable {
     boolean allMatch(Predicate<? super E> predicate);
 
     boolean noneMatch(Predicate<? super E> predicate);
+
+    boolean anyNull();
+
+    boolean allNull();
+
+    boolean noneNull();
+
+    <K> boolean anyNullBy(Function<? super E, ? extends K> mapper);
+
+    <K> boolean allNullBy(Function<? super E, ? extends K> mapper);
+
+    <K> boolean noneNullBy(Function<? super E, ? extends K> mapper);
 
     /**
      * 获取流水线中的第一个元素。

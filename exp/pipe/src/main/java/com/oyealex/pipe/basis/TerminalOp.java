@@ -3,6 +3,7 @@ package com.oyealex.pipe.basis;
 import com.oyealex.pipe.flag.PipeFlag;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -12,7 +13,7 @@ import java.util.function.Supplier;
  * @author oyealex
  * @since 2023-04-27
  */
-interface TerminalOp<IN, R> extends Op<IN>, Supplier<R> {
+interface TerminalOp<T, R> extends Op<T>, Supplier<R> {
     /**
      * 获取此终结操作的标记。
      *
@@ -24,11 +25,11 @@ interface TerminalOp<IN, R> extends Op<IN>, Supplier<R> {
         return PipeFlag.NOTHING;
     }
 
-    static <IN> TerminalOp<IN, Void> wrap(Consumer<? super IN> action) {
+    static <T> TerminalOp<T, Void> wrap(Consumer<? super T> action) {
         Objects.requireNonNull(action);
         return new TerminalOp<>() {
             @Override
-            public void accept(IN var) {
+            public void accept(T var) {
                 action.accept(var);
             }
 
@@ -37,5 +38,32 @@ interface TerminalOp<IN, R> extends Op<IN>, Supplier<R> {
                 return null;
             }
         };
+    }
+
+    abstract class KeepSingle<T, R> implements TerminalOp<T, Optional<R>> {
+        protected R result;
+
+        @Override
+        public Optional<R> get() {
+            return Optional.ofNullable(result);
+        }
+    }
+
+    abstract class FindSingle<T, R> extends KeepSingle<T, R> {
+        protected boolean found = false;
+
+        @Override
+        public boolean canShortCircuit() {
+            return found;
+        }
+
+        @Override
+        public int getOpFlag() {
+            return PipeFlag.IS_SHORT_CIRCUIT;
+        }
+    }
+
+    abstract class Orderly<T, R> implements TerminalOp<T, R> {
+        protected long index = 0L;
     }
 }

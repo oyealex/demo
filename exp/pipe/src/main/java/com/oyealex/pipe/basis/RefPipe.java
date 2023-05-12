@@ -17,6 +17,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
@@ -35,6 +36,8 @@ import java.util.function.ToLongFunction;
 import static com.oyealex.pipe.basis.Pipes.empty;
 import static com.oyealex.pipe.basis.Pipes.pipe;
 import static com.oyealex.pipe.flag.PipeFlag.DISTINCT;
+import static com.oyealex.pipe.flag.PipeFlag.IS_NONNULL;
+import static com.oyealex.pipe.flag.PipeFlag.NONNULL;
 import static com.oyealex.pipe.flag.PipeFlag.NOTHING;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_DISTINCT;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_REVERSED_SORTED;
@@ -43,6 +46,9 @@ import static com.oyealex.pipe.flag.PipeFlag.NOT_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.REVERSED_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.SHORT_CIRCUIT;
 import static com.oyealex.pipe.flag.PipeFlag.SORTED;
+import static com.oyealex.pipe.utils.MiscUtil.isStdNaturalOrder;
+import static com.oyealex.pipe.utils.MiscUtil.isStdReverseOrder;
+import static com.oyealex.pipe.utils.MiscUtil.optimizedNaturalOrder;
 import static java.lang.Long.MAX_VALUE;
 import static java.util.Objects.requireNonNull;
 
@@ -102,7 +108,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @SuppressWarnings("unchecked")
     private <R> R evaluate(TerminalOp<OUT, R> terminalOp) {
-        processData((Spliterator<Object>) headPipe.takeDataSource(), terminalOp);
+        driveData((Spliterator<Object>) headPipe.takeDataSource(), terminalOp);
         return terminalOp.get();
     }
 
@@ -113,7 +119,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
      * @param tailOp 结尾操作
      * @param <OP> 结尾操作类型
      */
-    <OP extends TerminalOp<OUT, ?>> void processData(Spliterator<Object> dataSource, OP tailOp) {
+    <OP extends TerminalOp<OUT, ?>> void driveData(Spliterator<Object> dataSource, OP tailOp) {
         Op<Object> wrappedOp = wrapAllOp(tailOp);
         wrappedOp.begin(dataSource.getExactSizeIfKnown());
         if (SHORT_CIRCUIT.isSet(flag | tailOp.getOpFlag())) {
@@ -186,6 +192,19 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public Pipe<OUT> dropWhileOrderly(LongBiPredicate<? super OUT> predicate) {
         return new WhileStage.DropWhileOrderly<>(this, requireNonNull(predicate));
+    }
+
+    @Override
+    public Pipe<OUT> nonNull() {
+        if (isFlagSet(NONNULL)) {
+            return this;
+        }
+        return new RefPipe<>(this, NOT_SIZED | IS_NONNULL) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return SimpleOps.keepIfOp(nextOp, Objects::nonNull);
+            }
+        };
     }
 
     @Override
@@ -307,34 +326,26 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public <R> Pipe<OUT> distinctBy(Function<? super OUT, ? extends R> mapper) {
+    public <K> Pipe<OUT> distinctBy(Function<? super OUT, ? extends K> mapper) {
         return new DistinctStage.NormalKeyed<>(this, requireNonNull(mapper));
     }
 
     @Override
-    public <R> Pipe<OUT> distinctByOrderly(LongBiFunction<? super OUT, ? extends R> mapper) {
+    public <K> Pipe<OUT> distinctByOrderly(LongBiFunction<? super OUT, ? extends K> mapper) {
         return new DistinctStage.OrderlyKeyed<>(this, requireNonNull(mapper));
     }
 
     @Override
-    public Pipe<OUT> sort() {
-        if (isFlagSet(SORTED)) { // 已经自然有序，可以省略本次排序
+    public Pipe<OUT> sort(Comparator<? super OUT> comparator) { // TODO 2023-05-13 00:21 处理null值问题
+        if ((isStdNaturalOrder(comparator) && isFlagSet(SORTED) ||
+            (isStdReverseOrder(comparator) && isFlagSet(REVERSED_SORTED)))) {
             return this;
         }
-        if (isFlagSet(REVERSED_SORTED)) { // 已经自然逆序，可以直接逆序
+        if ((isStdNaturalOrder(comparator) && isFlagSet(REVERSED_SORTED) ||
+            (isStdReverseOrder(comparator) && isFlagSet(SORTED)))) {
             return reverse();
         }
-        return new SortStage.Normal<>(this, null);
-    }
-
-    @Override
-    public Pipe<OUT> sort(Comparator<? super OUT> comparator) {
-        return comparator == null ? sort() : new SortStage.Normal<>(this, comparator);
-    }
-
-    @Override
-    public <R extends Comparable<? super R>> Pipe<OUT> sortByOrderly(LongBiFunction<? super OUT, ? extends R> mapper) {
-        return new SortStage.Orderly<>(this, Comparator.naturalOrder(), mapper);
+        return new SortStage.Normal<>(this, comparator);
     }
 
     @Override
@@ -427,12 +438,22 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
+    public Pipe<OUT> prepend(OUT value) {
+        return prepend(SimpleSpliterators.singleton(value));
+    }
+
+    @Override
     public Pipe<OUT> append(Spliterator<? extends OUT> spliterator) {
         requireNonNull(spliterator);
         @SuppressWarnings("unchecked") ConcatSpliterator<OUT, Spliterator<OUT>> finalSpliterator
             = new ConcatSpliterator<>(toSpliterator(), (Spliterator<OUT>) spliterator);
         Pipe<OUT> pipe = pipe(finalSpliterator);
         return pipe.onClose(this::close);
+    }
+
+    @Override
+    public Pipe<OUT> append(OUT value) {
+        return append(SimpleSpliterators.singleton(value));
     }
 
     @Override
@@ -449,7 +470,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public <T, R> Pipe<R> merge(Pipe<T> pipe) {
+    public <T, R> Pipe<R> merge(Pipe<T> pipe) { // TODO 2023-05-13 00:24 考虑新流水线的NONNULL等标记合并
         throw new UnsupportedOperationException();
     }
 
@@ -481,23 +502,22 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Optional<OUT> min() {
-        throw new UnsupportedOperationException();
+    public Optional<OUT> min(Comparator<? super OUT> comparator) { // TODO 2023-05-13 00:21 处理null值问题
+        if ((isStdNaturalOrder(comparator) && isFlagSet(SORTED) ||
+            (isStdReverseOrder(comparator) && isFlagSet(REVERSED_SORTED)))) {
+            return findFirst();
+        }
+        if ((isStdNaturalOrder(comparator) && isFlagSet(REVERSED_SORTED) ||
+            (isStdReverseOrder(comparator) && isFlagSet(SORTED)))) {
+            return findLast();
+        }
+        return evaluate(SimpleOps.minTerminalOp(optimizedNaturalOrder(comparator)));
     }
 
     @Override
-    public Optional<OUT> min(Comparator<? super OUT> comparator) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Optional<OUT> max() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Optional<OUT> max(Comparator<? super OUT> comparator) {
-        throw new UnsupportedOperationException();
+    public <K> Optional<OUT> minByOrderly(LongBiFunction<? super OUT, ? extends K> mapper,
+        Comparator<? super K> comparator) {
+        return evaluate(SimpleOps.minByOrderlyTerminalOp(mapper, comparator)).map(result -> result.second);
     }
 
     @Override
@@ -521,13 +541,52 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Optional<OUT> findFirst() {
+    public boolean anyNull() {
+        if (isFlagSet(NONNULL)) {
+            return false;
+        }
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Optional<OUT> findLast() {
+    public boolean allNull() {
+        if (isFlagSet(NONNULL)) {
+            return false;
+        }
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean noneNull() {
+        if (isFlagSet(NONNULL)) {
+            return true;
+        }
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <K> boolean anyNullBy(Function<? super OUT, ? extends K> mapper) {
+        return false;
+    }
+
+    @Override
+    public <K> boolean allNullBy(Function<? super OUT, ? extends K> mapper) {
+        return false;
+    }
+
+    @Override
+    public <K> boolean noneNullBy(Function<? super OUT, ? extends K> mapper) {
+        return false;
+    }
+
+    @Override
+    public Optional<OUT> findFirst() {
+        return evaluate(SimpleOps.findFirstTerminalOp());
+    }
+
+    @Override
+    public Optional<OUT> findLast() {
+        return evaluate(SimpleOps.findLastTerminalOp());
     }
 
     @Override

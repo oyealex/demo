@@ -3,7 +3,10 @@ package com.oyealex.pipe.basis;
 import com.oyealex.pipe.basis.functional.LongBiConsumer;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
+import com.oyealex.pipe.utils.Tuple;
 
+import java.util.Comparator;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -20,17 +23,15 @@ final class SimpleOps {
     }
 
     public static <T> TerminalOp<T, Long> countOp() {
-        return new TerminalOp<>() {
-            private long count = 0L;
-
+        return new TerminalOp.Orderly<>() {
             @Override
             public void accept(T var) {
-                count++;
+                index++;
             }
 
             @Override
             public Long get() {
-                return count;
+                return index;
             }
         };
     }
@@ -131,6 +132,51 @@ final class SimpleOps {
             public void accept(T var) {
                 consumer.accept(index++, var);
                 nextOp.accept(var);
+            }
+        };
+    }
+
+    public static <T> TerminalOp<T, Optional<T>> minTerminalOp(Comparator<? super T> comparator) {
+        return new TerminalOp.KeepSingle<>() {
+            @Override
+            public void accept(T var) {
+                if (result == null || comparator.compare(result, var) > 0) {
+                    result = var;
+                }
+            }
+        };
+    }
+
+    public static <T, K> TerminalOp<T, Optional<Tuple<K, T>>> minByOrderlyTerminalOp(
+        LongBiFunction<? super T, ? extends K> mapper, Comparator<? super K> comparator) {
+        return new TerminalOp.KeepSingle<>() {
+            private long index = 0L;
+
+            @Override
+            public void accept(T var) {
+                K key = mapper.apply(index++, var);
+                if (result == null || comparator.compare(result.first, key) > 0) {
+                    result = new Tuple<>(key, var);
+                }
+            }
+        };
+    }
+
+    public static <T> TerminalOp<T, Optional<T>> findFirstTerminalOp() {
+        return new TerminalOp.FindSingle<>() {
+            @Override
+            public void accept(T var) {
+                result = var;
+                found = true;
+            }
+        };
+    }
+
+    public static <T> TerminalOp<T, Optional<T>> findLastTerminalOp() {
+        return new TerminalOp.KeepSingle<>() {
+            @Override
+            public void accept(T var) {
+                result = var;
             }
         };
     }
