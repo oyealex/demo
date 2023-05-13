@@ -7,9 +7,13 @@ import com.oyealex.pipe.utils.Tuple;
 
 import java.util.Comparator;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
+import static com.oyealex.pipe.flag.PipeFlag.IS_SHORT_CIRCUIT;
 
 /**
  * Ops
@@ -137,11 +141,16 @@ final class SimpleOps {
     }
 
     public static <T> TerminalOp<T, Optional<T>> minTerminalOp(Comparator<? super T> comparator) {
-        return new TerminalOp.KeepSingle<>() {
+        return new TerminalOp.FindOpt<>() {
             @Override
             public void accept(T var) {
-                if (result == null || comparator.compare(result, var) > 0) {
+                if (found) {
+                    if (comparator.compare(result, var) > 0) {
+                        result = var;
+                    }
+                } else {
                     result = var;
+                    found = true;
                 }
             }
         };
@@ -149,21 +158,26 @@ final class SimpleOps {
 
     public static <T, K> TerminalOp<T, Optional<Tuple<K, T>>> minByOrderlyTerminalOp(
         LongBiFunction<? super T, ? extends K> mapper, Comparator<? super K> comparator) {
-        return new TerminalOp.KeepSingle<>() {
+        return new TerminalOp.FindOpt<>() {
             private long index = 0L;
 
             @Override
             public void accept(T var) {
                 K key = mapper.apply(index++, var);
-                if (result == null || comparator.compare(result.first, key) > 0) {
+                if (found) {
+                    if (comparator.compare(result.first, key) > 0) {
+                        result = new Tuple<>(key, var);
+                    }
+                } else {
                     result = new Tuple<>(key, var);
+                    found = true;
                 }
             }
         };
     }
 
     public static <T> TerminalOp<T, Optional<T>> findFirstTerminalOp() {
-        return new TerminalOp.FindSingle<>() {
+        return new TerminalOp.FindOptOnce<>() {
             @Override
             public void accept(T var) {
                 result = var;
@@ -173,10 +187,82 @@ final class SimpleOps {
     }
 
     public static <T> TerminalOp<T, Optional<T>> findLastTerminalOp() {
-        return new TerminalOp.KeepSingle<>() {
+        return new TerminalOp.FindOpt<>() {
             @Override
             public void accept(T var) {
                 result = var;
+                found = true;
+            }
+        };
+    }
+
+    public static <T> TerminalOp<T, Optional<T>> reduceTerminalOp(BinaryOperator<T> op) {
+        return new TerminalOp.FindOpt<>() {
+            @Override
+            public void accept(T var) {
+                if (found) {
+                    result = op.apply(result, var);
+                } else {
+                    found = true;
+                    result = var;
+                }
+            }
+        };
+    }
+
+    public static <T, R> TerminalOp<T, R> reduceTerminalOp(R initVar, Function<? super T, ? extends R> mapper,
+        BinaryOperator<R> op) {
+        return new TerminalOp.Find<>(initVar) {
+            @Override
+            public void accept(T var) {
+                result = op.apply(result, mapper.apply(var));
+            }
+        };
+    }
+
+    public static <T, R> TerminalOp<T, R> reduceTerminalOp(R initVar, BiConsumer<? super R, ? super T> op) {
+        return new TerminalOp.Find<>(initVar) {
+            @Override
+            public void accept(T var) {
+                op.accept(result, var);
+            }
+        };
+    }
+
+    public static <T> TerminalOp<T, Boolean> anyMatchTerminalOp(Predicate<? super T> predicate) {
+        return new TerminalOp.Find<>(Boolean.FALSE) {
+            @Override
+            public void accept(T var) {
+                result = predicate.test(var);
+            }
+
+            @Override
+            public boolean canShortCircuit() {
+                return result;
+            }
+
+            @Override
+            public int getOpFlag() {
+                return IS_SHORT_CIRCUIT;
+            }
+        };
+    }
+
+    public static <T> TerminalOp<T, Boolean> allMatchTerminalOp(Predicate<? super T> predicate) {
+        return new TerminalOp.Find<>(Boolean.TRUE) {
+            @Override
+            public void accept(T var) {
+                result = predicate.test(var);
+            }
+
+            @Override
+            public boolean canShortCircuit() {
+                return !result;
+            }
+
+            @Override
+            public int getOpFlag() {
+                return IS_SHORT_CIRCUIT;
             }
         };
     }

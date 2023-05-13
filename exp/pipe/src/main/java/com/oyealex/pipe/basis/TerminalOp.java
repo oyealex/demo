@@ -7,6 +7,9 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+
 /**
  * 终结操作，定义流水线地最终操作，并能够获取流水线的最终返回值。
  *
@@ -40,18 +43,31 @@ interface TerminalOp<T, R> extends Op<T>, Supplier<R> {
         };
     }
 
-    abstract class KeepSingle<T, R> implements TerminalOp<T, Optional<R>> {
+    abstract class Find<T, R> implements TerminalOp<T, R> {
         protected R result;
 
+        Find(R initVar) {
+            this.result = initVar;
+        }
+
         @Override
-        public Optional<R> get() {
-            return Optional.ofNullable(result);
+        public R get() {
+            return result;
         }
     }
 
-    abstract class FindSingle<T, R> extends KeepSingle<T, R> {
+    abstract class FindOpt<T, R> implements TerminalOp<T, Optional<R>> {
+        protected R result;
+
         protected boolean found = false;
 
+        @Override
+        public Optional<R> get() {
+            return found ? of(result) : empty();
+        }
+    }
+
+    abstract class FindOptOnce<T, R> extends FindOpt<T, R> {
         @Override
         public boolean canShortCircuit() {
             return found;

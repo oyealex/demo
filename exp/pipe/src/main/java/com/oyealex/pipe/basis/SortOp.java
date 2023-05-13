@@ -11,8 +11,7 @@ import static com.oyealex.pipe.flag.PipeFlag.IS_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_REVERSED_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SORTED;
 import static com.oyealex.pipe.utils.MiscUtil.checkArraySize;
-import static com.oyealex.pipe.utils.MiscUtil.optimizedNaturalOrder;
-import static java.util.Objects.requireNonNullElseGet;
+import static com.oyealex.pipe.utils.MiscUtil.isStdNaturalOrder;
 
 /**
  * SortStage
@@ -30,9 +29,9 @@ abstract class SortOp<T> extends RefPipe<T, T> {
 
         @SuppressWarnings("unchecked")
         Normal(RefPipe<?, ? extends T> prePipe, Comparator<? super T> comparator) {
-            super(prePipe, comparator == null ? IS_SORTED | NOT_REVERSED_SORTED : NOT_SORTED | NOT_REVERSED_SORTED);
-            this.comparator = requireNonNullElseGet(comparator,
-                () -> (Comparator<? super T>) Comparator.naturalOrder());
+            super(prePipe,
+                isStdNaturalOrder(comparator) ? IS_SORTED | NOT_REVERSED_SORTED : NOT_SORTED | NOT_REVERSED_SORTED);
+            this.comparator = comparator;
         }
 
         @Override
@@ -53,8 +52,9 @@ abstract class SortOp<T> extends RefPipe<T, T> {
 
         Orderly(RefPipe<?, ? extends T> prePipe, Comparator<? super K> comparator,
             LongBiFunction<? super T, ? extends K> mapper) {
-            super(prePipe, comparator == null ? IS_SORTED | NOT_REVERSED_SORTED : NOT_SORTED | NOT_REVERSED_SORTED);
-            this.comparator = optimizedNaturalOrder(comparator);
+            super(prePipe,
+                isStdNaturalOrder(comparator) ? IS_SORTED | NOT_REVERSED_SORTED : NOT_SORTED | NOT_REVERSED_SORTED);
+            this.comparator = comparator;
             this.mapper = mapper;
         }
 

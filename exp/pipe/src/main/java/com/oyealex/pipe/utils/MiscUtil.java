@@ -35,7 +35,7 @@ public final class MiscUtil {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> Comparator<? super T> optimizedNaturalOrder(Comparator<? super T> comparator) {
+    public static <T> Comparator<? super T> naturalOrderIfNull(Comparator<? super T> comparator) {
         return comparator == null ? (Comparator<? super T>) naturalOrder() : comparator;
     }
 

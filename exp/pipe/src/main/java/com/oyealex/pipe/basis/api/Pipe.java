@@ -6,17 +6,23 @@ import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import com.oyealex.pipe.bi.BiPipe;
 import com.oyealex.pipe.tri.TriPipe;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.StringJoiner;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
@@ -788,11 +794,15 @@ public interface Pipe<E> extends AutoCloseable {
      */
     void forEachOrderly(LongBiConsumer<? super E> action);
 
-    E reduce(E identity, BinaryOperator<E> op);
+    default E reduce(E initVar, BinaryOperator<E> op) {
+        return reduce(initVar, Function.identity(), op);
+    }
 
     Optional<E> reduce(BinaryOperator<E> op);
 
-    <R> R reduce(R identity, Function<? super E, ? extends R> mapper, BinaryOperator<R> op);
+    <R> R reduce(R initVar, BiConsumer<? super R, ? super E> op);
+
+    <R> R reduce(R initVar, Function<? super E, ? extends R> mapper, BinaryOperator<R> op);
 
     /**
      * 获取流水线中最小的元素，以自然顺序为比较依据。
@@ -883,19 +893,32 @@ public interface Pipe<E> extends AutoCloseable {
 
     boolean allMatch(Predicate<? super E> predicate);
 
-    boolean noneMatch(Predicate<? super E> predicate);
+    default boolean noneMatch(Predicate<? super E> predicate) {
+        return !anyMatch(predicate);
+    }
 
     boolean anyNull();
 
     boolean allNull();
 
-    boolean noneNull();
+    default boolean noneNull() {
+        return !anyNull();
+    }
 
-    <K> boolean anyNullBy(Function<? super E, ? extends K> mapper);
+    default <K> boolean anyNullBy(Function<? super E, ? extends K> mapper) {
+        requireNonNull(mapper);
+        return anyMatch(var -> mapper.apply(var) == null);
+    }
 
-    <K> boolean allNullBy(Function<? super E, ? extends K> mapper);
+    default <K> boolean allNullBy(Function<? super E, ? extends K> mapper) {
+        requireNonNull(mapper);
+        return allMatch(var -> mapper.apply(var) == null);
+    }
 
-    <K> boolean noneNullBy(Function<? super E, ? extends K> mapper);
+    default <K> boolean noneNullBy(Function<? super E, ? extends K> mapper) {
+        requireNonNull(mapper);
+        return !anyNullBy(mapper);
+    }
 
     /**
      * 获取流水线中的第一个元素。
@@ -930,25 +953,48 @@ public interface Pipe<E> extends AutoCloseable {
         return Spliterators.emptySpliterator();
     }
 
-    List<E> toList();
+    default List<E> toList() { // OPT 2023-05-14 00:02 默认可变 or 默认不可变，通过全局配置控制
+        return toList(ArrayList::new);
+    }
 
-    <L extends List<E>> List<E> toList(Supplier<L> listSupplier);
+    default <L extends List<E>> List<E> toList(Supplier<L> supplier) {
+        return toCollection(supplier);
+    }
 
-    List<E> toUnmodifiableList();
+    default List<E> toUnmodifiableList() {
+        return Collections.unmodifiableList(toList());
+    }
 
-    Set<E> toSet();
+    default Set<E> toSet() {
+        return toSet(HashSet::new);
+    }
 
-    <S extends Set<E>> Set<E> toSet(Supplier<S> setSupplier);
+    default <S extends Set<E>> Set<E> toSet(Supplier<S> supplier) {
+        return toCollection(supplier);
+    }
 
-    Set<E> toUnmodifiableSet();
+    default Set<E> toUnmodifiableSet() {
+        return Collections.unmodifiableSet(toSet());
+    }
 
-    <C extends Collection<E>> C toCollection(Supplier<C> collectionSupplier);
+    default <C extends Collection<E>> C toCollection(Supplier<C> supplier) {
+        requireNonNull(supplier);
+        return reduce(supplier.get(), Collection::add);
+    }
 
-    <K> Map<K, E> toMap(Function<? super E, ? extends K> keyMapper);
+    default <K> Map<K, E> toMap(Function<? super E, ? extends K> keyMapper) {
+        return toMap(HashMap::new, keyMapper);
+    }
 
-    <K, M extends Map<K, E>> M toMap(Supplier<M> mapSupplier, Function<? super E, ? extends K> keyMapper);
+    default <K, M extends Map<K, E>> M toMap(Supplier<M> supplier, Function<? super E, ? extends K> keyMapper) {
+        requireNonNull(supplier);
+        requireNonNull(keyMapper);
+        return reduce(supplier.get(), (map, var) -> map.put(keyMapper.apply(var), var));
+    }
 
-    <K> Map<K, E> toUnmodifiableMap(Function<? super E, ? extends K> keyMapper);
+    default <K> Map<K, E> toUnmodifiableMap(Function<? super E, ? extends K> keyMapper) {
+        return Collections.unmodifiableMap(toMap(keyMapper));
+    }
 
     <K> Map<K, List<E>> group(Function<? super E, ? extends K> classifier);
 
@@ -956,7 +1002,10 @@ public interface Pipe<E> extends AutoCloseable {
 
     <K> Map<K, List<E>> groupAndExecute(Function<? super E, ? extends K> classifier, BiConsumer<K, List<E>> action);
 
-    String join(CharSequence delimiter, CharSequence prefix, CharSequence suffix);
+    default String join(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
+        return reduce(new StringJoiner(delimiter, prefix, suffix),
+            (joiner, var) -> joiner.add(Objects.toString(var))).toString();
+    }
 
     default String join(CharSequence delimiter) {
         return join(delimiter, "", "");
@@ -969,6 +1018,5 @@ public interface Pipe<E> extends AutoCloseable {
     Pipe<E> onClose(Runnable closeAction);
 
     @Override
-    default void close() {
-    }
+    void close();
 }

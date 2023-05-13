@@ -10,9 +10,9 @@ import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import com.oyealex.pipe.bi.BiPipe;
 import com.oyealex.pipe.flag.PipeFlag;
 import com.oyealex.pipe.spliterator.ConcatSpliterator;
+import com.oyealex.pipe.spliterator.SingletonSpliterator;
 import com.oyealex.pipe.tri.TriPipe;
 
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -20,15 +20,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
-import java.util.Set;
 import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 import java.util.function.ToLongFunction;
@@ -48,7 +47,7 @@ import static com.oyealex.pipe.flag.PipeFlag.SHORT_CIRCUIT;
 import static com.oyealex.pipe.flag.PipeFlag.SORTED;
 import static com.oyealex.pipe.utils.MiscUtil.isStdNaturalOrder;
 import static com.oyealex.pipe.utils.MiscUtil.isStdReverseOrder;
-import static com.oyealex.pipe.utils.MiscUtil.optimizedNaturalOrder;
+import static com.oyealex.pipe.utils.MiscUtil.naturalOrderIfNull;
 import static java.lang.Long.MAX_VALUE;
 import static java.util.Objects.requireNonNull;
 
@@ -301,7 +300,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<Pipe<OUT>> flatMapSingleton() {
-        return map(var -> pipe(SimpleSpliterators.singleton(var)));
+        return map(var -> pipe(new SingletonSpliterator<>(var)));
     }
 
     @Override
@@ -345,13 +344,14 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
             (isStdReverseOrder(comparator) && isFlagSet(SORTED)))) {
             return reverse();
         }
-        return new SortOp.Normal<>(this, comparator);
+        return new SortOp.Normal<>(this, naturalOrderIfNull(comparator));
     }
 
     @Override
     public <R> Pipe<OUT> sortByOrderly(LongBiFunction<? super OUT, ? extends R> mapper,
         Comparator<? super R> comparator) {
-        return new SortOp.Orderly<>(this, comparator, mapper);
+        requireNonNull(mapper);
+        return new SortOp.Orderly<>(this, naturalOrderIfNull(comparator), mapper);
     }
 
     @Override
@@ -439,7 +439,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<OUT> prepend(OUT value) {
-        return prepend(SimpleSpliterators.singleton(value));
+        return prepend(new SingletonSpliterator<>(value));
     }
 
     @Override
@@ -453,7 +453,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<OUT> append(OUT value) {
-        return append(SimpleSpliterators.singleton(value));
+        return append(new SingletonSpliterator<>(value));
     }
 
     @Override
@@ -466,11 +466,13 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public <S> BiPipe<OUT, S> combine(Pipe<S> secondPipe) {
+        requireNonNull(secondPipe);
         throw new UnsupportedOperationException();
     }
 
     @Override
     public <T, R> Pipe<R> merge(Pipe<T> pipe) { // TODO 2023-05-13 00:24 考虑新流水线的NONNULL等标记合并
+        requireNonNull(pipe);
         throw new UnsupportedOperationException();
     }
 
@@ -487,18 +489,21 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public OUT reduce(OUT identity, BinaryOperator<OUT> op) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Optional<OUT> reduce(BinaryOperator<OUT> op) {
-        return Optional.empty();
+        return evaluate(SimpleOps.reduceTerminalOp(op));
     }
 
     @Override
-    public <R> R reduce(R identity, Function<? super OUT, ? extends R> mapper, BinaryOperator<R> op) {
-        throw new UnsupportedOperationException();
+    public <R> R reduce(R initVar, BiConsumer<? super R, ? super OUT> op) {
+        requireNonNull(op);
+        return evaluate(SimpleOps.reduceTerminalOp(initVar, op));
+    }
+
+    @Override
+    public <R> R reduce(R initVar, Function<? super OUT, ? extends R> mapper, BinaryOperator<R> op) {
+        requireNonNull(mapper);
+        requireNonNull(op);
+        return evaluate(SimpleOps.reduceTerminalOp(initVar, mapper, op));
     }
 
     @Override
@@ -511,13 +516,15 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
             (isStdReverseOrder(comparator) && isFlagSet(SORTED)))) {
             return findLast();
         }
-        return evaluate(SimpleOps.minTerminalOp(optimizedNaturalOrder(comparator)));
+        return evaluate(SimpleOps.minTerminalOp(naturalOrderIfNull(comparator)));
     }
 
     @Override
     public <K> Optional<OUT> minByOrderly(LongBiFunction<? super OUT, ? extends K> mapper,
         Comparator<? super K> comparator) {
-        return evaluate(SimpleOps.minByOrderlyTerminalOp(mapper, comparator)).map(result -> result.second);
+        requireNonNull(mapper);
+        return evaluate(SimpleOps.minByOrderlyTerminalOp(mapper, naturalOrderIfNull(comparator))).map(
+            result -> result.second);
     }
 
     @Override
@@ -527,17 +534,14 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public boolean anyMatch(Predicate<? super OUT> predicate) {
-        return false;
+        requireNonNull(predicate);
+        return evaluate(SimpleOps.anyMatchTerminalOp(predicate));
     }
 
     @Override
     public boolean allMatch(Predicate<? super OUT> predicate) {
-        return false;
-    }
-
-    @Override
-    public boolean noneMatch(Predicate<? super OUT> predicate) {
-        return false;
+        requireNonNull(predicate);
+        return evaluate(SimpleOps.allMatchTerminalOp(predicate));
     }
 
     @Override
@@ -545,7 +549,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         if (isFlagSet(NONNULL)) {
             return false;
         }
-        throw new UnsupportedOperationException();
+        return anyMatch(Objects::isNull);
     }
 
     @Override
@@ -553,30 +557,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         if (isFlagSet(NONNULL)) {
             return false;
         }
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean noneNull() {
-        if (isFlagSet(NONNULL)) {
-            return true;
-        }
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <K> boolean anyNullBy(Function<? super OUT, ? extends K> mapper) {
-        return false;
-    }
-
-    @Override
-    public <K> boolean allNullBy(Function<? super OUT, ? extends K> mapper) {
-        return false;
-    }
-
-    @Override
-    public <K> boolean noneNullBy(Function<? super OUT, ? extends K> mapper) {
-        return false;
+        return allMatch(Objects::isNull);
     }
 
     @Override
@@ -591,7 +572,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Iterator<OUT> iterator() {
-        throw new UnsupportedOperationException();
+        return Spliterators.iterator(toSpliterator());
     }
 
     @Override
@@ -604,56 +585,6 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     public Spliterator<OUT> toSpliterator() {
         return this == headPipe ? (Spliterator<OUT>) headPipe.takeDataSource() :
             new PipeSpliterator<>(this, (Spliterator<Object>) headPipe.takeDataSource());
-    }
-
-    @Override
-    public List<OUT> toList() {
-        return evaluate(Containers.makeToListTerminalOp());
-    }
-
-    @Override
-    public <L extends List<OUT>> List<OUT> toList(Supplier<L> listSupplier) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<OUT> toUnmodifiableList() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Set<OUT> toSet() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <S extends Set<OUT>> Set<OUT> toSet(Supplier<S> setSupplier) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Set<OUT> toUnmodifiableSet() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <C extends Collection<OUT>> C toCollection(Supplier<C> collectionSupplier) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <K> Map<K, OUT> toMap(Function<? super OUT, ? extends K> keyMapper) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <K, M extends Map<K, OUT>> M toMap(Supplier<M> mapSupplier, Function<? super OUT, ? extends K> keyMapper) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <K> Map<K, OUT> toUnmodifiableMap(Function<? super OUT, ? extends K> keyMapper) {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -670,11 +601,6 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public <K> Map<K, List<OUT>> groupAndExecute(Function<? super OUT, ? extends K> classifier,
         BiConsumer<K, List<OUT>> action) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String join(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         throw new UnsupportedOperationException();
     }
 
