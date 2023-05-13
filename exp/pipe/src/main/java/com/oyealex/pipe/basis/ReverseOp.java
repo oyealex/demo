@@ -14,8 +14,8 @@ import static com.oyealex.pipe.flag.PipeFlag.SORTED;
  * @author oyealex
  * @since 2023-05-11
  */
-class ReverseStage<T> extends RefPipe<T, T> {
-    ReverseStage(RefPipe<?, ? extends T> prePipe) {
+class ReverseOp<T> extends RefPipe<T, T> {
+    ReverseOp(RefPipe<?, ? extends T> prePipe) {
         super(prePipe, getOpFlag(prePipe));
     }
 

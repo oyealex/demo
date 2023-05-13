@@ -20,12 +20,12 @@ import static java.util.Objects.requireNonNullElseGet;
  * @author oyealex
  * @since 2023-05-11
  */
-abstract class SortStage<T> extends RefPipe<T, T> {
-    private SortStage(RefPipe<?, ? extends T> prePipe, int opFlag) {
+abstract class SortOp<T> extends RefPipe<T, T> {
+    private SortOp(RefPipe<?, ? extends T> prePipe, int opFlag) {
         super(prePipe, opFlag);
     }
 
-    static class Normal<T> extends SortStage<T> {
+    static class Normal<T> extends SortOp<T> {
         private final Comparator<? super T> comparator;
 
         @SuppressWarnings("unchecked")
@@ -46,7 +46,7 @@ abstract class SortStage<T> extends RefPipe<T, T> {
         }
     }
 
-    static class Orderly<T, K> extends SortStage<T> {
+    static class Orderly<T, K> extends SortOp<T> {
         private final Comparator<? super K> comparator;
 
         private final LongBiFunction<? super T, ? extends K> mapper;

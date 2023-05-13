@@ -11,10 +11,10 @@ import static com.oyealex.pipe.flag.PipeFlag.NOT_SORTED;
  * @author oyealex
  * @since 2023-05-12
  */
-class ShuffleStage<T> extends RefPipe<T, T> {
+class ShuffleOp<T> extends RefPipe<T, T> {
     private final Random random;
 
-    ShuffleStage(RefPipe<?, ? extends T> prePipe, Random random) {
+    ShuffleOp(RefPipe<?, ? extends T> prePipe, Random random) {
         super(prePipe, NOT_SORTED | NOT_REVERSED_SORTED);
         this.random = random;
     }

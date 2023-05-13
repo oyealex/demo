@@ -10,12 +10,12 @@ import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
  * @author oyealex
  * @since 2023-04-28
  */
-class SliceStage<IN> extends RefPipe<IN, IN> {
+class SliceOp<IN> extends RefPipe<IN, IN> {
     private final long skip;
 
     private final long limit;
 
-    SliceStage(RefPipe<?, ? extends IN> prePipe, long skip, long limit) {
+    SliceOp(RefPipe<?, ? extends IN> prePipe, long skip, long limit) {
         super(prePipe, NOT_SIZED | (limit != Long.MAX_VALUE ? IS_SHORT_CIRCUIT : NOTHING));
         this.skip = skip;
         this.limit = limit;

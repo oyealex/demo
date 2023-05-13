@@ -176,22 +176,22 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<OUT> keepWhile(Predicate<? super OUT> predicate) {
-        return new WhileStage.KeepWhile<>(this, requireNonNull(predicate));
+        return new WhileOp.KeepWhile<>(this, requireNonNull(predicate));
     }
 
     @Override
     public Pipe<OUT> keepWhileOrderly(LongBiPredicate<? super OUT> predicate) {
-        return new WhileStage.KeepWhileOrderly<>(this, requireNonNull(predicate));
+        return new WhileOp.KeepWhileOrderly<>(this, requireNonNull(predicate));
     }
 
     @Override
     public Pipe<OUT> dropWhile(Predicate<? super OUT> predicate) {
-        return new WhileStage.DropWhile<>(this, requireNonNull(predicate));
+        return new WhileOp.DropWhile<>(this, requireNonNull(predicate));
     }
 
     @Override
     public Pipe<OUT> dropWhileOrderly(LongBiPredicate<? super OUT> predicate) {
-        return new WhileStage.DropWhileOrderly<>(this, requireNonNull(predicate));
+        return new WhileOp.DropWhileOrderly<>(this, requireNonNull(predicate));
     }
 
     @Override
@@ -261,12 +261,12 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public <R> Pipe<R> flatMap(Function<? super OUT, ? extends Pipe<? extends R>> mapper) {
-        return new FlatMapStage.Normal<>(this, requireNonNull(mapper));
+        return new FlatMapOp.Normal<>(this, requireNonNull(mapper));
     }
 
     @Override
     public <R> Pipe<R> flatMapOrderly(LongBiFunction<? super OUT, ? extends Pipe<? extends R>> mapper) {
-        return new FlatMapStage.Orderly<>(this, requireNonNull(mapper));
+        return new FlatMapOp.Orderly<>(this, requireNonNull(mapper));
     }
 
     @Override
@@ -321,18 +321,18 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         if (isFlagSet(DISTINCT)) {
             return this;
         }
-        return isFlagSet(SORTED) || isFlagSet(REVERSED_SORTED) ? new DistinctStage.NaturalSorted<>(this) :
-            new DistinctStage.Normal<>(this);
+        return isFlagSet(SORTED) || isFlagSet(REVERSED_SORTED) ? new DistinctOp.NaturalSorted<>(this) :
+            new DistinctOp.Normal<>(this);
     }
 
     @Override
     public <K> Pipe<OUT> distinctBy(Function<? super OUT, ? extends K> mapper) {
-        return new DistinctStage.NormalKeyed<>(this, requireNonNull(mapper));
+        return new DistinctOp.NormalKeyed<>(this, requireNonNull(mapper));
     }
 
     @Override
     public <K> Pipe<OUT> distinctByOrderly(LongBiFunction<? super OUT, ? extends K> mapper) {
-        return new DistinctStage.OrderlyKeyed<>(this, requireNonNull(mapper));
+        return new DistinctOp.OrderlyKeyed<>(this, requireNonNull(mapper));
     }
 
     @Override
@@ -345,23 +345,23 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
             (isStdReverseOrder(comparator) && isFlagSet(SORTED)))) {
             return reverse();
         }
-        return new SortStage.Normal<>(this, comparator);
+        return new SortOp.Normal<>(this, comparator);
     }
 
     @Override
     public <R> Pipe<OUT> sortByOrderly(LongBiFunction<? super OUT, ? extends R> mapper,
         Comparator<? super R> comparator) {
-        return new SortStage.Orderly<>(this, comparator, mapper);
+        return new SortOp.Orderly<>(this, comparator, mapper);
     }
 
     @Override
     public Pipe<OUT> reverse() {
-        return new ReverseStage<>(this);
+        return new ReverseOp<>(this);
     }
 
     @Override
     public Pipe<OUT> shuffle(Random random) {
-        return new ShuffleStage<>(this, requireNonNull(random));
+        return new ShuffleOp<>(this, requireNonNull(random));
     }
 
     @Override
@@ -397,7 +397,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         if (size == MAX_VALUE) {
             return this;
         }
-        return new SliceStage<>(this, 0, size);
+        return new SliceOp<>(this, 0, size);
     }
 
     @Override
@@ -411,7 +411,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         if (size == MAX_VALUE) {
             return empty();
         }
-        return new SliceStage<>(this, size, MAX_VALUE);
+        return new SliceOp<>(this, size, MAX_VALUE);
     }
 
     @Override
@@ -425,7 +425,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         if (startInclusive == 0 && endExclusive == MAX_VALUE) {
             return this;
         }
-        return new SliceStage<>(this, startInclusive, endExclusive - startInclusive);
+        return new SliceOp<>(this, startInclusive, endExclusive - startInclusive);
     }
 
     @Override
@@ -461,7 +461,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         if (size < 1) {
             throw new IllegalArgumentException("partition size cannot be less then 1, size: " + size);
         }
-        return size == 1 ? flatMapSingleton() : new PartitionStage<>(this, size);
+        return size == 1 ? flatMapSingleton() : new PartitionOp<>(this, size);
     }
 
     @Override

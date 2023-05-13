@@ -13,12 +13,12 @@ import static java.util.Spliterators.spliterator;
  * @author oyealex
  * @since 2023-05-03
  */
-class PartitionStage<T> extends RefPipe<T, Pipe<T>> {
+class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
     private final int partitionSize;
 
     private final int partitionSpliteratorFlag;
 
-    PartitionStage(RefPipe<?, ? extends T> prePipe, int size) {
+    PartitionOp(RefPipe<?, ? extends T> prePipe, int size) {
         super(prePipe, NOT_SIZED);
         this.partitionSize = size;
         this.partitionSpliteratorFlag = toSpliteratorFlag(flag);

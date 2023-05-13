@@ -17,12 +17,12 @@ import static com.oyealex.pipe.flag.PipeFlag.NOT_SORTED;
  * @author oyealex
  * @since 2023-05-10
  */
-abstract class FlatMapStage<T, R> extends RefPipe<T, R> {
-    protected FlatMapStage(RefPipe<?, ? extends T> prePipe) {
+abstract class FlatMapOp<T, R> extends RefPipe<T, R> {
+    protected FlatMapOp(RefPipe<?, ? extends T> prePipe) {
         super(prePipe, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT | NOT_SIZED);
     }
 
-    static class Normal<T, R> extends FlatMapStage<T, R> {
+    static class Normal<T, R> extends FlatMapOp<T, R> {
         private final Function<? super T, ? extends Pipe<? extends R>> mapper;
 
         Normal(RefPipe<?, ? extends T> prePipe, Function<? super T, ? extends Pipe<? extends R>> mapper) {
@@ -32,7 +32,7 @@ abstract class FlatMapStage<T, R> extends RefPipe<T, R> {
 
         @Override
         protected Op<T> wrapOp(Op<R> nextOp) {
-            return new FlatMapOp<>(nextOp) {
+            return new ImplOp<>(nextOp) {
                 @Override
                 protected Pipe<? extends R> mapToPipe(T var) {
                     return mapper.apply(var);
@@ -41,7 +41,7 @@ abstract class FlatMapStage<T, R> extends RefPipe<T, R> {
         }
     }
 
-    static class Orderly<T, R> extends FlatMapStage<T, R> {
+    static class Orderly<T, R> extends FlatMapOp<T, R> {
         private final LongBiFunction<? super T, ? extends Pipe<? extends R>> mapper;
 
         Orderly(RefPipe<?, ? extends T> prePipe, LongBiFunction<? super T, ? extends Pipe<? extends R>> mapper) {
@@ -51,7 +51,7 @@ abstract class FlatMapStage<T, R> extends RefPipe<T, R> {
 
         @Override
         protected Op<T> wrapOp(Op<R> nextOp) {
-            return new FlatMapOp<>(nextOp) {
+            return new ImplOp<>(nextOp) {
                 private long index = 0L;
 
                 @Override
@@ -62,8 +62,8 @@ abstract class FlatMapStage<T, R> extends RefPipe<T, R> {
         }
     }
 
-    private static abstract class FlatMapOp<T, R> extends ChainedOp.ShortCircuitRecorded<T, R> {
-        public FlatMapOp(Op<R> nextOp) {
+    private static abstract class ImplOp<T, R> extends ChainedOp.ShortCircuitRecorded<T, R> {
+        public ImplOp(Op<R> nextOp) {
             super(nextOp);
         }
 

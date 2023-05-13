@@ -16,12 +16,12 @@ import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
  * @author oyealex
  * @since 2023-05-10
  */
-abstract class DistinctStage<T> extends RefPipe<T, T> {
-    protected DistinctStage(RefPipe<?, ? extends T> prePipe, int extraFlag) {
+abstract class DistinctOp<T> extends RefPipe<T, T> {
+    protected DistinctOp(RefPipe<?, ? extends T> prePipe, int extraFlag) {
         super(prePipe, extraFlag | NOT_SIZED);
     }
 
-    static class NaturalSorted<T> extends DistinctStage<T> {
+    static class NaturalSorted<T> extends DistinctOp<T> {
         NaturalSorted(RefPipe<?, ? extends T> prePipe) {
             super(prePipe, IS_DISTINCT);
         }
@@ -63,7 +63,7 @@ abstract class DistinctStage<T> extends RefPipe<T, T> {
         }
     }
 
-    static class Normal<T> extends DistinctStage<T> {
+    static class Normal<T> extends DistinctOp<T> {
         Normal(RefPipe<?, ? extends T> prePipe) {
             super(prePipe, IS_DISTINCT);
         }
@@ -79,7 +79,7 @@ abstract class DistinctStage<T> extends RefPipe<T, T> {
         }
     }
 
-    static class NormalKeyed<T, K> extends DistinctStage<T> {
+    static class NormalKeyed<T, K> extends DistinctOp<T> {
         private final Function<? super T, ? extends K> mapper;
 
         NormalKeyed(RefPipe<?, ? extends T> prePipe, Function<? super T, ? extends K> mapper) {
@@ -98,7 +98,7 @@ abstract class DistinctStage<T> extends RefPipe<T, T> {
         }
     }
 
-    static class OrderlyKeyed<T, K> extends DistinctStage<T> {
+    static class OrderlyKeyed<T, K> extends DistinctOp<T> {
         private final LongBiFunction<? super T, ? extends K> mapper;
 
         OrderlyKeyed(RefPipe<?, ? extends T> prePipe, LongBiFunction<? super T, ? extends K> mapper) {
