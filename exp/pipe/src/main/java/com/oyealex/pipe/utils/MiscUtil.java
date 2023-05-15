@@ -13,11 +13,13 @@ import static java.util.Comparator.reverseOrder;
  * @since 2023-05-11
  */
 public final class MiscUtil {
+    public static final int MAX_ARRAY_LENGTH = Integer.MAX_VALUE - 8;
+
     private MiscUtil() {
     }
 
     public static void checkArraySize(long size) {
-        if (size >= Integer.MAX_VALUE - 8) { // 数组最大值
+        if (size >= MAX_ARRAY_LENGTH) { // 数组最大值
             throw new IllegalArgumentException("Pipe size exceeds max array size");
         }
     }

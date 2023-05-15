@@ -576,8 +576,8 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public <A> A[] toArray(IntFunction<A[]> generator) {
-        throw new UnsupportedOperationException();
+    public OUT[] toArray(IntFunction<OUT[]> generator) {
+        return evaluate(new ToArrayTerminalOp<>(generator));
     }
 
     @Override
@@ -585,6 +585,16 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     public Spliterator<OUT> toSpliterator() {
         return this == headPipe ? (Spliterator<OUT>) headPipe.takeDataSource() :
             new PipeSpliterator<>(this, (Spliterator<Object>) headPipe.takeDataSource());
+    }
+
+    @Override
+    public <K> BiPipe<K, Pipe<OUT>> groupAndExtend(Function<? super OUT, ? extends K> classifier) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <K> Pipe<Pipe<OUT>> groupValues(Function<? super OUT, ? extends K> classifier) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

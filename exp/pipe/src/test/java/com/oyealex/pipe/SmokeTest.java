@@ -4,6 +4,8 @@ import com.oyealex.pipe.basis.Pipes;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+
 /**
  * Smoke
  *
@@ -14,16 +16,6 @@ class SmokeTest {
     @Test
     @DisplayName("smoke")
     void smoke() {
-        System.out.println(Pipes.of(1, 2, 3).peek(System.out::print).anyNull());
-        System.out.println(Pipes.of(1, 2, 3).peek(System.out::print).allNull());
-        System.out.println(Pipes.of(1, 2, 3).peek(System.out::print).noneNull());
-        System.out.println();
-        System.out.println(Pipes.of(1, null, 2, 3).peek(System.out::print).anyNull());
-        System.out.println(Pipes.of(1, null, 2, 3).peek(System.out::print).allNull());
-        System.out.println(Pipes.of(1, null, 2, 3).peek(System.out::print).noneNull());
-        System.out.println();
-        System.out.println(Pipes.<Integer>of(null, null, null).peek(System.out::print).anyNull());
-        System.out.println(Pipes.<Integer>of(null, null, null).peek(System.out::print).allNull());
-        System.out.println(Pipes.<Integer>of(null, null, null).peek(System.out::print).noneNull());
+        System.out.println(Arrays.toString(Pipes.of("1", "2", "3").toArray(String[]::new)));
     }
 }

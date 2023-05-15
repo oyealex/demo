@@ -947,7 +947,7 @@ public interface Pipe<E> extends AutoCloseable {
 
     Iterator<E> iterator();
 
-    <A> A[] toArray(IntFunction<A[]> generator);
+    E[] toArray(IntFunction<E[]> generator);
 
     default Spliterator<E> toSpliterator() {
         return Spliterators.emptySpliterator();
@@ -995,6 +995,10 @@ public interface Pipe<E> extends AutoCloseable {
     default <K> Map<K, E> toUnmodifiableMap(Function<? super E, ? extends K> keyMapper) {
         return Collections.unmodifiableMap(toMap(keyMapper));
     }
+
+    <K> BiPipe<K, Pipe<E>> groupAndExtend(Function<? super E, ? extends K> classifier);
+
+    <K> Pipe<Pipe<E>> groupValues(Function<? super E, ? extends K> classifier);
 
     <K> Map<K, List<E>> group(Function<? super E, ? extends K> classifier);
 
