@@ -51,7 +51,7 @@ class PipeMapTest extends PipeTestBase {
     @Test
     @DisplayName("能够将元素正确地转换为其他类型的流水线")
     void should_flat_map_element_to_another_type_pipe_rightly() {
-        List<Integer> res = of(ELEMENTS).flatMap(value -> Pipes.from(value.chars().iterator())).toList();
+        List<Integer> res = of(ELEMENTS).flatMap(value -> Pipes.iterator(value.chars().iterator())).toList();
         assertEquals(stream(ELEMENTS).flatMapToInt(String::chars).boxed().collect(toList()), res);
     }
 }

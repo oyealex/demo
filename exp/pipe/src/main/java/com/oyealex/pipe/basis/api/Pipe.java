@@ -1,5 +1,7 @@
 package com.oyealex.pipe.basis.api;
 
+import com.oyealex.pipe.basis.api.policy.MergePolicy;
+import com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy;
 import com.oyealex.pipe.basis.functional.LongBiConsumer;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
@@ -24,6 +26,7 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.StringJoiner;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -35,6 +38,9 @@ import java.util.function.ToIntFunction;
 import java.util.function.ToLongFunction;
 import java.util.stream.Stream;
 
+import static com.oyealex.pipe.basis.api.policy.MergePolicy.PREFER_OURS;
+import static com.oyealex.pipe.basis.api.policy.MergePolicy.PREFER_THEIRS;
+import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.SELECT_REMAINING;
 import static com.oyealex.pipe.flag.PipeFlag.NOTHING;
 import static com.oyealex.pipe.utils.MiscUtil.isStdIdentify;
 import static com.oyealex.pipe.utils.MiscUtil.optimizedReverseOrder;
@@ -777,7 +783,36 @@ public interface Pipe<E> extends AutoCloseable {
      */
     <S> BiPipe<E, S> combine(Pipe<S> secondPipe);
 
-    <T, R> Pipe<R> merge(Pipe<T> pipe);
+    Pipe<E> merge(Pipe<? extends E> pipe, BiFunction<? super E, ? super E, MergePolicy> mergeHandle,
+        MergeRemainingPolicy remainingPolicy);
+
+    default Pipe<E> mergeAlternately(Pipe<? extends E> pipe) {
+        return mergeAlternately(pipe, SELECT_REMAINING);
+    }
+
+    default Pipe<E> mergeAlternately(Pipe<? extends E> pipe, MergeRemainingPolicy remainingPolicy) {
+        boolean[] mark = new boolean[]{false};
+        return merge(pipe, (ignoredOurs, ignoredTheirs) -> {
+            mark[0] = !mark[0];
+            return mark[0] ? PREFER_OURS : PREFER_THEIRS;
+        }, remainingPolicy);
+    }
+
+    default Pipe<E> mergeAlternatelyTheirsFirst(Pipe<? extends E> pipe) {
+        return mergeAlternatelyTheirsFirst(pipe, SELECT_REMAINING);
+    }
+
+    default Pipe<E> mergeAlternatelyTheirsFirst(Pipe<? extends E> pipe, MergeRemainingPolicy remainingPolicy) {
+        boolean[] mark = new boolean[]{true};
+        return merge(pipe, (ignoredOurs, ignoredTheirs) -> {
+            mark[0] = !mark[0];
+            return mark[0] ? PREFER_OURS : PREFER_THEIRS;
+        }, remainingPolicy);
+    }
+
+    // TODO 2023-05-13 00:24 考虑新流水线的NONNULL等标记合并
+    <T, R> Pipe<R> merge(Pipe<? extends T> pipe, BiFunction<? super E, ? super T, ? extends R> merge,
+        Function<? super E, ? extends R> oursMapper, Function<? super T, ? extends R> theirsMapper);
 
     /**
      * 访问流水线中的每个元素。
@@ -945,7 +980,7 @@ public interface Pipe<E> extends AutoCloseable {
         return findFirst();
     }
 
-    Iterator<E> iterator();
+    Iterator<E> toIterator();
 
     E[] toArray(IntFunction<E[]> generator);
 

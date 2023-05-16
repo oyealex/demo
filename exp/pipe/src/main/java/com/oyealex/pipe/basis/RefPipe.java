@@ -4,6 +4,8 @@ import com.oyealex.pipe.basis.api.DoublePipe;
 import com.oyealex.pipe.basis.api.IntPipe;
 import com.oyealex.pipe.basis.api.LongPipe;
 import com.oyealex.pipe.basis.api.Pipe;
+import com.oyealex.pipe.basis.api.policy.MergePolicy;
+import com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy;
 import com.oyealex.pipe.basis.functional.LongBiConsumer;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
@@ -23,6 +25,7 @@ import java.util.Random;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -33,7 +36,8 @@ import java.util.function.ToIntFunction;
 import java.util.function.ToLongFunction;
 
 import static com.oyealex.pipe.basis.Pipes.empty;
-import static com.oyealex.pipe.basis.Pipes.pipe;
+import static com.oyealex.pipe.basis.Pipes.spliterator;
+import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.SELECT_REMAINING;
 import static com.oyealex.pipe.flag.PipeFlag.DISTINCT;
 import static com.oyealex.pipe.flag.PipeFlag.IS_NONNULL;
 import static com.oyealex.pipe.flag.PipeFlag.NONNULL;
@@ -50,6 +54,7 @@ import static com.oyealex.pipe.utils.MiscUtil.isStdReverseOrder;
 import static com.oyealex.pipe.utils.MiscUtil.naturalOrderIfNull;
 import static java.lang.Long.MAX_VALUE;
 import static java.util.Objects.requireNonNull;
+import static java.util.Objects.requireNonNullElse;
 
 /**
  * 基于引用的抽象流水线
@@ -300,7 +305,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<Pipe<OUT>> flatMapSingleton() {
-        return map(var -> pipe(new SingletonSpliterator<>(var)));
+        return map(var -> spliterator(new SingletonSpliterator<>(var)));
     }
 
     @Override
@@ -433,7 +438,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         requireNonNull(spliterator);
         @SuppressWarnings("unchecked") ConcatSpliterator<OUT, Spliterator<OUT>> finalSpliterator
             = new ConcatSpliterator<>((Spliterator<OUT>) spliterator, toSpliterator());
-        Pipe<OUT> pipe = pipe(finalSpliterator);
+        Pipe<OUT> pipe = spliterator(finalSpliterator);
         return pipe.onClose(this::close);
     }
 
@@ -447,7 +452,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         requireNonNull(spliterator);
         @SuppressWarnings("unchecked") ConcatSpliterator<OUT, Spliterator<OUT>> finalSpliterator
             = new ConcatSpliterator<>(toSpliterator(), (Spliterator<OUT>) spliterator);
-        Pipe<OUT> pipe = pipe(finalSpliterator);
+        Pipe<OUT> pipe = spliterator(finalSpliterator);
         return pipe.onClose(this::close);
     }
 
@@ -471,9 +476,17 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public <T, R> Pipe<R> merge(Pipe<T> pipe) { // TODO 2023-05-13 00:24 考虑新流水线的NONNULL等标记合并
-        requireNonNull(pipe);
-        throw new UnsupportedOperationException();
+    public Pipe<OUT> merge(Pipe<? extends OUT> pipe, BiFunction<? super OUT, ? super OUT, MergePolicy> mergeHandle,
+        MergeRemainingPolicy remainingPolicy) {
+        onClose(pipe::close);
+        return new MergeOp.Homogeneous<>(this, requireNonNull(pipe), requireNonNull(mergeHandle),
+            requireNonNullElse(remainingPolicy, SELECT_REMAINING));
+    }
+
+    @Override
+    public <T, R> Pipe<R> merge(Pipe<? extends T> pipe, BiFunction<? super OUT, ? super T, ? extends R> merge,
+        Function<? super OUT, ? extends R> oursMapper, Function<? super T, ? extends R> theirsMapper) {
+        return null;
     }
 
     @Override
@@ -571,7 +584,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Iterator<OUT> iterator() {
+    public Iterator<OUT> toIterator() {
         return Spliterators.iterator(toSpliterator());
     }
 

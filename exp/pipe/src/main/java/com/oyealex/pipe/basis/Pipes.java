@@ -45,7 +45,7 @@ public class Pipes {
      * @param <T> 拆分器中的元素类型
      * @return 新的流水线实例
      */
-    public static <T> Pipe<T> pipe(Spliterator<T> spliterator) {
+    public static <T> Pipe<T> spliterator(Spliterator<T> spliterator) {
         return new PipeHead<>(spliterator);
     }
 
@@ -59,7 +59,7 @@ public class Pipes {
     @SafeVarargs
     @SuppressWarnings("varargs")
     public static <T> Pipe<T> of(T... values) {
-        return pipe(Arrays.spliterator(values));
+        return spliterator(Arrays.spliterator(values));
     }
 
     /**
@@ -142,7 +142,7 @@ public class Pipes {
      * @return 新的流水线
      * @apiNote 此方法通过调用 {@link Stream#iterator()}方法获取流元素的迭代器来组装流水线，此操作会终结给定的流。
      */
-    public static <T> Pipe<T> from(Stream<? extends T> stream) {
+    public static <T> Pipe<T> stream(Stream<? extends T> stream) {
         return new PipeHead<>(stream.spliterator());
     }
 
@@ -153,7 +153,7 @@ public class Pipes {
      * @param <T> 元素类型
      * @return 新的流水线
      */
-    public static <T> Pipe<T> from(Iterator<? extends T> iterator) {
+    public static <T> Pipe<T> iterator(Iterator<? extends T> iterator) {
         return new PipeHead<>(Spliterators.spliteratorUnknownSize(iterator, 0));
     }
 
@@ -164,7 +164,7 @@ public class Pipes {
      * @param <T> 元素类型
      * @return 新的流水线
      */
-    public static <T> Pipe<T> from(Iterable<? extends T> iterable) {
-        return from(iterable.iterator());
+    public static <T> Pipe<T> iterable(Iterable<? extends T> iterable) {
+        return iterator(iterable.iterator());
     }
 }

@@ -2,7 +2,6 @@ package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.basis.api.Pipe;
 
-import static com.oyealex.pipe.basis.Pipes.pipe;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
 import static com.oyealex.pipe.flag.PipeFlag.toSpliteratorFlag;
 import static java.util.Spliterators.spliterator;
@@ -46,12 +45,10 @@ class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
             public void accept(T var) {
                 partition[nextVarIndex++] = var;
                 if (nextVarIndex >= partitionSize) {
-                    if (isShortCircuitRequested) { // 可能短路
-                        if (nextOp.canShortCircuit()) {
-                            // 如果短路则不传递元素，但是还是会重置索引
-                            nextVarIndex = 0;
-                            return;
-                        }
+                    if (needShortCircuit()) {
+                        // 如果短路则不传递元素，但是还是会重置索引
+                        nextVarIndex = 0;
+                        return;
                     }
                     consumerPartition();
                 }
@@ -60,7 +57,7 @@ class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
             @Override
             public void end() {
                 if (nextVarIndex > 0) {
-                    nextOp.accept(pipe(spliterator(partition, 0, nextVarIndex, partitionSpliteratorFlag)));
+                    nextOp.accept(Pipes.spliterator(spliterator(partition, 0, nextVarIndex, partitionSpliteratorFlag)));
                 }
                 partition = null;
                 nextVarIndex = 0;
@@ -69,7 +66,7 @@ class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
             private void consumerPartition() {
                 int length = nextVarIndex;
                 T[] elements = prepareNewPartition();
-                nextOp.accept(pipe(spliterator(elements, 0, length, partitionSpliteratorFlag)));
+                nextOp.accept(Pipes.spliterator(spliterator(elements, 0, length, partitionSpliteratorFlag)));
             }
 
             private T[] prepareNewPartition() {
