@@ -36,9 +36,9 @@ class ShuffleOp<T> extends RefPipe<T, T> {
             }
 
             private void swap(int index, int swapIndex) {
-                T var = elements.get(index);
+                T value = elements.get(index);
                 elements.set(index, elements.get(swapIndex));
-                elements.set(swapIndex, var);
+                elements.set(swapIndex, value);
             }
         };
     }

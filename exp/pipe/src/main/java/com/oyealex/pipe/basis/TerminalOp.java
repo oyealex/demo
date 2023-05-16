@@ -32,8 +32,8 @@ interface TerminalOp<T, R> extends Op<T>, Supplier<R> {
         Objects.requireNonNull(action);
         return new TerminalOp<>() {
             @Override
-            public void accept(T var) {
-                action.accept(var);
+            public void accept(T value) {
+                action.accept(value);
             }
 
             @Override

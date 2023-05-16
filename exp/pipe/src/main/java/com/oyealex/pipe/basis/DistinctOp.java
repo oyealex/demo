@@ -48,16 +48,16 @@ abstract class DistinctOp<T> extends RefPipe<T, T> {
                 }
 
                 @Override
-                public void accept(T var) {
-                    if (var == null) {
+                public void accept(T value) {
+                    if (value == null) {
                         if (!nullExisted) {
                             nullExisted = true;
                             nextOp.accept(null);
                         }
-                    } else if (!var.equals(last)) {
-                        nextOp.accept(var);
+                    } else if (!value.equals(last)) {
+                        nextOp.accept(value);
                     }
-                    last = var;
+                    last = value;
                 }
             };
         }
@@ -72,8 +72,8 @@ abstract class DistinctOp<T> extends RefPipe<T, T> {
         protected Op<T> wrapOp(Op<T> nextOp) {
             return new SetBasedDistinctOp<T, T>(nextOp) {
                 @Override
-                protected T mapToKey(T var) {
-                    return var;
+                protected T mapToKey(T value) {
+                    return value;
                 }
             };
         }
@@ -91,8 +91,8 @@ abstract class DistinctOp<T> extends RefPipe<T, T> {
         protected Op<T> wrapOp(Op<T> nextOp) {
             return new SetBasedDistinctOp<T, K>(nextOp) {
                 @Override
-                protected K mapToKey(T var) {
-                    return mapper.apply(var);
+                protected K mapToKey(T value) {
+                    return mapper.apply(value);
                 }
             };
         }
@@ -112,8 +112,8 @@ abstract class DistinctOp<T> extends RefPipe<T, T> {
                 private long index = 0L;
 
                 @Override
-                protected K mapToKey(T var) {
-                    return mapper.apply(index++, var);
+                protected K mapToKey(T value) {
+                    return mapper.apply(index++, value);
                 }
             };
         }
@@ -137,12 +137,12 @@ abstract class DistinctOp<T> extends RefPipe<T, T> {
         }
 
         @Override
-        public void accept(T var) {
-            if (seen.add(mapToKey(var))) {
-                nextOp.accept(var);
+        public void accept(T value) {
+            if (seen.add(mapToKey(value))) {
+                nextOp.accept(value);
             }
         }
 
-        protected abstract K mapToKey(T var);
+        protected abstract K mapToKey(T value);
     }
 }

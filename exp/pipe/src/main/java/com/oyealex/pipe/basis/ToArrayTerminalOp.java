@@ -52,11 +52,11 @@ class ToArrayTerminalOp<T> implements TerminalOp<T, T[]> {
     }
 
     @Override
-    public void accept(T var) {
+    public void accept(T value) {
         if (index >= array.length) {
             prepareNewArray();
         }
-        array[index++] = var;
+        array[index++] = value;
     }
 
     private void prepareNewArray() {

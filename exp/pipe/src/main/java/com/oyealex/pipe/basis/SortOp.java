@@ -77,22 +77,22 @@ abstract class SortOp<T> extends RefPipe<T, T> {
                     // 收集并处理完元素之后开始执行后续操作
                     nextOp.begin(elements.size());
                     if (isShortCircuitRequested) {
-                        for (Tuple<K, T> var : elements) {
+                        for (Tuple<K, T> value : elements) {
                             if (nextOp.canShortCircuit()) {
                                 break;
                             }
-                            nextOp.accept(var.second);
+                            nextOp.accept(value.second);
                         }
                     } else {
-                        elements.forEach(var -> nextOp.accept(var.second));
+                        elements.forEach(value -> nextOp.accept(value.second));
                     }
                     nextOp.end();
                     elements = null;
                 }
 
                 @Override
-                public void accept(T var) {
-                    elements.add(new Tuple<>(mapper.apply(index++, var), var));
+                public void accept(T value) {
+                    elements.add(new Tuple<>(mapper.apply(index++, value), value));
                 }
             };
         }

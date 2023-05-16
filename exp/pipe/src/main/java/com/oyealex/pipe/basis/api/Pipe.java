@@ -942,12 +942,12 @@ public interface Pipe<E> extends AutoCloseable {
 
     default <K> boolean anyNullBy(Function<? super E, ? extends K> mapper) {
         requireNonNull(mapper);
-        return anyMatch(var -> mapper.apply(var) == null);
+        return anyMatch(value -> mapper.apply(value) == null);
     }
 
     default <K> boolean allNullBy(Function<? super E, ? extends K> mapper) {
         requireNonNull(mapper);
-        return allMatch(var -> mapper.apply(var) == null);
+        return allMatch(value -> mapper.apply(value) == null);
     }
 
     default <K> boolean noneNullBy(Function<? super E, ? extends K> mapper) {
@@ -1024,7 +1024,7 @@ public interface Pipe<E> extends AutoCloseable {
     default <K, M extends Map<K, E>> M toMap(Supplier<M> supplier, Function<? super E, ? extends K> keyMapper) {
         requireNonNull(supplier);
         requireNonNull(keyMapper);
-        return reduce(supplier.get(), (map, var) -> map.put(keyMapper.apply(var), var));
+        return reduce(supplier.get(), (map, value) -> map.put(keyMapper.apply(value), value));
     }
 
     default <K> Map<K, E> toUnmodifiableMap(Function<? super E, ? extends K> keyMapper) {
@@ -1043,7 +1043,7 @@ public interface Pipe<E> extends AutoCloseable {
 
     default String join(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return reduce(new StringJoiner(delimiter, prefix, suffix),
-            (joiner, var) -> joiner.add(Objects.toString(var))).toString();
+            (joiner, value) -> joiner.add(Objects.toString(value))).toString();
     }
 
     default String join(CharSequence delimiter) {

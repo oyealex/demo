@@ -89,8 +89,8 @@ abstract class ChainedOp<IN, OUT> implements Op<IN> {
         }
 
         @Override
-        public void accept(IN var) {
-            elements.add(var);
+        public void accept(IN value) {
+            elements.add(value);
         }
     }
 
@@ -109,11 +109,11 @@ abstract class ChainedOp<IN, OUT> implements Op<IN> {
             beforeEnd();
             nextOp.begin(elements.size());
             if (isShortCircuitRequested) {
-                for (T var : elements) {
+                for (T value : elements) {
                     if (nextOp.canShortCircuit()) {
                         break;
                     }
-                    nextOp.accept(var);
+                    nextOp.accept(value);
                 }
             } else {
                 elements.forEach(nextOp);

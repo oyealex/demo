@@ -29,7 +29,7 @@ final class SimpleOps {
     public static <T> TerminalOp<T, Long> countOp() {
         return new TerminalOp.Orderly<>() {
             @Override
-            public void accept(T var) {
+            public void accept(T value) {
                 index++;
             }
 
@@ -48,9 +48,9 @@ final class SimpleOps {
             }
 
             @Override
-            public void accept(T var) {
-                if (predicate.test(var)) {
-                    nextOp.accept(var);
+            public void accept(T value) {
+                if (predicate.test(value)) {
+                    nextOp.accept(value);
                 }
             }
         };
@@ -64,9 +64,9 @@ final class SimpleOps {
             }
 
             @Override
-            public void accept(T var) {
-                if (predicate.test(index++, var)) {
-                    nextOp.accept(var);
+            public void accept(T value) {
+                if (predicate.test(index++, value)) {
+                    nextOp.accept(value);
                 }
             }
         };
@@ -75,8 +75,8 @@ final class SimpleOps {
     public static <T> TerminalOp<T, Void> forEachOp(Consumer<? super T> action) {
         return new TerminalOp<>() {
             @Override
-            public void accept(T var) {
-                action.accept(var);
+            public void accept(T value) {
+                action.accept(value);
             }
 
             @Override
@@ -98,8 +98,8 @@ final class SimpleOps {
     public static <T, R> Op<T> mapOrderlyOp(Op<R> nextOp, LongBiFunction<? super T, ? extends R> mapper) {
         return new ChainedOp.Orderly<>(nextOp) {
             @Override
-            public void accept(T var) {
-                nextOp.accept(mapper.apply(index++, var));
+            public void accept(T value) {
+                nextOp.accept(mapper.apply(index++, value));
             }
         };
     }
@@ -109,8 +109,8 @@ final class SimpleOps {
             private long index = 0L;
 
             @Override
-            public void accept(T var) {
-                action.accept(index++, var);
+            public void accept(T value) {
+                action.accept(index++, value);
             }
 
             @Override
@@ -123,9 +123,9 @@ final class SimpleOps {
     public static <T> Op<T> peekOp(Op<T> nextOp, Consumer<? super T> consumer) {
         return new ChainedOp<>(nextOp) {
             @Override
-            public void accept(T var) {
-                consumer.accept(var);
-                nextOp.accept(var);
+            public void accept(T value) {
+                consumer.accept(value);
+                nextOp.accept(value);
             }
         };
     }
@@ -133,9 +133,9 @@ final class SimpleOps {
     public static <T> Op<T> peekOrderlyOp(Op<T> nextOp, LongBiConsumer<? super T> consumer) {
         return new ChainedOp.Orderly<>(nextOp) {
             @Override
-            public void accept(T var) {
-                consumer.accept(index++, var);
-                nextOp.accept(var);
+            public void accept(T value) {
+                consumer.accept(index++, value);
+                nextOp.accept(value);
             }
         };
     }
@@ -143,13 +143,13 @@ final class SimpleOps {
     public static <T> TerminalOp<T, Optional<T>> minTerminalOp(Comparator<? super T> comparator) {
         return new TerminalOp.FindOpt<>() {
             @Override
-            public void accept(T var) {
+            public void accept(T value) {
                 if (found) {
-                    if (comparator.compare(result, var) > 0) {
-                        result = var;
+                    if (comparator.compare(result, value) > 0) {
+                        result = value;
                     }
                 } else {
-                    result = var;
+                    result = value;
                     found = true;
                 }
             }
@@ -162,14 +162,14 @@ final class SimpleOps {
             private long index = 0L;
 
             @Override
-            public void accept(T var) {
-                K key = mapper.apply(index++, var);
+            public void accept(T value) {
+                K key = mapper.apply(index++, value);
                 if (found) {
                     if (comparator.compare(result.first, key) > 0) {
-                        result = new Tuple<>(key, var);
+                        result = new Tuple<>(key, value);
                     }
                 } else {
-                    result = new Tuple<>(key, var);
+                    result = new Tuple<>(key, value);
                     found = true;
                 }
             }
@@ -179,8 +179,8 @@ final class SimpleOps {
     public static <T> TerminalOp<T, Optional<T>> findFirstTerminalOp() {
         return new TerminalOp.FindOptOnce<>() {
             @Override
-            public void accept(T var) {
-                result = var;
+            public void accept(T value) {
+                result = value;
                 found = true;
             }
         };
@@ -189,8 +189,8 @@ final class SimpleOps {
     public static <T> TerminalOp<T, Optional<T>> findLastTerminalOp() {
         return new TerminalOp.FindOpt<>() {
             @Override
-            public void accept(T var) {
-                result = var;
+            public void accept(T value) {
+                result = value;
                 found = true;
             }
         };
@@ -199,12 +199,12 @@ final class SimpleOps {
     public static <T> TerminalOp<T, Optional<T>> reduceTerminalOp(BinaryOperator<T> op) {
         return new TerminalOp.FindOpt<>() {
             @Override
-            public void accept(T var) {
+            public void accept(T value) {
                 if (found) {
-                    result = op.apply(result, var);
+                    result = op.apply(result, value);
                 } else {
                     found = true;
-                    result = var;
+                    result = value;
                 }
             }
         };
@@ -214,8 +214,8 @@ final class SimpleOps {
         BinaryOperator<R> op) {
         return new TerminalOp.Find<>(initVar) {
             @Override
-            public void accept(T var) {
-                result = op.apply(result, mapper.apply(var));
+            public void accept(T value) {
+                result = op.apply(result, mapper.apply(value));
             }
         };
     }
@@ -223,8 +223,8 @@ final class SimpleOps {
     public static <T, R> TerminalOp<T, R> reduceTerminalOp(R initVar, BiConsumer<? super R, ? super T> op) {
         return new TerminalOp.Find<>(initVar) {
             @Override
-            public void accept(T var) {
-                op.accept(result, var);
+            public void accept(T value) {
+                op.accept(result, value);
             }
         };
     }
@@ -232,8 +232,8 @@ final class SimpleOps {
     public static <T> TerminalOp<T, Boolean> anyMatchTerminalOp(Predicate<? super T> predicate) {
         return new TerminalOp.Find<>(Boolean.FALSE) {
             @Override
-            public void accept(T var) {
-                result = predicate.test(var);
+            public void accept(T value) {
+                result = predicate.test(value);
             }
 
             @Override
@@ -251,8 +251,8 @@ final class SimpleOps {
     public static <T> TerminalOp<T, Boolean> allMatchTerminalOp(Predicate<? super T> predicate) {
         return new TerminalOp.Find<>(Boolean.TRUE) {
             @Override
-            public void accept(T var) {
-                result = predicate.test(var);
+            public void accept(T value) {
+                result = predicate.test(value);
             }
 
             @Override

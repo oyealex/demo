@@ -305,7 +305,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<Pipe<OUT>> flatMapSingleton() {
-        return map(var -> spliterator(new SingletonSpliterator<>(var)));
+        return map(value -> spliterator(new SingletonSpliterator<>(value)));
     }
 
     @Override

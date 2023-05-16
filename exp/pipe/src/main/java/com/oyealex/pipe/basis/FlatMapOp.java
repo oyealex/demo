@@ -34,8 +34,8 @@ abstract class FlatMapOp<T, R> extends RefPipe<T, R> {
         protected Op<T> wrapOp(Op<R> nextOp) {
             return new ImplOp<>(nextOp) {
                 @Override
-                protected Pipe<? extends R> mapToPipe(T var) {
-                    return mapper.apply(var);
+                protected Pipe<? extends R> mapToPipe(T value) {
+                    return mapper.apply(value);
                 }
             };
         }
@@ -55,8 +55,8 @@ abstract class FlatMapOp<T, R> extends RefPipe<T, R> {
                 private long index = 0L;
 
                 @Override
-                protected Pipe<? extends R> mapToPipe(T var) {
-                    return mapper.apply(index++, var);
+                protected Pipe<? extends R> mapToPipe(T value) {
+                    return mapper.apply(index++, value);
                 }
             };
         }
@@ -73,9 +73,9 @@ abstract class FlatMapOp<T, R> extends RefPipe<T, R> {
         }
 
         @Override
-        public void accept(T var) {
+        public void accept(T value) {
             // 新的流水线可能包含了关闭方法，需要确保调用close方法
-            try (Pipe<? extends R> pipe = mapToPipe(var)) {
+            try (Pipe<? extends R> pipe = mapToPipe(value)) {
                 if (pipe == null) {
                     return;
                 }
@@ -92,6 +92,6 @@ abstract class FlatMapOp<T, R> extends RefPipe<T, R> {
             }
         }
 
-        protected abstract Pipe<? extends R> mapToPipe(T var);
+        protected abstract Pipe<? extends R> mapToPipe(T value);
     }
 }

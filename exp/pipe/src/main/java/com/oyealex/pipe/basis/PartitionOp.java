@@ -42,8 +42,8 @@ class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
             }
 
             @Override
-            public void accept(T var) {
-                partition[nextVarIndex++] = var;
+            public void accept(T value) {
+                partition[nextVarIndex++] = value;
                 if (nextVarIndex >= partitionSize) {
                     if (needShortCircuit()) {
                         // 如果短路则不传递元素，但是还是会重置索引

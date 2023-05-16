@@ -24,10 +24,10 @@ public class SingletonSpliterator<T> implements Spliterator<T> {
         if (consumed) {
             return false;
         }
-        T var = singleton;
+        T value = singleton;
         singleton = null;
         consumed = true;
-        action.accept(var);
+        action.accept(value);
         return true;
     }
 

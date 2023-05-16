@@ -17,7 +17,7 @@ interface Op<T> extends Consumer<T> {
     default void begin(long size) {}
 
     @Override
-    void accept(T var);
+    void accept(T value);
 
     /**
      * 结束接收元素。

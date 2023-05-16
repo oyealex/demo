@@ -43,8 +43,8 @@ class MergeOp {
 
                 private boolean theirsReady = false;
 
-                private void takeNext(T var) {
-                    theirs = var;
+                private void takeNext(T value) {
+                    theirs = value;
                     theirsReady = true;
                 }
 

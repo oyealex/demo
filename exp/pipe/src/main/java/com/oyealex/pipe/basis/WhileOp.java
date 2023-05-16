@@ -28,9 +28,9 @@ abstract class WhileOp<T> extends RefPipe<T, T> {
         protected Op<T> wrapOp(Op<T> nextOp) {
             return new ImplOp<>(nextOp, true) {
                 @Override
-                public void accept(T var) {
-                    if (shouldTake && (shouldTake = predicate.test(var))) {
-                        nextOp.accept(var);
+                public void accept(T value) {
+                    if (shouldTake && (shouldTake = predicate.test(value))) {
+                        nextOp.accept(value);
                     }
                 }
             };
@@ -49,9 +49,9 @@ abstract class WhileOp<T> extends RefPipe<T, T> {
         protected Op<T> wrapOp(Op<T> nextOp) {
             return new ImplOp<>(nextOp, false) {
                 @Override
-                public void accept(T var) {
-                    if (shouldTake || (shouldTake = !predicate.test(var))) {
-                        nextOp.accept(var);
+                public void accept(T value) {
+                    if (shouldTake || (shouldTake = !predicate.test(value))) {
+                        nextOp.accept(value);
                     }
                 }
             };
@@ -72,9 +72,9 @@ abstract class WhileOp<T> extends RefPipe<T, T> {
                 private long index = 0L;
 
                 @Override
-                public void accept(T var) {
-                    if (shouldTake && (shouldTake = predicate.test(index++, var))) {
-                        nextOp.accept(var);
+                public void accept(T value) {
+                    if (shouldTake && (shouldTake = predicate.test(index++, value))) {
+                        nextOp.accept(value);
                     }
                 }
             };
@@ -95,9 +95,9 @@ abstract class WhileOp<T> extends RefPipe<T, T> {
                 private long index = 0L;
 
                 @Override
-                public void accept(T var) {
-                    if (shouldTake || (shouldTake = !predicate.test(index++, var))) {
-                        nextOp.accept(var);
+                public void accept(T value) {
+                    if (shouldTake || (shouldTake = !predicate.test(index++, value))) {
+                        nextOp.accept(value);
                     }
                 }
             };
