@@ -21,11 +21,11 @@ interface TerminalOp<T, R> extends Op<T>, Supplier<R> {
      * 获取此终结操作的标记。
      *
      * @return 终结操作的标记
-     * @implNote 默认返回的标记为 {@link PipeFlag#NOTHING}，
+     * @implNote 默认返回的标记为 {@link PipeFlag#NO_FLAG}，
      * 在当前实现中，如果覆写此方法则唯一可能返回的值为{@link PipeFlag#IS_SHORT_CIRCUIT}。
      */
     default int getOpFlag() {
-        return PipeFlag.NOTHING;
+        return PipeFlag.NO_FLAG;
     }
 
     static <T> TerminalOp<T, Void> wrap(Consumer<? super T> action) {

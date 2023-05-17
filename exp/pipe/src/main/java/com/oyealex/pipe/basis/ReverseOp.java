@@ -2,7 +2,7 @@ package com.oyealex.pipe.basis;
 
 import static com.oyealex.pipe.flag.PipeFlag.IS_REVERSED_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.IS_SORTED;
-import static com.oyealex.pipe.flag.PipeFlag.NOTHING;
+import static com.oyealex.pipe.flag.PipeFlag.NO_FLAG;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_REVERSED_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.REVERSED_SORTED;
@@ -41,7 +41,7 @@ class ReverseOp<T> extends RefPipe<T, T> {
     }
 
     private static int getOpFlag(RefPipe<?, ?> prePipe) {
-        int opFlag = NOTHING;
+        int opFlag = NO_FLAG;
         if (prePipe.isFlagSet(SORTED)) { // 如果已自然有序，则标记自然逆序
             opFlag |= NOT_SORTED | IS_REVERSED_SORTED;
         }

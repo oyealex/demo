@@ -10,7 +10,11 @@ import java.util.function.Function;
 
 import static com.oyealex.pipe.basis.api.policy.MergePolicy.DROP_THEIRS;
 import static com.oyealex.pipe.basis.api.policy.MergePolicy.PREFER_THEIRS;
-import static com.oyealex.pipe.flag.PipeFlag.NOTHING;
+import static com.oyealex.pipe.flag.PipeFlag.NOT_DISTINCT;
+import static com.oyealex.pipe.flag.PipeFlag.NOT_NONNULL;
+import static com.oyealex.pipe.flag.PipeFlag.NOT_REVERSED_SORTED;
+import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
+import static com.oyealex.pipe.flag.PipeFlag.NOT_SORTED;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -19,7 +23,7 @@ import static java.util.Objects.requireNonNull;
  * @author oyealex
  * @since 2023-05-17
  */
-class MergeOp<OURS, THEIRS, RESULT> extends RefPipe<OURS, RESULT> {
+class MergeOp<OURS, THEIRS, RESULT> extends RefPipe<OURS, RESULT> { // OPT 2023-05-17 21:49 优化此类中的swatch
     private final Pipe<? extends THEIRS> theirsPipe;
 
     private final BiFunction<? super OURS, ? super THEIRS, MergePolicy> mergeHandle;
@@ -34,7 +38,7 @@ class MergeOp<OURS, THEIRS, RESULT> extends RefPipe<OURS, RESULT> {
         BiFunction<? super OURS, ? super THEIRS, MergePolicy> mergeHandle,
         Function<? super OURS, ? extends RESULT> oursMapper, Function<? super THEIRS, ? extends RESULT> theirsMapper,
         MergeRemainingPolicy remainingPolicy) {
-        super(prePipe, NOTHING);
+        super(prePipe, NOT_SORTED | NOT_DISTINCT | NOT_SIZED | NOT_NONNULL | NOT_REVERSED_SORTED);
         this.theirsPipe = theirsPipe;
         this.mergeHandle = mergeHandle;
         this.oursMapper = oursMapper;

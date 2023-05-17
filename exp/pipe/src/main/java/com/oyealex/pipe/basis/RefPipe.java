@@ -17,14 +17,11 @@ import com.oyealex.pipe.tri.TriPipe;
 
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Spliterator;
 import java.util.Spliterators;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
@@ -41,11 +38,11 @@ import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.SELECT_REMA
 import static com.oyealex.pipe.flag.PipeFlag.DISTINCT;
 import static com.oyealex.pipe.flag.PipeFlag.IS_NONNULL;
 import static com.oyealex.pipe.flag.PipeFlag.NONNULL;
-import static com.oyealex.pipe.flag.PipeFlag.NOTHING;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_DISTINCT;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_REVERSED_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SORTED;
+import static com.oyealex.pipe.flag.PipeFlag.NO_FLAG;
 import static com.oyealex.pipe.flag.PipeFlag.REVERSED_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.SHORT_CIRCUIT;
 import static com.oyealex.pipe.flag.PipeFlag.SORTED;
@@ -372,7 +369,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public Pipe<OUT> peek(Consumer<? super OUT> consumer) {
         requireNonNull(consumer);
-        return new RefPipe<>(this, NOTHING) {
+        return new RefPipe<>(this, NO_FLAG) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
                 return SimpleOps.peekOp(nextOp, consumer);
@@ -383,7 +380,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public Pipe<OUT> peekOrderly(LongBiConsumer<? super OUT> consumer) {
         requireNonNull(consumer);
-        return new RefPipe<>(this, NOTHING) {
+        return new RefPipe<>(this, NO_FLAG) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
                 return SimpleOps.peekOrderlyOp(nextOp, consumer);
@@ -497,21 +494,13 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Optional<OUT> reduce(BinaryOperator<OUT> op) {
-        return evaluate(SimpleOps.reduceTerminalOp(op));
+    public Optional<OUT> reduce(BinaryOperator<OUT> operator) {
+        return evaluate(SimpleOps.reduceTerminalOp(operator));
     }
 
     @Override
-    public <R> R reduce(R initVar, BiConsumer<? super R, ? super OUT> op) {
-        requireNonNull(op);
-        return evaluate(SimpleOps.reduceTerminalOp(initVar, op));
-    }
-
-    @Override
-    public <R> R reduce(R initVar, Function<? super OUT, ? extends R> mapper, BinaryOperator<R> op) {
-        requireNonNull(mapper);
-        requireNonNull(op);
-        return evaluate(SimpleOps.reduceTerminalOp(initVar, mapper, op));
+    public <R> R reduce(R initVar, BiFunction<? super R, ? super OUT, ? extends R> reducer) {
+        return evaluate(SimpleOps.reduceTerminalOp(initVar, reducer));
     }
 
     @Override
@@ -597,28 +586,6 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public <K> BiPipe<K, Pipe<OUT>> groupAndExtend(Function<? super OUT, ? extends K> classifier) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <K> Pipe<Pipe<OUT>> groupValues(Function<? super OUT, ? extends K> classifier) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <K> Map<K, List<OUT>> group(Function<? super OUT, ? extends K> classifier) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <K, V> Map<K, V> groupAndThen(Function<? super OUT, ? extends K> classifier,
-        Function<List<OUT>, V> finisher) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <K> Map<K, List<OUT>> groupAndExecute(Function<? super OUT, ? extends K> classifier,
-        BiConsumer<K, List<OUT>> action) {
         throw new UnsupportedOperationException();
     }
 

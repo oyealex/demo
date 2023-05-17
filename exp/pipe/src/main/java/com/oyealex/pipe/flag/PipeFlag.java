@@ -56,16 +56,22 @@ public enum PipeFlag {
     REVERSED_SORTED(13),
     ;
 
-    public static final int NOTHING = 0;
+    /** 空的标记，不改变标记现状 */
+    public static final int NO_FLAG = 0;
 
+    /** 数据非唯一 */
     public static final int IS_DISTINCT = DISTINCT.setBit;
 
+    /** 数据唯一 */
     public static final int NOT_DISTINCT = DISTINCT.clearBit;
 
+    /** 数据自然有序 */
     public static final int IS_SORTED = SORTED.setBit;
 
+    /** 数据非自然有序 */
     public static final int NOT_SORTED = SORTED.clearBit;
 
+    /** 数据数据有界 */
     public static final int IS_SIZED = SIZED.setBit;
 
     public static final int NOT_SIZED = SIZED.clearBit;

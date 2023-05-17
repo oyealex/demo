@@ -1,5 +1,6 @@
 package com.oyealex.pipe.basis.api;
 
+import com.oyealex.pipe.basis.Pipes;
 import com.oyealex.pipe.basis.api.policy.MergePolicy;
 import com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy;
 import com.oyealex.pipe.basis.functional.LongBiConsumer;
@@ -41,7 +42,7 @@ import java.util.stream.Stream;
 import static com.oyealex.pipe.basis.api.policy.MergePolicy.PREFER_OURS;
 import static com.oyealex.pipe.basis.api.policy.MergePolicy.PREFER_THEIRS;
 import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.SELECT_REMAINING;
-import static com.oyealex.pipe.flag.PipeFlag.NOTHING;
+import static com.oyealex.pipe.flag.PipeFlag.NO_FLAG;
 import static com.oyealex.pipe.utils.MiscUtil.isStdIdentify;
 import static com.oyealex.pipe.utils.MiscUtil.optimizedReverseOrder;
 import static java.util.Comparator.comparing;
@@ -165,6 +166,25 @@ public interface Pipe<E> extends AutoCloseable {
      * @see Stream#map(Function)
      */
     <R> Pipe<R> map(Function<? super E, ? extends R> mapper);
+
+    /**
+     * 将流水线中的数据映射为字符串。
+     *
+     * @return 包含数据字符串的流水线
+     */
+    default Pipe<String> mapToString() {
+        return map(Objects::toString);
+    }
+
+    /**
+     * 将流水线中的数据映射为字符串。
+     *
+     * @param nullDefault 当数据为{@code null}时的目标字符串。
+     * @return 包含数据字符串的流水线
+     */
+    default Pipe<String> mapToString(String nullDefault) {
+        return map(value -> Objects.toString(value, nullDefault));
+    }
 
     /**
      * 将此流水线中的元素映射为其他类型，映射方法支持访问元素在流水线中的次序，从0开始计算，使用{@code long}类型的数据表示次序。
@@ -628,7 +648,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 新的流水线
      */
     default Pipe<E> append(Iterator<? extends E> iterator) {
-        return append(Spliterators.spliteratorUnknownSize(iterator, NOTHING));
+        return append(Spliterators.spliteratorUnknownSize(iterator, NO_FLAG));
     }
 
     /**
@@ -813,7 +833,33 @@ public interface Pipe<E> extends AutoCloseable {
         }, remainingPolicy);
     }
 
-    // TODO 2023-05-13 00:24 考虑新流水线的NONNULL等标记合并
+    /**
+     * 将此流水线和另外一个流水线合并为一个新的流水线。
+     * <p/>
+     * 合并时会将两个流水线中的数据按次序进行比较，由{@code mergeHandle}返回这两个数据的合并策略，
+     * 此策略将指导如何从两个流水线中选择元素加入到新的流水线，各种策略的合并详情见{@link MergePolicy}。
+     * <p/>
+     * 合并时并不要求两条流水线的数据类型相同，但是被选中的数据根据来源不同，会分别经过{@code oursMapper}
+     * 和{@code theirsMapper}统一映射为最终的数据类型{@code R}，映射后的数据组成新的流水线。
+     * <p/>
+     * 由于两条流水线的元素数量可能不一致，或者受合并策略的影响，可能存在一条流水线还有数据待合并而另一条已经耗尽的情况，
+     * 此时需要根据{@code remainingPolicy}来决定剩余数据的处理策略，详见{@link MergeRemainingPolicy}。
+     *
+     * @param pipe 另一条需要合并的流水线。
+     * @param mergeHandle 流水线的合并策略。第一个参数为此流水线的数据，第二个参数为另一条流水线的数据，
+     * 受{@link MergeRemainingPolicy#MERGE_AS_NULL}和流水线自身数据的影响，这两个参数都可能为{@code null}。
+     * 返回值为这两个数据的合并策略，此合并策略<b>必须不能为</b>{@code null}，否则会导致{@link NullPointerException}。
+     * @param oursMapper 来自此流水线的数据被选中进入新流水线时的映射方法。
+     * @param theirsMapper 来自另一条流水线的数据被选中进入新流水线时的映射方法。
+     * @param remainingPolicy 当一条流水线耗尽时另一条流水线数据的处理策略，
+     * 传入{@code null}时等同于{@link MergeRemainingPolicy#SELECT_REMAINING}。
+     * @param <T> 另一条流水线的数据类型
+     * @param <R> 新流水线的数据类型
+     * @return 合并后的新流水线
+     * @throws NullPointerException 当{@code mergeHandle}返回{@code null}时抛出。
+     * @see MergePolicy
+     * @see MergeRemainingPolicy
+     */
     <T, R> Pipe<R> merge(Pipe<? extends T> pipe, BiFunction<? super E, ? super T, MergePolicy> mergeHandle,
         Function<? super E, ? extends R> oursMapper, Function<? super T, ? extends R> theirsMapper,
         MergeRemainingPolicy remainingPolicy);
@@ -833,15 +879,24 @@ public interface Pipe<E> extends AutoCloseable {
      */
     void forEachOrderly(LongBiConsumer<? super E> action);
 
-    default E reduce(E initVar, BinaryOperator<E> op) {
-        return reduce(initVar, identity(), op);
+    Optional<E> reduce(BinaryOperator<E> operator);
+
+    default E reduce(E initVar, BinaryOperator<E> reducer) {
+        return reduce(initVar, (BiFunction<? super E, ? super E, ? extends E>) reducer);
     }
 
-    Optional<E> reduce(BinaryOperator<E> op);
+    <R> R reduce(R initVar, BiFunction<? super R, ? super E, ? extends R> reducer);
 
-    <R> R reduce(R initVar, BiConsumer<? super R, ? super E> op);
+    default <R> R reduceIdentity(R initVar, BiConsumer<? super R, ? super E> reducer) {
+        return reduce(initVar, (result, value) -> {
+            reducer.accept(result, value);
+            return result;
+        });
+    }
 
-    <R> R reduce(R initVar, Function<? super E, ? extends R> mapper, BinaryOperator<R> op);
+    default <R> R reduce(R initVar, Function<? super E, ? extends R> mapper, BinaryOperator<R> operator) {
+        return reduce(initVar, (result, value) -> operator.apply(result, mapper.apply(value)));
+    }
 
     /**
      * 获取流水线中最小的元素，以自然顺序为比较依据。
@@ -967,12 +1022,20 @@ public interface Pipe<E> extends AutoCloseable {
      */
     Optional<E> findFirst();
 
+    default Optional<E> findFirstNonnull() {
+        return nonNull().findFirst();
+    }
+
     /**
      * 获取流水线中的最后一个元素。
      *
      * @return 流水线中的最后一个元素，如果流水线为空则返回空的{@link Optional}
      */
     Optional<E> findLast();
+
+    default Optional<E> findLastNonnull() {
+        return nonNull().findLast();
+    }
 
     /**
      * 同{@link #findFirst()}。
@@ -1018,7 +1081,7 @@ public interface Pipe<E> extends AutoCloseable {
 
     default <C extends Collection<E>> C toCollection(Supplier<C> supplier) {
         requireNonNull(supplier);
-        return reduce(supplier.get(), Collection::add);
+        return reduceIdentity(supplier.get(), Collection::add);
     }
 
     default <K> Map<K, E> toMap(Function<? super E, ? extends K> keyMapper) {
@@ -1028,7 +1091,7 @@ public interface Pipe<E> extends AutoCloseable {
     default <K, M extends Map<K, E>> M toMap(Supplier<M> supplier, Function<? super E, ? extends K> keyMapper) {
         requireNonNull(supplier);
         requireNonNull(keyMapper);
-        return reduce(supplier.get(), (map, value) -> map.put(keyMapper.apply(value), value));
+        return reduceIdentity(supplier.get(), (map, value) -> map.put(keyMapper.apply(value), value));
     }
 
     default <K> Map<K, E> toUnmodifiableMap(Function<? super E, ? extends K> keyMapper) {
@@ -1037,13 +1100,40 @@ public interface Pipe<E> extends AutoCloseable {
 
     <K> BiPipe<K, Pipe<E>> groupAndExtend(Function<? super E, ? extends K> classifier);
 
-    <K> Pipe<Pipe<E>> groupValues(Function<? super E, ? extends K> classifier);
+    default <K> Pipe<List<E>> groupValues(Function<? super E, ? extends K> classifier) {
+        return Pipes.iterable(group(classifier).values());
+    }
 
-    <K> Map<K, List<E>> group(Function<? super E, ? extends K> classifier);
+    default <K> Pipe<Pipe<E>> groupFlatValues(Function<? super E, ? extends K> classifier) {
+        return groupValues(classifier).map(Pipes::iterable);
+    }
 
-    <K, V> Map<K, V> groupAndThen(Function<? super E, ? extends K> classifier, Function<List<E>, V> finisher);
+    default <K> Map<K, List<E>> group(Function<? super E, ? extends K> classifier) {
+        return group(classifier, HashMap::new);
+    }
 
-    <K> Map<K, List<E>> groupAndExecute(Function<? super E, ? extends K> classifier, BiConsumer<K, List<E>> action);
+    default <K, M extends Map<K, List<E>>> M group(Function<? super E, ? extends K> classifier,
+        Supplier<? extends M> mapSupplier) {
+        return reduceIdentity(mapSupplier.get(),
+            (map, value) -> map.computeIfAbsent(classifier.apply(value), key -> new ArrayList<>()).add(value));
+    }
+
+    @SuppressWarnings("unchecked")
+    default <K, V> Map<K, V> groupAndThen(Function<? super E, ? extends K> classifier,
+        BiFunction<K, List<E>, V> finisher) {
+        HashMap<K, Object> result = reduceIdentity(new HashMap<>(),
+            (map, value) -> ((ArrayList<E>) map.computeIfAbsent(classifier.apply(value),
+                key -> new ArrayList<E>())).add(value));
+        result.replaceAll((key, list) -> finisher.apply(key, (List<E>) list));
+        return (Map<K, V>) result;
+    }
+
+    default <K> Map<K, List<E>> groupAndExecute(Function<? super E, ? extends K> classifier,
+        BiConsumer<K, List<E>> action) {
+        HashMap<K, List<E>> map = group(classifier, HashMap::new);
+        map.forEach(action);
+        return map;
+    }
 
     default String join(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return reduce(new StringJoiner(delimiter, prefix, suffix),

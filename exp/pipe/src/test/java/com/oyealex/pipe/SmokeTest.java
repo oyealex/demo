@@ -3,8 +3,6 @@ package com.oyealex.pipe;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-
 /**
  * Smoke
  *
@@ -15,7 +13,7 @@ class SmokeTest extends PipeTestBase {
     @Test
     @DisplayName("smoke")
     void smoke() {
-        System.out.println(evenPipe().limit(10).mergeAlternately(oddPipe().limit(10)).toList());
-        System.out.println(Arrays.toString(evenPipe().mergeAlternately(oddPipe()).limit(20).toArray(String[]::new)));
+        System.out.println(seqIntegerPipe().limit(10).group(i -> i & 1));
+        System.out.println(seqIntegerPipe().limit(10).groupAndThen(i -> i & 1, (k,v) -> v.size()));
     }
 }

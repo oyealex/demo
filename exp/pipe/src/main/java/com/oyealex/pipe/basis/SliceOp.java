@@ -1,7 +1,7 @@
 package com.oyealex.pipe.basis;
 
 import static com.oyealex.pipe.flag.PipeFlag.IS_SHORT_CIRCUIT;
-import static com.oyealex.pipe.flag.PipeFlag.NOTHING;
+import static com.oyealex.pipe.flag.PipeFlag.NO_FLAG;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
 
 /**
@@ -16,7 +16,7 @@ class SliceOp<IN> extends RefPipe<IN, IN> {
     private final long limit;
 
     SliceOp(RefPipe<?, ? extends IN> prePipe, long skip, long limit) {
-        super(prePipe, NOT_SIZED | (limit != Long.MAX_VALUE ? IS_SHORT_CIRCUIT : NOTHING));
+        super(prePipe, NOT_SIZED | (limit != Long.MAX_VALUE ? IS_SHORT_CIRCUIT : NO_FLAG));
         this.skip = skip;
         this.limit = limit;
     }

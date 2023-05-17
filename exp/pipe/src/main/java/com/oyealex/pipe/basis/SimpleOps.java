@@ -7,7 +7,7 @@ import com.oyealex.pipe.utils.Tuple;
 
 import java.util.Comparator;
 import java.util.Optional;
-import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -196,12 +196,12 @@ final class SimpleOps {
         };
     }
 
-    public static <T> TerminalOp<T, Optional<T>> reduceTerminalOp(BinaryOperator<T> op) {
+    public static <T> TerminalOp<T, Optional<T>> reduceTerminalOp(BinaryOperator<T> operator) {
         return new TerminalOp.FindOpt<>() {
             @Override
             public void accept(T value) {
                 if (found) {
-                    result = op.apply(result, value);
+                    result = operator.apply(result, value);
                 } else {
                     found = true;
                     result = value;
@@ -210,21 +210,12 @@ final class SimpleOps {
         };
     }
 
-    public static <T, R> TerminalOp<T, R> reduceTerminalOp(R initVar, Function<? super T, ? extends R> mapper,
-        BinaryOperator<R> op) {
+    public static <T, R> TerminalOp<T, R> reduceTerminalOp(R initVar,
+        BiFunction<? super R, ? super T, ? extends R> reducer) {
         return new TerminalOp.Find<>(initVar) {
             @Override
             public void accept(T value) {
-                result = op.apply(result, mapper.apply(value));
-            }
-        };
-    }
-
-    public static <T, R> TerminalOp<T, R> reduceTerminalOp(R initVar, BiConsumer<? super R, ? super T> op) {
-        return new TerminalOp.Find<>(initVar) {
-            @Override
-            public void accept(T value) {
-                op.accept(result, value);
+                result = reducer.apply(result, value);
             }
         };
     }
