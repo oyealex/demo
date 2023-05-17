@@ -1,9 +1,16 @@
 package com.oyealex.pipe.basis.api.policy;
 
+import com.oyealex.pipe.basis.api.Pipe;
+
+import java.util.function.BiFunction;
+import java.util.function.Function;
+
 /**
  * MergePolicy
  *
  * @author oyealex
+ * @see Pipe#merge(Pipe, BiFunction, MergeRemainingPolicy)
+ * @see Pipe#merge(Pipe, BiFunction, Function, Function, MergeRemainingPolicy)
  * @since 2023-05-17
  */
 public enum MergePolicy {
@@ -17,7 +24,7 @@ public enum MergePolicy {
      *        └─────────────┺━━━┹─────┘            └─────────┺━━━┹─────────┘
      * </code></pre>
      */
-    TAKE_OURS,
+    KEEP_OURS,
     /**
      * 选择其他流水线的数据，丢弃当前流水线的数据。
      * <pre><code>
@@ -28,7 +35,7 @@ public enum MergePolicy {
      *        └─────────────┺━━━┹─────┘            └─────────┺━━━┹─────────┘
      * </code></pre>
      */
-    TAKE_THEIRS,
+    KEEP_THEIRS,
     /**
      * 选择当前流水线的数据，保留其他流水线的数据用于下次合并。
      * <pre><code>

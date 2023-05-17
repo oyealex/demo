@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 
 import static com.oyealex.pipe.basis.api.policy.MergePolicy.PREFER_OURS;
 import static com.oyealex.pipe.basis.api.policy.MergePolicy.PREFER_THEIRS;
-import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.SELECT_REMAINING;
+import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.KEEP_REMAINING;
 import static com.oyealex.pipe.flag.PipeFlag.NO_FLAG;
 import static com.oyealex.pipe.utils.MiscUtil.isStdIdentify;
 import static com.oyealex.pipe.utils.MiscUtil.optimizedReverseOrder;
@@ -721,6 +721,8 @@ public interface Pipe<E> extends AutoCloseable {
      */
     Pipe<Pipe<E>> partition(int size);
 
+    Pipe<Pipe<E>> partition(Predicate<? super E> condition);
+
     /**
      * 按照给定数量，对元素进行分区，并将分区结果封装为列表。
      * <p/>
@@ -810,7 +812,7 @@ public interface Pipe<E> extends AutoCloseable {
     }
 
     default Pipe<E> mergeAlternately(Pipe<? extends E> pipe) {
-        return mergeAlternately(pipe, SELECT_REMAINING);
+        return mergeAlternately(pipe, KEEP_REMAINING);
     }
 
     default Pipe<E> mergeAlternately(Pipe<? extends E> pipe, MergeRemainingPolicy remainingPolicy) {
@@ -822,7 +824,7 @@ public interface Pipe<E> extends AutoCloseable {
     }
 
     default Pipe<E> mergeAlternatelyTheirsFirst(Pipe<? extends E> pipe) {
-        return mergeAlternatelyTheirsFirst(pipe, SELECT_REMAINING);
+        return mergeAlternatelyTheirsFirst(pipe, KEEP_REMAINING);
     }
 
     default Pipe<E> mergeAlternatelyTheirsFirst(Pipe<? extends E> pipe, MergeRemainingPolicy remainingPolicy) {
@@ -852,7 +854,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @param oursMapper 来自此流水线的数据被选中进入新流水线时的映射方法。
      * @param theirsMapper 来自另一条流水线的数据被选中进入新流水线时的映射方法。
      * @param remainingPolicy 当一条流水线耗尽时另一条流水线数据的处理策略，
-     * 传入{@code null}时等同于{@link MergeRemainingPolicy#SELECT_REMAINING}。
+     * 传入{@code null}时等同于{@link MergeRemainingPolicy#KEEP_REMAINING}。
      * @param <T> 另一条流水线的数据类型
      * @param <R> 新流水线的数据类型
      * @return 合并后的新流水线

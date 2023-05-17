@@ -85,11 +85,11 @@ class MergeOp<OURS, THEIRS, RESULT> extends RefPipe<OURS, RESULT> { // OPT 2023-
 
             private MergePolicy mergePair(OURS ours, MergePolicy policy) {
                 switch (policy) {
-                    case TAKE_OURS:
+                    case KEEP_OURS:
                         nextOp.accept(oursMapper.apply(ours));
                         dropTheirs();
                         break;
-                    case TAKE_THEIRS:
+                    case KEEP_THEIRS:
                         nextOp.accept(theirsMapper.apply(theirs));
                         dropTheirs();
                         break;
@@ -158,11 +158,11 @@ class MergeOp<OURS, THEIRS, RESULT> extends RefPipe<OURS, RESULT> { // OPT 2023-
                         theirsReady = true;
                         merge(ours);
                         break;
-                    case SELECT_REMAINING:
-                    case SELECT_OURS:
+                    case KEEP_REMAINING:
+                    case KEEP_OURS:
                         nextOp.accept(oursMapper.apply(ours));
                         break;
-                    case SELECT_THEIRS:
+                    case KEEP_THEIRS:
                     case DROP:
                         break;
                 }
@@ -177,11 +177,11 @@ class MergeOp<OURS, THEIRS, RESULT> extends RefPipe<OURS, RESULT> { // OPT 2023-
                         case MERGE_AS_NULL:
                             merge(null);
                             break;
-                        case SELECT_REMAINING:
-                        case SELECT_THEIRS:
+                        case KEEP_REMAINING:
+                        case KEEP_THEIRS:
                             nextOp.accept(theirsMapper.apply(theirs));
                             dropTheirs();
-                        case SELECT_OURS:
+                        case KEEP_OURS:
                         case DROP:
                             break;
                     }

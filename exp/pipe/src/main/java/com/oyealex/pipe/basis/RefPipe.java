@@ -34,7 +34,7 @@ import java.util.function.ToLongFunction;
 
 import static com.oyealex.pipe.basis.Pipes.empty;
 import static com.oyealex.pipe.basis.Pipes.spliterator;
-import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.SELECT_REMAINING;
+import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.KEEP_REMAINING;
 import static com.oyealex.pipe.flag.PipeFlag.DISTINCT;
 import static com.oyealex.pipe.flag.PipeFlag.IS_NONNULL;
 import static com.oyealex.pipe.flag.PipeFlag.NONNULL;
@@ -54,9 +54,11 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 
 /**
- * 基于引用的抽象流水线
+ * 基于引用的抽象流水线。
  *
  * @author oyealex
+ * @see Pipe
+ * @see com.oyealex.pipe.basis
  * @since 2023-03-04
  */
 // TODO 2023-05-06 22:43 关注流水线的重复消费问题，参见 java.util.stream.AbstractPipeline.linkedOrConsumed
@@ -467,6 +469,11 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
+    public Pipe<Pipe<OUT>> partition(Predicate<? super OUT> condition) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public <S> BiPipe<OUT, S> combine(Pipe<S> secondPipe) {
         requireNonNull(secondPipe);
         throw new UnsupportedOperationException();
@@ -478,7 +485,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         MergeRemainingPolicy remainingPolicy) {
         onClose(pipe::close);
         return new MergeOp<>(this, requireNonNull(pipe), requireNonNull(mergeHandle), requireNonNull(oursMapper),
-            requireNonNull(theirsMapper), requireNonNullElse(remainingPolicy, SELECT_REMAINING));
+            requireNonNull(theirsMapper), requireNonNullElse(remainingPolicy, KEEP_REMAINING));
     }
 
     @Override

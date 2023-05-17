@@ -27,7 +27,6 @@ abstract class SortOp<T> extends RefPipe<T, T> {
     static class Normal<T> extends SortOp<T> {
         private final Comparator<? super T> comparator;
 
-        @SuppressWarnings("unchecked")
         Normal(RefPipe<?, ? extends T> prePipe, Comparator<? super T> comparator) {
             super(prePipe,
                 isStdNaturalOrder(comparator) ? IS_SORTED | NOT_REVERSED_SORTED : NOT_SORTED | NOT_REVERSED_SORTED);
