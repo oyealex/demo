@@ -47,6 +47,7 @@ import static com.oyealex.pipe.utils.MiscUtil.optimizedReverseOrder;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Objects.requireNonNull;
+import static java.util.function.Function.identity;
 
 /**
  * 流水线接口
@@ -331,7 +332,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @throws NullPointerException 当映射方法为null时抛出
      */
     default <S> BiPipe<E, S> extendToTuple(Function<? super E, ? extends S> secondMapper) {
-        return extendToTuple(Function.identity(), secondMapper);
+        return extendToTuple(identity(), secondMapper);
     }
 
     /**
@@ -783,8 +784,10 @@ public interface Pipe<E> extends AutoCloseable {
      */
     <S> BiPipe<E, S> combine(Pipe<S> secondPipe);
 
-    Pipe<E> merge(Pipe<? extends E> pipe, BiFunction<? super E, ? super E, MergePolicy> mergeHandle,
-        MergeRemainingPolicy remainingPolicy);
+    default Pipe<E> merge(Pipe<? extends E> pipe, BiFunction<? super E, ? super E, MergePolicy> mergeHandle,
+        MergeRemainingPolicy remainingPolicy) {
+        return merge(pipe, mergeHandle, identity(), identity(), remainingPolicy);
+    }
 
     default Pipe<E> mergeAlternately(Pipe<? extends E> pipe) {
         return mergeAlternately(pipe, SELECT_REMAINING);
@@ -811,8 +814,9 @@ public interface Pipe<E> extends AutoCloseable {
     }
 
     // TODO 2023-05-13 00:24 考虑新流水线的NONNULL等标记合并
-    <T, R> Pipe<R> merge(Pipe<? extends T> pipe, BiFunction<? super E, ? super T, ? extends R> merge,
-        Function<? super E, ? extends R> oursMapper, Function<? super T, ? extends R> theirsMapper);
+    <T, R> Pipe<R> merge(Pipe<? extends T> pipe, BiFunction<? super E, ? super T, MergePolicy> mergeHandle,
+        Function<? super E, ? extends R> oursMapper, Function<? super T, ? extends R> theirsMapper,
+        MergeRemainingPolicy remainingPolicy);
 
     /**
      * 访问流水线中的每个元素。
@@ -830,7 +834,7 @@ public interface Pipe<E> extends AutoCloseable {
     void forEachOrderly(LongBiConsumer<? super E> action);
 
     default E reduce(E initVar, BinaryOperator<E> op) {
-        return reduce(initVar, Function.identity(), op);
+        return reduce(initVar, identity(), op);
     }
 
     Optional<E> reduce(BinaryOperator<E> op);

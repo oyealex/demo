@@ -6,6 +6,7 @@ import com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy;
 
 import java.util.Spliterator;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import static com.oyealex.pipe.basis.api.policy.MergePolicy.DROP_THEIRS;
 import static com.oyealex.pipe.basis.api.policy.MergePolicy.PREFER_THEIRS;
@@ -18,184 +19,171 @@ import static java.util.Objects.requireNonNull;
  * @author oyealex
  * @since 2023-05-17
  */
-class MergeOp {
-    static class Homogeneous<T> extends RefPipe<T, T> {
-        private final Pipe<? extends T> pipe;
+class MergeOp<OURS, THEIRS, RESULT> extends RefPipe<OURS, RESULT> {
+    private final Pipe<? extends THEIRS> theirsPipe;
 
-        private final BiFunction<? super T, ? super T, MergePolicy> mergeHandle;
+    private final BiFunction<? super OURS, ? super THEIRS, MergePolicy> mergeHandle;
 
-        private final MergeRemainingPolicy remainingPolicy;
+    private final Function<? super OURS, ? extends RESULT> oursMapper;
 
-        Homogeneous(RefPipe<?, ? extends T> prePipe, Pipe<? extends T> pipe,
-            BiFunction<? super T, ? super T, MergePolicy> mergeHandle, MergeRemainingPolicy remainingPolicy) {
-            super(prePipe, NOTHING);
-            this.pipe = pipe;
-            this.mergeHandle = mergeHandle;
-            this.remainingPolicy = remainingPolicy;
-        }
+    private final Function<? super THEIRS, ? extends RESULT> theirsMapper;
 
-        @Override
-        protected Op<T> wrapOp(Op<T> nextOp) {
-            return new ChainedOp.ShortCircuitRecorded<>(nextOp) {
-                private Spliterator<? extends T> split = pipe.toSpliterator();
+    private final MergeRemainingPolicy remainingPolicy;
 
-                private T theirs;
+    MergeOp(RefPipe<?, ? extends OURS> prePipe, Pipe<? extends THEIRS> theirsPipe,
+        BiFunction<? super OURS, ? super THEIRS, MergePolicy> mergeHandle,
+        Function<? super OURS, ? extends RESULT> oursMapper, Function<? super THEIRS, ? extends RESULT> theirsMapper,
+        MergeRemainingPolicy remainingPolicy) {
+        super(prePipe, NOTHING);
+        this.theirsPipe = theirsPipe;
+        this.mergeHandle = mergeHandle;
+        this.oursMapper = oursMapper;
+        this.theirsMapper = theirsMapper;
+        this.remainingPolicy = remainingPolicy;
+    }
 
-                private boolean theirsReady = false;
+    @Override
+    protected Op<OURS> wrapOp(Op<RESULT> nextOp) {
+        return new ChainedOp.ShortCircuitRecorded<>(nextOp) {
+            private Spliterator<? extends THEIRS> split = theirsPipe.toSpliterator();
 
-                private void takeNext(T value) {
-                    theirs = value;
-                    theirsReady = true;
-                }
+            private THEIRS theirs;
 
-                @Override
-                public void accept(T ours) {
-                    if (!theirsReady) {
-                        if (!takeNextTheirs()) {
-                            if (onTheirsExhausted(ours)) {
-                                merge(ours);
-                            }
-                            return;
-                        }
-                    }
+            private boolean theirsReady = false;
+
+            private void takeNext(THEIRS value) {
+                theirs = value;
+                theirsReady = true;
+            }
+
+            @Override
+            public void accept(OURS ours) {
+                if (!theirsReady && !takeTheirsNext()) {
+                    mergeOursWhenTheirsExhausted(ours);
+                } else {
                     merge(ours);
                 }
+            }
 
-                @Override
-                public void end() {
-                    onOursExhausted();
-                    split = null;
+            @Override
+            public void end() {
+                mergeTheirsWhenOursExhausted();
+                split = null;
+                nextOp.end();
+            }
+
+            private void merge(OURS ours) {
+                for (MergePolicy policy = requireNonNull(mergeHandle.apply(ours, theirs));
+                     policy != null && !shouldShortCircuit(); policy = mergePair(ours, policy)) {
+                    // noop
                 }
+            }
 
-                private void merge(T ours) {
-                    for (MergePolicy policy = requireNonNull(mergeHandle.apply(ours, theirs)); policy != null;
-                         policy = mergePair(ours, policy)) {
-                        // noop
-                    }
+            private MergePolicy mergePair(OURS ours, MergePolicy policy) {
+                switch (policy) {
+                    case TAKE_OURS:
+                        nextOp.accept(oursMapper.apply(ours));
+                        dropTheirs();
+                        break;
+                    case TAKE_THEIRS:
+                        nextOp.accept(theirsMapper.apply(theirs));
+                        dropTheirs();
+                        break;
+                    case PREFER_OURS:
+                        nextOp.accept(oursMapper.apply(ours));
+                        break;
+                    case OURS_FIRST:
+                        nextOp.accept(oursMapper.apply(ours));
+                        nextOp.accept(theirsMapper.apply(theirs));
+                        dropTheirs();
+                        break;
+                    case THEIRS_FIRST:
+                        nextOp.accept(theirsMapper.apply(theirs));
+                        nextOp.accept(oursMapper.apply(ours));
+                        dropTheirs();
+                        break;
+                    case DROP_OURS:
+                        break;
+                    case DROP_BOTH:
+                        dropTheirs();
+                        break;
+                    case PREFER_THEIRS:
+                        return mergeOursWhenPreferTheirs(ours);
+                    case DROP_THEIRS:
+                        return mergeOursWhenDropTheirs(ours);
                 }
+                return null;
+            }
 
-                private MergePolicy mergePair(T ours, MergePolicy policy) {
-                    switch (policy) {
-                        case SELECT_OURS:
-                            if (!needShortCircuit()) {
-                                nextOp.accept(ours);
-                            }
-                            invalidTheirs();
-                            break;
-                        case SELECT_THEIRS:
-                            if (!needShortCircuit()) {
-                                nextOp.accept(theirs);
-                            }
-                            invalidTheirs();
-                            break;
-                        case PREFER_OURS:
-                            if (!needShortCircuit()) {
-                                nextOp.accept(ours);
-                            }
-                            break;
-                        case OURS_FIRST:
-                            if (!needShortCircuit()) {
-                                nextOp.accept(ours);
-                            }
-                            if (!needShortCircuit()) {
-                                nextOp.accept(theirs);
-                            }
-                            invalidTheirs();
-                            break;
-                        case THEIRS_FIRST:
-                            if (!needShortCircuit()) {
-                                nextOp.accept(theirs);
-                            }
-                            if (!needShortCircuit()) {
-                                nextOp.accept(ours);
-                            }
-                            invalidTheirs();
-                            break;
-                        case DROP_OURS:
-                            break;
-                        case DROP_BOTH:
-                            invalidTheirs();
-                            break;
-                        case PREFER_THEIRS:
-                            return onPreferTheirs(ours);
-                        case DROP_THEIRS:
-                            return onDropTheirs(ours);
-                    }
-                    return null;
+            private MergePolicy mergeOursWhenPreferTheirs(OURS ours) {
+                MergePolicy policy = PREFER_THEIRS;
+                do {
+                    nextOp.accept(theirsMapper.apply(theirs));
+                    dropTheirs();
+                } while (!shouldShortCircuit() && takeTheirsNext() &&
+                    PREFER_THEIRS.equals(policy = mergeHandle.apply(ours, theirs)));
+                return requireNonNull(policy);
+            }
+
+            private MergePolicy mergeOursWhenDropTheirs(OURS ours) {
+                MergePolicy policy = DROP_THEIRS;
+                do {
+                    dropTheirs();
+                } while (!shouldShortCircuit() && takeTheirsNext() &&
+                    DROP_THEIRS.equals(policy = mergeHandle.apply(ours, theirs)));
+                return requireNonNull(policy);
+            }
+
+            private void dropTheirs() {
+                theirs = null;
+                theirsReady = false;
+            }
+
+            private boolean takeTheirsNext() {
+                split.tryAdvance(this::takeNext);
+                return theirsReady;
+            }
+
+            private void mergeOursWhenTheirsExhausted(OURS ours) {
+                if (shouldShortCircuit()) {
+                    return;
                 }
-
-                private MergePolicy onPreferTheirs(T ours) {
-                    MergePolicy policy = PREFER_THEIRS;
-                    do {
-                        if (!needShortCircuit()) {
-                            nextOp.accept(theirs);
-                        }
-                        invalidTheirs();
-                    } while (takeNextTheirs() && PREFER_THEIRS.equals(policy = mergeHandle.apply(ours, theirs)));
-                    return requireNonNull(policy);
+                switch (remainingPolicy) {
+                    case MERGE_AS_NULL:
+                        theirs = null;
+                        theirsReady = true;
+                        merge(ours);
+                        break;
+                    case SELECT_REMAINING:
+                    case SELECT_OURS:
+                        nextOp.accept(oursMapper.apply(ours));
+                        break;
+                    case SELECT_THEIRS:
+                    case DROP:
+                        break;
                 }
+            }
 
-                private MergePolicy onDropTheirs(T ours) {
-                    MergePolicy policy = DROP_THEIRS;
-                    do {
-                        invalidTheirs();
-                    } while (takeNextTheirs() && DROP_THEIRS.equals(policy = mergeHandle.apply(ours, theirs)));
-                    return requireNonNull(policy);
+            private void mergeTheirsWhenOursExhausted() {
+                if (shouldShortCircuit() || (!theirsReady && !takeTheirsNext())) {
+                    return;
                 }
-
-                private void invalidTheirs() {
-                    theirs = null;
-                    theirsReady = false;
-                }
-
-                private boolean takeNextTheirs() {
-                    split.tryAdvance(this::takeNext);
-                    return theirsReady;
-                }
-
-                private boolean onTheirsExhausted(T ours) {
+                do {
                     switch (remainingPolicy) {
                         case MERGE_AS_NULL:
-                            theirs = null;
-                            theirsReady = true;
-                            return true;
+                            merge(null);
+                            break;
                         case SELECT_REMAINING:
-                        case SELECT_OURS:
-                            if (!needShortCircuit()) {
-                                nextOp.accept(ours);
-                            }
-                            break;
-                        case DROP:
                         case SELECT_THEIRS:
+                            nextOp.accept(theirsMapper.apply(theirs));
+                            dropTheirs();
+                        case SELECT_OURS:
+                        case DROP:
                             break;
                     }
-                    return false;
-                }
-
-                private void onOursExhausted() {
-                    if (!theirsReady) {
-                        if (!takeNextTheirs()) {
-                            return;
-                        }
-                    }
-                    do {
-                        switch (remainingPolicy) {
-                            case MERGE_AS_NULL:
-                                merge(null);
-                                break;
-                            case SELECT_REMAINING:
-                            case SELECT_THEIRS:
-                                if (!needShortCircuit()) {
-                                    nextOp.accept(theirs);
-                                }
-                                invalidTheirs();
-                            case SELECT_OURS:
-                            case DROP:
-                                break;
-                        }
-                    } while (takeNextTheirs());
-                }
-            };
-        }
+                } while (!shouldShortCircuit() && takeTheirsNext());
+            }
+        };
     }
 }
+

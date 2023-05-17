@@ -46,11 +46,6 @@ class ToArrayTerminalOp<T> implements TerminalOp<T, T[]> {
         fullLength = 0;
     }
 
-    private int calcArrayCapacity(int arrayIndex) {
-        return 1 <<
-            (arrayIndex <= 1 ? MIN_CAPACITY_SHIFT : Math.min(MIN_CAPACITY_SHIFT + arrayIndex - 1, MAX_CAPACITY_SHIFT));
-    }
-
     @Override
     public void accept(T value) {
         if (index >= array.length) {
@@ -59,14 +54,9 @@ class ToArrayTerminalOp<T> implements TerminalOp<T, T[]> {
         array[index++] = value;
     }
 
-    private void prepareNewArray() {
-        fullLength += array.length;
-        if (fullLength >= MAX_ARRAY_LENGTH || fullLength <= 0) {
-            throw new IllegalArgumentException("Pipe size exceeds max array size");
-        }
-        array = arrayFactory.apply(calcArrayCapacity(fullArrays.size()));
-        fullArrays.add(array);
-        index = 0;
+    @Override
+    public void end() {
+        fullLength += index;
     }
 
     @Override
@@ -88,5 +78,20 @@ class ToArrayTerminalOp<T> implements TerminalOp<T, T[]> {
         }
         System.arraycopy(array, 0, result, resultIndex, index);
         return result;
+    }
+
+    private void prepareNewArray() {
+        fullLength += array.length;
+        if (fullLength >= MAX_ARRAY_LENGTH || fullLength <= 0) {
+            throw new IllegalArgumentException("Pipe size exceeds max array size");
+        }
+        array = arrayFactory.apply(calcArrayCapacity(fullArrays.size()));
+        fullArrays.add(array);
+        index = 0;
+    }
+
+    private int calcArrayCapacity(int arrayIndex) {
+        return 1 <<
+            (arrayIndex <= 1 ? MIN_CAPACITY_SHIFT : Math.min(MIN_CAPACITY_SHIFT + arrayIndex - 1, MAX_CAPACITY_SHIFT));
     }
 }
