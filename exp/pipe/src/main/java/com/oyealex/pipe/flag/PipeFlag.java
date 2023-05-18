@@ -57,7 +57,7 @@ public enum PipeFlag {
     ;
 
     /** 空的标记，不改变标记现状 */
-    public static final int NO_FLAG = 0;
+    public static final int EMPTY = 0;
 
     /** 数据非唯一 */
     public static final int IS_DISTINCT = DISTINCT.setBit;

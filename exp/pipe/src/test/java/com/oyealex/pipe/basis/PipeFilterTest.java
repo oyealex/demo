@@ -62,7 +62,7 @@ class PipeFilterTest extends PipeTestBase {
     @Test
     @DisplayName("能够正确保留元素直到给定条件首次为假")
     void should_keep_elements_while_predicate_is_matched() {
-        List<String> res = of(ELEMENTS).keepWhile(value -> value.endsWith(",")).toList();
+        List<String> res = of(ELEMENTS).takeWhile(value -> value.endsWith(",")).toList();
         assertEquals(stream(ELEMENTS).takeWhile(value -> value.endsWith(",")).collect(toList()), res);
     }
 

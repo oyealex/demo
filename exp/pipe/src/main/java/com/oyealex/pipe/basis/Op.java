@@ -16,6 +16,11 @@ interface Op<T> extends Consumer<T> {
      */
     default void begin(long size) {}
 
+    // TODO 2023-05-19 02:05 根据size的上下界做更进一步的优化
+    default void begin(long size, long minSize, long maxSize) {
+        begin(size);
+    }
+
     @Override
     void accept(T value);
 

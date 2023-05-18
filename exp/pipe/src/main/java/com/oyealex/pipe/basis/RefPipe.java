@@ -34,15 +34,15 @@ import java.util.function.ToLongFunction;
 
 import static com.oyealex.pipe.basis.Pipes.empty;
 import static com.oyealex.pipe.basis.Pipes.spliterator;
-import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.KEEP_REMAINING;
+import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.TAKE_REMAINING;
 import static com.oyealex.pipe.flag.PipeFlag.DISTINCT;
+import static com.oyealex.pipe.flag.PipeFlag.EMPTY;
 import static com.oyealex.pipe.flag.PipeFlag.IS_NONNULL;
 import static com.oyealex.pipe.flag.PipeFlag.NONNULL;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_DISTINCT;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_REVERSED_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SORTED;
-import static com.oyealex.pipe.flag.PipeFlag.NO_FLAG;
 import static com.oyealex.pipe.flag.PipeFlag.REVERSED_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.SHORT_CIRCUIT;
 import static com.oyealex.pipe.flag.PipeFlag.SORTED;
@@ -161,7 +161,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         return new RefPipe<>(this, NOT_SIZED) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return SimpleOps.keepIfOp(nextOp, predicate);
+                return SimpleOps.takeIfOp(nextOp, predicate);
             }
         };
     }
@@ -172,29 +172,41 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         return new RefPipe<>(this, NOT_SIZED) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return SimpleOps.keepIfOrderlyOp(nextOp, predicate);
+                return SimpleOps.takeIfOrderlyOp(nextOp, predicate);
             }
         };
     }
 
     @Override
     public Pipe<OUT> takeLast(long count) {
-        throw new UnsupportedOperationException();
+        if (count < 0) {
+            throw new IllegalArgumentException("The count to take last is at least 0: " + count);
+        }
+        if (count == 0) {
+            return empty();
+        }
+        return new TakeOrDropLastOp<>(this, true, count);
     }
 
     @Override
     public Pipe<OUT> dropLast(long count) {
-        throw new UnsupportedOperationException();
+        if (count < 0) {
+            throw new IllegalArgumentException("The count to drop last is at least 0: " + count);
+        }
+        if (count == 0) {
+            return this;
+        }
+        return new TakeOrDropLastOp<>(this, false, count);
     }
 
     @Override
-    public Pipe<OUT> keepWhile(Predicate<? super OUT> predicate) {
-        return new WhileOp.KeepWhile<>(this, requireNonNull(predicate));
+    public Pipe<OUT> takeWhile(Predicate<? super OUT> predicate) {
+        return new WhileOp.TakeWhile<>(this, requireNonNull(predicate));
     }
 
     @Override
-    public Pipe<OUT> keepWhileOrderly(LongBiPredicate<? super OUT> predicate) {
-        return new WhileOp.KeepWhileOrderly<>(this, requireNonNull(predicate));
+    public Pipe<OUT> takeWhileOrderly(LongBiPredicate<? super OUT> predicate) {
+        return new WhileOp.TakeWhileOrderly<>(this, requireNonNull(predicate));
     }
 
     @Override
@@ -215,7 +227,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         return new RefPipe<>(this, NOT_SIZED | IS_NONNULL) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return SimpleOps.keepIfOp(nextOp, Objects::nonNull);
+                return SimpleOps.takeIfOp(nextOp, Objects::nonNull);
             }
         };
     }
@@ -396,7 +408,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public Pipe<OUT> peek(Consumer<? super OUT> consumer) {
         requireNonNull(consumer);
-        return new RefPipe<>(this, NO_FLAG) {
+        return new RefPipe<>(this, EMPTY) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
                 return SimpleOps.peekOp(nextOp, consumer);
@@ -407,7 +419,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public Pipe<OUT> peekOrderly(LongBiConsumer<? super OUT> consumer) {
         requireNonNull(consumer);
-        return new RefPipe<>(this, NO_FLAG) {
+        return new RefPipe<>(this, EMPTY) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
                 return SimpleOps.peekOrderlyOp(nextOp, consumer);
@@ -515,7 +527,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         MergeRemainingPolicy remainingPolicy) {
         onClose(pipe::close);
         return new MergeOp<>(this, requireNonNull(pipe), requireNonNull(mergeHandle), requireNonNull(oursMapper),
-            requireNonNull(theirsMapper), requireNonNullElse(remainingPolicy, KEEP_REMAINING));
+            requireNonNull(theirsMapper), requireNonNullElse(remainingPolicy, TAKE_REMAINING));
     }
 
     @Override
@@ -646,5 +658,37 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public void close() {
         headPipe.close();
+    }
+
+    @Override
+    public Pipe<OUT> debug() {
+        return new RefPipe<>(this, EMPTY) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return new ChainedOp<>(nextOp) {
+                    @Override
+                    public void begin(long size) {
+                        super.begin(size);
+                    }
+
+                    @Override
+                    public void end() {
+                        super.end();
+                    }
+
+                    @Override
+                    public void accept(OUT value) {
+                        if (value == null) {
+                            // noop
+                        }
+                    }
+
+                    @Override
+                    public boolean canShortCircuit() {
+                        return super.canShortCircuit();
+                    }
+                };
+            }
+        };
     }
 }

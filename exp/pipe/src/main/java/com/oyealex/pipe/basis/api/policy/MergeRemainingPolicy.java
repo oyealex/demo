@@ -17,11 +17,11 @@ public enum MergeRemainingPolicy {
     /** 把缺少的流水元素当作{@code null}参与合并 */
     MERGE_AS_NULL,
     /** 如果当前流水线有多余，则保留当前流水线的元素 */
-    KEEP_OURS,
+    TAKE_OURS,
     /** 如果其他流水线有多余，则保留当前流水线的元素 */
-    KEEP_THEIRS,
+    TAKE_THEIRS,
     /** 保留任何多余的元素 */
-    KEEP_REMAINING,
+    TAKE_REMAINING,
     /** 丢弃多余的元素 */
     DROP,
 }

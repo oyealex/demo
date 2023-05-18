@@ -61,6 +61,11 @@ class MergeOp<OURS, THEIRS, RESULT> extends RefPipe<OURS, RESULT> { // OPT 2023-
             }
 
             @Override
+            public void begin(long size) {
+                nextOp.begin(-1);
+            }
+
+            @Override
             public void accept(OURS ours) {
                 if (!theirsReady && !takeTheirsNext()) {
                     mergeOursWhenTheirsExhausted(ours);
@@ -85,11 +90,11 @@ class MergeOp<OURS, THEIRS, RESULT> extends RefPipe<OURS, RESULT> { // OPT 2023-
 
             private MergePolicy mergePair(OURS ours, MergePolicy policy) {
                 switch (policy) {
-                    case KEEP_OURS:
+                    case TAKE_OURS:
                         nextOp.accept(oursMapper.apply(ours));
                         dropTheirs();
                         break;
-                    case KEEP_THEIRS:
+                    case TAKE_THEIRS:
                         nextOp.accept(theirsMapper.apply(theirs));
                         dropTheirs();
                         break;
@@ -158,11 +163,11 @@ class MergeOp<OURS, THEIRS, RESULT> extends RefPipe<OURS, RESULT> { // OPT 2023-
                         theirsReady = true;
                         merge(ours);
                         break;
-                    case KEEP_REMAINING:
-                    case KEEP_OURS:
+                    case TAKE_REMAINING:
+                    case TAKE_OURS:
                         nextOp.accept(oursMapper.apply(ours));
                         break;
-                    case KEEP_THEIRS:
+                    case TAKE_THEIRS:
                     case DROP:
                         break;
                 }
@@ -177,11 +182,11 @@ class MergeOp<OURS, THEIRS, RESULT> extends RefPipe<OURS, RESULT> { // OPT 2023-
                         case MERGE_AS_NULL:
                             merge(null);
                             break;
-                        case KEEP_REMAINING:
-                        case KEEP_THEIRS:
+                        case TAKE_REMAINING:
+                        case TAKE_THEIRS:
                             nextOp.accept(theirsMapper.apply(theirs));
                             dropTheirs();
-                        case KEEP_OURS:
+                        case TAKE_OURS:
                         case DROP:
                             break;
                     }

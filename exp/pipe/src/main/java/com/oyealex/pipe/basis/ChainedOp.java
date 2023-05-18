@@ -76,7 +76,7 @@ abstract class ChainedOp<IN, OUT> implements Op<IN> {
     }
 
     static abstract class ToList<IN, OUT> extends NonShortCircuit<IN, OUT> {
-        protected List<IN> elements;
+        protected List<IN> elements; // OPT 2023-05-19 01:31 进一步优化，使用支持多段数组的方式避免数组扩容拷贝
 
         ToList(Op<? super OUT> nextOp) {
             super(nextOp);

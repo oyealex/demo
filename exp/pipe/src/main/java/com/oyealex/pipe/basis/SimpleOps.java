@@ -40,7 +40,7 @@ final class SimpleOps {
         };
     }
 
-    public static <T> Op<T> keepIfOp(Op<T> nextOp, Predicate<? super T> predicate) {
+    public static <T> Op<T> takeIfOp(Op<T> nextOp, Predicate<? super T> predicate) {
         return new ChainedOp<>(nextOp) {
             @Override
             public void begin(long size) {
@@ -56,7 +56,7 @@ final class SimpleOps {
         };
     }
 
-    public static <T> Op<T> keepIfOrderlyOp(Op<T> nextOp, LongBiPredicate<? super T> predicate) {
+    public static <T> Op<T> takeIfOrderlyOp(Op<T> nextOp, LongBiPredicate<? super T> predicate) {
         return new ChainedOp.Orderly<>(nextOp) {
             @Override
             public void begin(long size) {

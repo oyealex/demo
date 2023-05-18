@@ -38,7 +38,7 @@ class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
                     return;
                 }
                 prepareNewPartition();
-                nextOp.begin(size >= 0 ? size / partitionSize + (size % partitionSize == 0 ? 0 : 1) : -1);
+                nextOp.begin(size > 0 ? size / partitionSize + (size % partitionSize == 0 ? 0 : 1) : -1);
             }
 
             @Override

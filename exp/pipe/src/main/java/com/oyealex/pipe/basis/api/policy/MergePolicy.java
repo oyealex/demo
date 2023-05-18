@@ -24,7 +24,7 @@ public enum MergePolicy {
      *        └─────────────┺━━━┹─────┘            └─────────┺━━━┹─────────┘
      * </code></pre>
      */
-    KEEP_OURS,
+    TAKE_OURS,
     /**
      * 选择其他流水线的数据，丢弃当前流水线的数据。
      * <pre><code>
@@ -35,7 +35,7 @@ public enum MergePolicy {
      *        └─────────────┺━━━┹─────┘            └─────────┺━━━┹─────────┘
      * </code></pre>
      */
-    KEEP_THEIRS,
+    TAKE_THEIRS,
     /**
      * 选择当前流水线的数据，保留其他流水线的数据用于下次合并。
      * <pre><code>

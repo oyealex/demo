@@ -42,8 +42,8 @@ import java.util.stream.Stream;
 
 import static com.oyealex.pipe.basis.api.policy.MergePolicy.PREFER_OURS;
 import static com.oyealex.pipe.basis.api.policy.MergePolicy.PREFER_THEIRS;
-import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.KEEP_REMAINING;
-import static com.oyealex.pipe.flag.PipeFlag.NO_FLAG;
+import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.TAKE_REMAINING;
+import static com.oyealex.pipe.flag.PipeFlag.EMPTY;
 import static com.oyealex.pipe.utils.MiscUtil.isStdIdentify;
 import static com.oyealex.pipe.utils.MiscUtil.optimizedReverseOrder;
 import static java.util.Comparator.comparing;
@@ -66,7 +66,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 新的流水线
      * @throws NullPointerException 当{@code predicate}为null时抛出
      * @see #dropIf(Predicate)
-     * @see #keepWhile(Predicate)
+     * @see #takeWhile(Predicate)
      */
     Pipe<E> takeIf(Predicate<? super E> predicate);
 
@@ -132,7 +132,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 新的流水线
      * @see Stream#takeWhile(Predicate)
      */
-    Pipe<E> keepWhile(Predicate<? super E> predicate);
+    Pipe<E> takeWhile(Predicate<? super E> predicate);
 
     /**
      * 保留元素直到给定的断言首次为{@code False}，丢弃之后的元素，断言支持访问{@code long}类型的元素次序。
@@ -140,7 +140,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @param predicate 断言方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为判断是否需要保留的元素。
      * @return 新的流水线
      */
-    Pipe<E> keepWhileOrderly(LongBiPredicate<? super E> predicate);
+    Pipe<E> takeWhileOrderly(LongBiPredicate<? super E> predicate);
 
     /**
      * 丢弃元素直到给定的断言首次为{@code False}，保留之后的元素。
@@ -687,7 +687,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @return 新的流水线
      */
     default Pipe<E> append(Iterator<? extends E> iterator) {
-        return append(Spliterators.spliteratorUnknownSize(iterator, NO_FLAG));
+        return append(Spliterators.spliteratorUnknownSize(iterator, EMPTY));
     }
 
     /**
@@ -853,7 +853,7 @@ public interface Pipe<E> extends AutoCloseable {
     }
 
     default Pipe<E> mergeAlternately(Pipe<? extends E> pipe) {
-        return mergeAlternately(pipe, KEEP_REMAINING);
+        return mergeAlternately(pipe, TAKE_REMAINING);
     }
 
     default Pipe<E> mergeAlternately(Pipe<? extends E> pipe, MergeRemainingPolicy remainingPolicy) {
@@ -865,7 +865,7 @@ public interface Pipe<E> extends AutoCloseable {
     }
 
     default Pipe<E> mergeAlternatelyTheirsFirst(Pipe<? extends E> pipe) {
-        return mergeAlternatelyTheirsFirst(pipe, KEEP_REMAINING);
+        return mergeAlternatelyTheirsFirst(pipe, TAKE_REMAINING);
     }
 
     default Pipe<E> mergeAlternatelyTheirsFirst(Pipe<? extends E> pipe, MergeRemainingPolicy remainingPolicy) {
@@ -895,7 +895,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @param oursMapper 来自此流水线的数据被选中进入新流水线时的映射方法。
      * @param theirsMapper 来自另一条流水线的数据被选中进入新流水线时的映射方法。
      * @param remainingPolicy 当一条流水线耗尽时另一条流水线数据的处理策略，
-     * 传入{@code null}时等同于{@link MergeRemainingPolicy#KEEP_REMAINING}。
+     * 传入{@code null}时等同于{@link MergeRemainingPolicy#TAKE_REMAINING}。
      * @param <T> 另一条流水线的数据类型
      * @param <R> 新流水线的数据类型
      * @return 合并后的新流水线
@@ -1225,4 +1225,6 @@ public interface Pipe<E> extends AutoCloseable {
 
     @Override
     void close();
+
+    Pipe<E> debug();
 }

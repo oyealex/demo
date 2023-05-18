@@ -1,7 +1,7 @@
 package com.oyealex.pipe.basis;
 
+import static com.oyealex.pipe.flag.PipeFlag.EMPTY;
 import static com.oyealex.pipe.flag.PipeFlag.IS_SHORT_CIRCUIT;
-import static com.oyealex.pipe.flag.PipeFlag.NO_FLAG;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
 
 /**
@@ -16,7 +16,7 @@ class SliceOp<IN> extends RefPipe<IN, IN> {
     private final long limit;
 
     SliceOp(RefPipe<?, ? extends IN> prePipe, long skip, long limit) {
-        super(prePipe, NOT_SIZED | (limit != Long.MAX_VALUE ? IS_SHORT_CIRCUIT : NO_FLAG));
+        super(prePipe, NOT_SIZED | (limit != Long.MAX_VALUE ? IS_SHORT_CIRCUIT : EMPTY));
         this.skip = skip;
         this.limit = limit;
     }
@@ -27,6 +27,15 @@ class SliceOp<IN> extends RefPipe<IN, IN> {
             private long skipped = 0L;
 
             private long limited = 0L;
+
+            @Override
+            public void begin(long size) {
+                if (size <= 0) {
+                    nextOp.begin(size);
+                } else {
+                    nextOp.begin(Math.min(Math.max(0, size - skip), limit));
+                }
+            }
 
             @Override
             public void accept(IN in) {

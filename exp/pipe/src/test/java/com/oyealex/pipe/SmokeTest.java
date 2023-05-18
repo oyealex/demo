@@ -14,6 +14,6 @@ class SmokeTest extends PipeTestBase {
     @Test
     @DisplayName("smoke")
     void smoke() {
-        System.out.println(Pipes.constant("a", 10).toList());
+        System.out.println(seqStrPipe().limit(10).debug().count());
     }
 }

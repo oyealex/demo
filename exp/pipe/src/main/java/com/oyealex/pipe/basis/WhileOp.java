@@ -16,17 +16,17 @@ abstract class WhileOp<T> extends RefPipe<T, T> {
         super(prePipe, PipeFlag.NOT_SIZED);
     }
 
-    static class KeepWhile<T> extends com.oyealex.pipe.basis.WhileOp<T> {
+    static class TakeWhile<T> extends com.oyealex.pipe.basis.WhileOp<T> {
         private final Predicate<? super T> predicate;
 
-        KeepWhile(RefPipe<?, ? extends T> prePipe, Predicate<? super T> predicate) {
+        TakeWhile(RefPipe<?, ? extends T> prePipe, Predicate<? super T> predicate) {
             super(prePipe);
             this.predicate = predicate;
         }
 
         @Override
         protected Op<T> wrapOp(Op<T> nextOp) {
-            return new ImplOp<>(nextOp, true) {
+            return new InternalOp<>(nextOp, true) {
                 @Override
                 public void accept(T value) {
                     if (shouldTake && (shouldTake = predicate.test(value))) {
@@ -47,7 +47,7 @@ abstract class WhileOp<T> extends RefPipe<T, T> {
 
         @Override
         protected Op<T> wrapOp(Op<T> nextOp) {
-            return new ImplOp<>(nextOp, false) {
+            return new InternalOp<>(nextOp, false) {
                 @Override
                 public void accept(T value) {
                     if (shouldTake || (shouldTake = !predicate.test(value))) {
@@ -58,17 +58,17 @@ abstract class WhileOp<T> extends RefPipe<T, T> {
         }
     }
 
-    static class KeepWhileOrderly<T> extends com.oyealex.pipe.basis.WhileOp<T> {
+    static class TakeWhileOrderly<T> extends com.oyealex.pipe.basis.WhileOp<T> {
         private final LongBiPredicate<? super T> predicate;
 
-        KeepWhileOrderly(RefPipe<?, ? extends T> prePipe, LongBiPredicate<? super T> predicate) {
+        TakeWhileOrderly(RefPipe<?, ? extends T> prePipe, LongBiPredicate<? super T> predicate) {
             super(prePipe);
             this.predicate = predicate;
         }
 
         @Override
         protected Op<T> wrapOp(Op<T> nextOp) {
-            return new ImplOp<>(nextOp, true) {
+            return new InternalOp<>(nextOp, true) {
                 private long index = 0L;
 
                 @Override
@@ -91,7 +91,7 @@ abstract class WhileOp<T> extends RefPipe<T, T> {
 
         @Override
         protected Op<T> wrapOp(Op<T> nextOp) {
-            return new ImplOp<>(nextOp, false) {
+            return new InternalOp<>(nextOp, false) {
                 private long index = 0L;
 
                 @Override
@@ -104,12 +104,17 @@ abstract class WhileOp<T> extends RefPipe<T, T> {
         }
     }
 
-    private abstract static class ImplOp<T> extends ChainedOp<T, T> {
+    private abstract static class InternalOp<T> extends ChainedOp<T, T> {
         protected boolean shouldTake;
 
-        protected ImplOp(Op<? super T> nextOp, boolean shouldTake) {
+        protected InternalOp(Op<? super T> nextOp, boolean shouldTake) {
             super(nextOp);
             this.shouldTake = shouldTake;
+        }
+
+        @Override
+        public void begin(long size) {
+            nextOp.begin(-1);
         }
     }
 }
