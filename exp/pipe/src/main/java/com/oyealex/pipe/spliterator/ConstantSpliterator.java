@@ -10,23 +10,25 @@ import java.util.function.Consumer;
  * @author oyealex
  * @since 2023-05-13
  */
-class SingletonSpliterator<T> implements Spliterator<T> {
-    private T singleton;
+class ConstantSpliterator<T> implements Spliterator<T> {
+    private T constant;
 
-    private boolean consumed = false;
+    private int count;
 
-    SingletonSpliterator(T singleton) {
-        this.singleton = singleton;
+    ConstantSpliterator(T constant, int count) {
+        this.constant = constant;
+        this.count = count;
     }
 
     @Override
     public boolean tryAdvance(Consumer<? super T> action) {
-        if (consumed) {
+        if (count <= 0) {
             return false;
         }
-        T value = singleton;
-        singleton = null;
-        consumed = true;
+        T value = constant;
+        if (--count <= 0) {
+            constant = null;
+        }
         action.accept(value);
         return true;
     }
@@ -38,13 +40,13 @@ class SingletonSpliterator<T> implements Spliterator<T> {
 
     @Override
     public long estimateSize() {
-        return singleton == null ? 0 : 1;
+        return count;
     }
 
     @Override
     public int characteristics() {
-        return Spliterator.SIZED | Spliterator.SORTED | Spliterator.DISTINCT | Spliterator.ORDERED |
-            Spliterator.SUBSIZED | (singleton == null ? 0 : Spliterator.NONNULL);
+        return Spliterator.SIZED | Spliterator.SORTED | Spliterator.ORDERED | Spliterator.SUBSIZED |
+            (constant == null ? 0 : Spliterator.NONNULL);
     }
 
     @Override

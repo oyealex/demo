@@ -10,17 +10,17 @@ import java.util.function.Consumer;
  * @author oyealex
  * @since 2023-05-06
  */
-public class ConcatSpliterator<T, SPLIT extends Spliterator<T>> implements Spliterator<T> {
+class ConcatSpliterator<T, S extends Spliterator<T>> implements Spliterator<T> {
     /** 首先使用的拆分器 */
-    private SPLIT head;
+    private S head;
 
     /** 随后使用的拆分器 */
-    private SPLIT tail;
+    private S tail;
 
     /** 标记在拆分之前，此组合拆分器是否无边界 */
     private final boolean isUnSizedBeforeSplit;
 
-    public ConcatSpliterator(SPLIT head, SPLIT tail) {
+    ConcatSpliterator(S head, S tail) {
         this.head = head;
         this.tail = tail;
         this.isUnSizedBeforeSplit = head.estimateSize() + tail.estimateSize() < 0;
@@ -28,14 +28,14 @@ public class ConcatSpliterator<T, SPLIT extends Spliterator<T>> implements Split
 
     @Override
     @SuppressWarnings("unchecked")
-    public SPLIT trySplit() {
+    public S trySplit() {
         if (head != null) {
-            SPLIT result = head;
+            S result = head;
             head = null;
             return result;
         }
         if (tail != null) {
-            return (SPLIT) tail.trySplit();
+            return (S) tail.trySplit();
         }
         return null;
     }

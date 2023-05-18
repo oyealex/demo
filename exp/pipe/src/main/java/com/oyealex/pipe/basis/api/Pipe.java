@@ -8,6 +8,7 @@ import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import com.oyealex.pipe.bi.BiPipe;
 import com.oyealex.pipe.tri.TriPipe;
+import com.oyealex.pipe.utils.Tuple;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,7 +68,7 @@ public interface Pipe<E> extends AutoCloseable {
      * @see #dropIf(Predicate)
      * @see #keepWhile(Predicate)
      */
-    Pipe<E> keepIf(Predicate<? super E> predicate);
+    Pipe<E> takeIf(Predicate<? super E> predicate);
 
     /**
      * 根据给定断言保留元素，断言支持访问元素次序。
@@ -75,9 +76,19 @@ public interface Pipe<E> extends AutoCloseable {
      * @param predicate 断言方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要判断是否保留的元素。
      * @return 新的流水线
      * @throws NullPointerException 当{@code predicate}为null时抛出
-     * @see #keepIf(Predicate)
+     * @see #takeIf(Predicate)
      */
-    Pipe<E> keepIfOrderly(LongBiPredicate<? super E> predicate);
+    Pipe<E> takeIfOrderly(LongBiPredicate<? super E> predicate);
+
+    default Pipe<E> takeFirst() {
+        return limit(1L);
+    }
+
+    default Pipe<E> takeLast() {
+        return takeLast(1L);
+    }
+
+    Pipe<E> takeLast(long count);
 
     /**
      * 根据给定断言的结果丢弃元素。
@@ -85,11 +96,11 @@ public interface Pipe<E> extends AutoCloseable {
      * @param predicate 断言方法，满足断言的元素会丢弃。
      * @return 新的流水线
      * @throws NullPointerException 当{@code predicate}为null时抛出
-     * @see #keepIf(Predicate)
+     * @see #takeIf(Predicate)
      * @see #dropWhile(Predicate)
      */
     default Pipe<E> dropIf(Predicate<? super E> predicate) {
-        return keepIf(requireNonNull(predicate).negate());
+        return takeIf(requireNonNull(predicate).negate());
     }
 
     /**
@@ -101,8 +112,18 @@ public interface Pipe<E> extends AutoCloseable {
      * @see #dropIf(Predicate)
      */
     default Pipe<E> dropIfOrderly(LongBiPredicate<? super E> predicate) {
-        return keepIfOrderly(requireNonNull(predicate).negate());
+        return takeIfOrderly(requireNonNull(predicate).negate());
     }
+
+    default Pipe<E> dropFirst() {
+        return skip(1L);
+    }
+
+    default Pipe<E> dropLast() {
+        return dropLast(1L);
+    }
+
+    Pipe<E> dropLast(long count);
 
     /**
      * 保留元素直到给定的断言首次为{@code False}，丢弃之后的元素。
@@ -153,7 +174,7 @@ public interface Pipe<E> extends AutoCloseable {
      */
     default Pipe<E> nonNullBy(Function<? super E, ?> mapper) {
         requireNonNull(mapper);
-        return keepIf(value -> mapper.apply(value) != null);
+        return takeIf(value -> mapper.apply(value) != null);
     }
 
     /**
@@ -185,6 +206,18 @@ public interface Pipe<E> extends AutoCloseable {
     default Pipe<String> mapToString(String nullDefault) {
         return map(value -> Objects.toString(value, nullDefault));
     }
+
+    default Pipe<E> mapIf(Predicate<? super E> condition, E replacement) {
+        return mapIf(condition, () -> replacement);
+    }
+
+    default Pipe<E> mapIf(Predicate<? super E> condition, Supplier<? extends E> replacementSupplier) {
+        return mapIf(condition, ignoredValue -> replacementSupplier.get());
+    }
+
+    Pipe<E> mapIf(Predicate<? super E> condition, Function<? super E, ? extends E> mapper);
+
+    Pipe<E> mapIf(Function<? super E, Optional<? extends E>> mapper);
 
     /**
      * 将此流水线中的元素映射为其他类型，映射方法支持访问元素在流水线中的次序，从0开始计算，使用{@code long}类型的数据表示次序。
@@ -269,6 +302,10 @@ public interface Pipe<E> extends AutoCloseable {
      * @see Stream#flatMap(Function)
      */
     <R> Pipe<R> flatMap(Function<? super E, ? extends Pipe<? extends R>> mapper);
+
+    default <R> Pipe<R> flatMapCollection(Function<? super E, ? extends Collection<? extends R>> mapper) {
+        return map(mapper).flatMap(Pipes::iterable);
+    }
 
     /**
      * 将流水线中的元素映射为新的流水线，并按照次序拼接为一条流水线，支持访问元素的次序。
@@ -367,6 +404,8 @@ public interface Pipe<E> extends AutoCloseable {
      */
     <F, S> BiPipe<F, S> extendToTuple(Function<? super E, ? extends F> firstMapper,
         Function<? super E, ? extends S> secondMapper);
+
+    BiPipe<E, E> pairExtend(boolean keepLastIncompletePair);
 
     /**
      * 使用给定的映射方法，将此流水线扩展为三元组的流水线。
@@ -710,6 +749,8 @@ public interface Pipe<E> extends AutoCloseable {
         return append(map.values().spliterator());
     }
 
+    Pipe<E> disperse(E delimiter); // OPT 2023-05-18 23:15 考虑更多类似的API
+
     /**
      * 按照给定数量，对元素进行分区，并将分区结果封装为新的流水线。
      * <p/>
@@ -977,6 +1018,32 @@ public interface Pipe<E> extends AutoCloseable {
         return minByOrderly(mapper, optimizedReverseOrder(comparator));
     }
 
+    default Tuple<Optional<E>, Optional<E>> minMax() {
+        return minMax(null);
+    }
+
+    Tuple<Optional<E>, Optional<E>> minMax(Comparator<? super E> comparator);
+
+    default <K extends Comparable<? super K>> Tuple<Optional<E>, Optional<E>> minMaxBy(
+        Function<? super E, ? extends K> mapper) {
+        return isStdIdentify(mapper) ? minMax() : minMax(comparing(mapper));
+    }
+
+    @SuppressWarnings("unchecked")
+    default <K> Tuple<Optional<E>, Optional<E>> minMaxBy(Function<? super E, ? extends K> mapper,
+        Comparator<? super K> comparator) {
+        return isStdIdentify(mapper) ? minMax((Comparator<? super E>) comparator) :
+            minMax(comparing(mapper, comparator));
+    }
+
+    default <K extends Comparable<? super K>> Tuple<Optional<E>, Optional<E>> minMaxByOrderly(
+        LongBiFunction<? super E, ? extends K> mapper) {
+        return minMaxByOrderly(mapper, naturalOrder());
+    }
+
+    <K> Tuple<Optional<E>, Optional<E>> minMaxByOrderly(LongBiFunction<? super E, ? extends K> mapper,
+        Comparator<? super K> comparator);
+
     /**
      * 计算当前流水线中元素的数量。
      *
@@ -1148,6 +1215,10 @@ public interface Pipe<E> extends AutoCloseable {
 
     default String join() {
         return join(",", "", "");
+    }
+
+    default <U> U chain(Function<? super Pipe<E>, U> function) {
+        return function.apply(this);
     }
 
     Pipe<E> onClose(Runnable closeAction);

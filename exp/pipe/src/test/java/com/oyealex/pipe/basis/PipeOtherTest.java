@@ -37,7 +37,7 @@ class PipeOtherTest extends PipeTestBase {
         List<String> callRecords = new ArrayList<>();
         of(ELEMENTS).onClose(() -> callRecords.add("CallAfterInit"))
             .onClose(() -> callRecords.add("CallAfterInit#2"))
-            .keepIf(Objects::nonNull)
+            .takeIf(Objects::nonNull)
             .onClose(() -> callRecords.add("callAfterFilter"))
             .close();
         assertEquals(List.of("CallAfterInit", "CallAfterInit#2", "callAfterFilter"), callRecords);

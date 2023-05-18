@@ -1,12 +1,15 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.basis.api.Pipe;
+import com.oyealex.pipe.spliterator.MoreSpliterators;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
@@ -49,6 +52,10 @@ public class Pipes {
         return new PipeHead<>(spliterator);
     }
 
+    public static <T> Pipe<T> singleton(T singleton) {
+        return spliterator(MoreSpliterators.singleton(singleton));
+    }
+
     /**
      * 根据给定的元素构造一个新的流水线实例。
      *
@@ -59,40 +66,46 @@ public class Pipes {
     @SafeVarargs
     @SuppressWarnings("varargs")
     public static <T> Pipe<T> of(T... values) {
+        if (values.length == 0) {
+            return empty();
+        }
+        if (values.length == 1) {
+            return singleton(values[0]);
+        }
         return spliterator(Arrays.spliterator(values));
     }
 
-    /**
-     * 创建一个含有无限元素的流水线，元素的生成以给定的种子{@code seed}为基础，每个元素都是对上一个元素应用{@code generator}
-     * 生成，即使生成的结果为{@code null}也会被认为是有效元素。
-     *
-     * @param seed 初始种子元素，第0个元素
-     * @param generator 后续元素的生成器，以前一个元素为参数
-     * @param <T> 元素类型
-     * @return 无限长度的流水线
-     * @see Stream#iterate(Object, UnaryOperator)
-     */
-    public static <T> Pipe<T> iterate(final T seed, final UnaryOperator<T> generator) {
-        requireNonNull(generator);
-        return new PipeHead<>(new Spliterators.AbstractSpliterator<>(MAX_VALUE, ORDERED | IMMUTABLE) {
-            private T previous;
+    public static <T> Pipe<T> constant(T constant, int count) {
+        if (count < 0) {
+            throw new IllegalArgumentException("Pipe length cannot be negative: " + count);
+        }
+        if (count == 0) {
+            return empty();
+        }
+        if (count == 1) {
+            return singleton(constant);
+        }
+        return spliterator(MoreSpliterators.constant(constant, count));
+    }
 
-            private boolean started;
+    public static <T> Pipe<T> optional(T value) {
+        return value == null ? empty() : singleton(value);
+    }
 
-            @Override
-            public boolean tryAdvance(Consumer<? super T> action) {
-                requireNonNull(action);
-                T value;
-                if (started) {
-                    value = generator.apply(previous);
-                } else {
-                    value = seed;
-                    started = true;
-                }
-                action.accept(previous = value);
-                return true;
-            }
-        });
+    public static <T> Pipe<T> keys(Map<T, ?> map) {
+        throw new UnsupportedOperationException();
+    }
+
+    public static <T, V> Pipe<T> keys(Map<T, V> map, Predicate<? super V> valuePredicate) {
+        throw new UnsupportedOperationException();
+    }
+
+    public static <T> Pipe<T> values(Map<?, T> map) {
+        throw new UnsupportedOperationException();
+    }
+
+    public static <T, K> Pipe<T> values(Map<K, T> map, Predicate<? super K> keyPredicate) {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -144,6 +157,39 @@ public class Pipes {
      */
     public static <T> Pipe<T> stream(Stream<? extends T> stream) {
         return new PipeHead<>(stream.spliterator());
+    }
+
+    /**
+     * 创建一个含有无限元素的流水线，元素的生成以给定的种子{@code seed}为基础，每个元素都是对上一个元素应用{@code generator}
+     * 生成，即使生成的结果为{@code null}也会被认为是有效元素。
+     *
+     * @param seed 初始种子元素，第0个元素
+     * @param generator 后续元素的生成器，以前一个元素为参数
+     * @param <T> 元素类型
+     * @return 无限长度的流水线
+     * @see Stream#iterate(Object, UnaryOperator)
+     */
+    public static <T> Pipe<T> iterate(final T seed, final UnaryOperator<T> generator) {
+        requireNonNull(generator);
+        return new PipeHead<>(new Spliterators.AbstractSpliterator<>(MAX_VALUE, ORDERED | IMMUTABLE) {
+            private T previous;
+
+            private boolean started;
+
+            @Override
+            public boolean tryAdvance(Consumer<? super T> action) {
+                requireNonNull(action);
+                T value;
+                if (started) {
+                    value = generator.apply(previous);
+                } else {
+                    value = seed;
+                    started = true;
+                }
+                action.accept(previous = value);
+                return true;
+            }
+        });
     }
 
     /**

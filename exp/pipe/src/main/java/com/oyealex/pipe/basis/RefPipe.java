@@ -11,9 +11,9 @@ import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import com.oyealex.pipe.bi.BiPipe;
 import com.oyealex.pipe.flag.PipeFlag;
-import com.oyealex.pipe.spliterator.ConcatSpliterator;
-import com.oyealex.pipe.spliterator.SingletonSpliterator;
+import com.oyealex.pipe.spliterator.MoreSpliterators;
 import com.oyealex.pipe.tri.TriPipe;
+import com.oyealex.pipe.utils.Tuple;
 
 import java.util.Comparator;
 import java.util.Iterator;
@@ -156,7 +156,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Pipe<OUT> keepIf(Predicate<? super OUT> predicate) {
+    public Pipe<OUT> takeIf(Predicate<? super OUT> predicate) {
         requireNonNull(predicate);
         return new RefPipe<>(this, NOT_SIZED) {
             @Override
@@ -167,7 +167,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Pipe<OUT> keepIfOrderly(LongBiPredicate<? super OUT> predicate) {
+    public Pipe<OUT> takeIfOrderly(LongBiPredicate<? super OUT> predicate) {
         requireNonNull(predicate);
         return new RefPipe<>(this, NOT_SIZED) {
             @Override
@@ -175,6 +175,16 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
                 return SimpleOps.keepIfOrderlyOp(nextOp, predicate);
             }
         };
+    }
+
+    @Override
+    public Pipe<OUT> takeLast(long count) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Pipe<OUT> dropLast(long count) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -219,6 +229,16 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
                 return SimpleOps.mapOp(nextOp, mapper);
             }
         };
+    }
+
+    @Override
+    public Pipe<OUT> mapIf(Predicate<? super OUT> condition, Function<? super OUT, ? extends OUT> mapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Pipe<OUT> mapIf(Function<? super OUT, Optional<? extends OUT>> mapper) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -304,12 +324,17 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<Pipe<OUT>> flatMapSingleton() {
-        return map(value -> spliterator(new SingletonSpliterator<>(value)));
+        return map(value -> spliterator(MoreSpliterators.singleton(value)));
     }
 
     @Override
     public <F, S> BiPipe<F, S> extendToTuple(Function<? super OUT, ? extends F> firstMapper,
         Function<? super OUT, ? extends S> secondMapper) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public BiPipe<OUT, OUT> pairExtend(boolean keepLastIncompletePair) {
         throw new UnsupportedOperationException();
     }
 
@@ -435,29 +460,34 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public Pipe<OUT> prepend(Spliterator<? extends OUT> spliterator) {
         requireNonNull(spliterator);
-        @SuppressWarnings("unchecked") ConcatSpliterator<OUT, Spliterator<OUT>> finalSpliterator
-            = new ConcatSpliterator<>((Spliterator<OUT>) spliterator, toSpliterator());
+        @SuppressWarnings("unchecked") Spliterator<OUT> finalSpliterator = MoreSpliterators.concat(
+            (Spliterator<OUT>) spliterator, toSpliterator());
         Pipe<OUT> pipe = spliterator(finalSpliterator);
         return pipe.onClose(this::close);
     }
 
     @Override
     public Pipe<OUT> prepend(OUT value) {
-        return prepend(new SingletonSpliterator<>(value));
+        return prepend(MoreSpliterators.singleton(value));
     }
 
     @Override
     public Pipe<OUT> append(Spliterator<? extends OUT> spliterator) {
         requireNonNull(spliterator);
-        @SuppressWarnings("unchecked") ConcatSpliterator<OUT, Spliterator<OUT>> finalSpliterator
-            = new ConcatSpliterator<>(toSpliterator(), (Spliterator<OUT>) spliterator);
+        @SuppressWarnings("unchecked") Spliterator<OUT> finalSpliterator = MoreSpliterators.concat(toSpliterator(),
+            (Spliterator<OUT>) spliterator);
         Pipe<OUT> pipe = spliterator(finalSpliterator);
         return pipe.onClose(this::close);
     }
 
     @Override
     public Pipe<OUT> append(OUT value) {
-        return append(new SingletonSpliterator<>(value));
+        return append(MoreSpliterators.singleton(value));
+    }
+
+    @Override
+    public Pipe<OUT> disperse(OUT delimiter) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -529,6 +559,17 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         requireNonNull(mapper);
         return evaluate(SimpleOps.minByOrderlyTerminalOp(mapper, naturalOrderIfNull(comparator))).map(
             result -> result.second);
+    }
+
+    @Override
+    public Tuple<Optional<OUT>, Optional<OUT>> minMax(Comparator<? super OUT> comparator) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <K> Tuple<Optional<OUT>, Optional<OUT>> minMaxByOrderly(LongBiFunction<? super OUT, ? extends K> mapper,
+        Comparator<? super K> comparator) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
