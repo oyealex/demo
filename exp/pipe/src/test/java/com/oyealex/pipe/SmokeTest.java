@@ -1,10 +1,9 @@
 package com.oyealex.pipe;
 
 import com.oyealex.pipe.basis.Pipes;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Iterator;
+import java.util.Optional;
 
 /**
  * Smoke
@@ -15,8 +14,10 @@ import java.util.Iterator;
 class SmokeTest extends PipeTestBase {
     @Test
     void smoke() {
-        Iterator<String> iterator = seqStrPipe().limit(25).toIterator();
-        // System.out.println(Pipes.iterator(iterator).takeLast(10).limit(5).toList());
-        System.out.println(Pipes.iterator(iterator).dropLast(10).limit(5).toList());
+        // System.out.println(seqStrPipe().disperse("_").limit(10).toList());
+        // System.out.println(seqStrPipe().limit(10).disperse("_").toList());
+        // System.out.println(seqStrPipe().limit(10).disperse("_").limit(10).toList());
+        System.out.println(Pipes.singleton("1").map(e -> null).println().anyNull());
+        System.out.println(Pipes.singleton("1").mapIf(e -> Optional.empty()).println().anyNull());
     }
 }

@@ -14,7 +14,7 @@ import static java.util.stream.Collectors.toList;
  * @author oyealex
  * @since 2023-05-05
  */
-public enum PipeFlag {
+public enum PipeFlag { // TODO 2023-05-20 01:02 重新审视所有标记使用，尤其是IS_NONNULL
     /**
      * 标记流水线中的数据基于{@link Object#equals(Object)}比较规则判定是否唯一
      *
@@ -82,7 +82,7 @@ public enum PipeFlag {
 
     public static final int IS_SHORT_CIRCUIT = SHORT_CIRCUIT.setBit;
 
-    public static final int NOT_SHORT_CIRCUIT = SHORT_CIRCUIT.clearBit;
+    // there is no NOT_SHORT_CIRCUIT
 
     public static final int IS_REVERSED_SORTED = REVERSED_SORTED.setBit;
 
@@ -204,8 +204,10 @@ public enum PipeFlag {
     );
 
     static List<String> toReadableSplitCharacteristics(int flagVale) {
-        return SPLITERATOR_CHARACTERISTICS_MAP.entrySet().stream()
+        return SPLITERATOR_CHARACTERISTICS_MAP.entrySet()
+            .stream()
             .map(entry -> (flagVale & entry.getKey()) == entry.getKey() ? entry.getValue() : null)
-            .filter(Objects::nonNull).collect(toList());
+            .filter(Objects::nonNull)
+            .collect(toList());
     }
 }

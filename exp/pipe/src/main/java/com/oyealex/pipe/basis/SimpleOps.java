@@ -257,4 +257,47 @@ final class SimpleOps {
             }
         };
     }
+
+    public static <T> Op<T> mapIfOp(Op<T> nextOp, Predicate<? super T> condition,
+        Function<? super T, ? extends T> mapper) {
+        return new ChainedOp<>(nextOp) {
+            @Override
+            public void accept(T value) {
+                if (condition.test(value)) {
+                    nextOp.accept(mapper.apply(value));
+                } else {
+                    nextOp.accept(value);
+                }
+            }
+        };
+    }
+
+    public static <T> Op<T> mapIfOp(Op<T> nextOp, Function<? super T, Optional<? extends T>> mapper) {
+        return new ChainedOp<>(nextOp) {
+            @Override
+            public void accept(T value) {
+                Optional<? extends T> opt = mapper.apply(value);
+                nextOp.accept(opt.isPresent() ? opt.get() : value);
+            }
+        };
+    }
+
+    public static <T> Op<T> disperse(Op<T> nextOp, T delimiter) {
+        return new ChainedOp.ShortCircuitRecorded<>(nextOp) {
+            private boolean seen = false;
+
+            @Override
+            public void accept(T value) {
+                if (seen) {
+                    nextOp.accept(delimiter);
+                    if (shouldShortCircuit()) {
+                        return;
+                    }
+                } else {
+                    seen = true;
+                }
+                nextOp.accept(value);
+            }
+        };
+    }
 }

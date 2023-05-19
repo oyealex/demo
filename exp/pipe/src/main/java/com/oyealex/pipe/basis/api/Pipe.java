@@ -1120,9 +1120,7 @@ public interface Pipe<E> extends AutoCloseable {
 
     E[] toArray(IntFunction<E[]> generator);
 
-    default Spliterator<E> toSpliterator() {
-        return Spliterators.emptySpliterator();
-    }
+    Spliterator<E> toSpliterator();
 
     default List<E> toList() { // OPT 2023-05-14 00:02 默认可变 or 默认不可变，通过全局配置控制
         return toList(ArrayList::new);
@@ -1227,4 +1225,12 @@ public interface Pipe<E> extends AutoCloseable {
     void close();
 
     Pipe<E> debug();
+
+    default Pipe<E> println() { // DBG 2023-05-20 01:07 调试接口
+        return peek(System.out::println);
+    }
+
+    default Pipe<E> print() { // DBG 2023-05-20 01:08 调试接口
+        return peek(System.out::print);
+    }
 }
