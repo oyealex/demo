@@ -178,7 +178,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Pipe<OUT> takeLast(long count) {
+    public Pipe<OUT> takeLast(int count) {
         if (count < 0) {
             throw new IllegalArgumentException("The count to take last is at least 0: " + count);
         }
@@ -189,7 +189,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Pipe<OUT> dropLast(long count) {
+    public Pipe<OUT> dropLast(int count) {
         if (count < 0) {
             throw new IllegalArgumentException("The count to drop last is at least 0: " + count);
         }
@@ -678,9 +678,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
                     @Override
                     public void accept(OUT value) {
-                        if (value == null) {
-                            // noop
-                        }
+                        nextOp.accept(value);
                     }
 
                     @Override

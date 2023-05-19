@@ -85,10 +85,10 @@ public interface Pipe<E> extends AutoCloseable {
     }
 
     default Pipe<E> takeLast() {
-        return takeLast(1L);
+        return takeLast(1);
     }
 
-    Pipe<E> takeLast(long count);
+    Pipe<E> takeLast(int count);
 
     /**
      * 根据给定断言的结果丢弃元素。
@@ -120,10 +120,10 @@ public interface Pipe<E> extends AutoCloseable {
     }
 
     default Pipe<E> dropLast() {
-        return dropLast(1L);
+        return dropLast(1);
     }
 
-    Pipe<E> dropLast(long count);
+    Pipe<E> dropLast(int count);
 
     /**
      * 保留元素直到给定的断言首次为{@code False}，丢弃之后的元素。

@@ -4,6 +4,8 @@ import com.oyealex.pipe.basis.Pipes;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Iterator;
+
 /**
  * Smoke
  *
@@ -12,8 +14,9 @@ import org.junit.jupiter.api.Test;
  */
 class SmokeTest extends PipeTestBase {
     @Test
-    @DisplayName("smoke")
     void smoke() {
-        System.out.println(seqStrPipe().limit(10).debug().count());
+        Iterator<String> iterator = seqStrPipe().limit(25).toIterator();
+        // System.out.println(Pipes.iterator(iterator).takeLast(10).limit(5).toList());
+        System.out.println(Pipes.iterator(iterator).dropLast(10).limit(5).toList());
     }
 }
