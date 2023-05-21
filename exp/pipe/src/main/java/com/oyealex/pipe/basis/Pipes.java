@@ -2,10 +2,14 @@ package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.basis.api.Pipe;
 import com.oyealex.pipe.spliterator.MoreSpliterators;
+import com.oyealex.pipe.utils.NoInstance;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
@@ -25,11 +29,7 @@ import static java.util.Spliterator.ORDERED;
  * @author oyealex
  * @since 2023-04-28
  */
-public class Pipes { // TODO 2023-05-21 19:05 添加自定义Flag的支持，用于指导生成流水线的优化
-    private Pipes() {
-        throw new IllegalStateException("no instance available");
-    }
-
+public final class Pipes extends NoInstance { // TODO 2023-05-21 19:05 添加自定义Flag的支持，用于指导生成流水线的优化
     /**
      * 构造一个空的流水线实例。
      *
@@ -48,7 +48,7 @@ public class Pipes { // TODO 2023-05-21 19:05 添加自定义Flag的支持，用
      * @param <T> 拆分器中的元素类型
      * @return 新的流水线实例
      */
-    public static <T> Pipe<T> spliterator(Spliterator<T> spliterator) {
+    public static <T> Pipe<T> spliterator(Spliterator<? extends T> spliterator) {
         return new PipeHead<>(spliterator);
     }
 
@@ -212,5 +212,17 @@ public class Pipes { // TODO 2023-05-21 19:05 添加自定义Flag的支持，用
      */
     public static <T> Pipe<T> iterable(Iterable<? extends T> iterable) {
         return iterator(iterable.iterator());
+    }
+
+    public static <T> Pipe<T> list(List<? extends T> list) {
+        return list == null || list.isEmpty() ? empty() : spliterator(list.spliterator());
+    }
+
+    public static <T> Pipe<T> set(Set<? extends T> set) {
+        return set == null || set.isEmpty() ? empty() : spliterator(set.spliterator());
+    }
+
+    public static <T> Pipe<T> collection(Collection<? extends T> collection) {
+        return collection == null || collection.isEmpty() ? empty() : spliterator(collection.spliterator());
     }
 }

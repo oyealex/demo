@@ -3,6 +3,7 @@ package com.oyealex.pipe.basis.api;
 import com.oyealex.pipe.basis.Pipes;
 import com.oyealex.pipe.basis.api.policy.MergePolicy;
 import com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy;
+import com.oyealex.pipe.basis.api.policy.PartitionPolicy;
 import com.oyealex.pipe.basis.functional.LongBiConsumer;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
@@ -762,7 +763,9 @@ public interface Pipe<E> extends AutoCloseable {
      */
     Pipe<Pipe<E>> partition(int size);
 
-    Pipe<Pipe<E>> partition(Predicate<? super E> condition);
+    Pipe<Pipe<E>> partition(Function<? super E, PartitionPolicy> function);
+
+    Pipe<Pipe<E>> partitionOrderly(LongBiFunction<? super E, PartitionPolicy> function);
 
     /**
      * 按照给定数量，对元素进行分区，并将分区结果封装为列表。

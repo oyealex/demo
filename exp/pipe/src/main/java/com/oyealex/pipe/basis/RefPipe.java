@@ -6,6 +6,7 @@ import com.oyealex.pipe.basis.api.LongPipe;
 import com.oyealex.pipe.basis.api.Pipe;
 import com.oyealex.pipe.basis.api.policy.MergePolicy;
 import com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy;
+import com.oyealex.pipe.basis.api.policy.PartitionPolicy;
 import com.oyealex.pipe.basis.functional.LongBiConsumer;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
@@ -527,12 +528,17 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         if (size < 1) {
             throw new IllegalArgumentException("partition size cannot be less then 1, size: " + size);
         }
-        return size == 1 ? flatMapSingleton() : new PartitionOp<>(this, size);
+        return size == 1 ? flatMapSingleton() : new PartitionOp.Sized<>(this, size);
     }
 
     @Override
-    public Pipe<Pipe<OUT>> partition(Predicate<? super OUT> condition) {
-        throw new UnsupportedOperationException();
+    public Pipe<Pipe<OUT>> partition(Function<? super OUT, PartitionPolicy> function) {
+        return new PartitionOp.Policy<>(this, function);
+    }
+
+    @Override
+    public Pipe<Pipe<OUT>> partitionOrderly(LongBiFunction<? super OUT, PartitionPolicy> function) {
+        return new PartitionOp.PolicyOrderly<>(this, function);
     }
 
     @Override

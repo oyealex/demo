@@ -1,5 +1,7 @@
 package com.oyealex.pipe.spliterator;
 
+import com.oyealex.pipe.utils.NoInstance;
+
 import java.util.Spliterator;
 
 /**
@@ -8,11 +10,7 @@ import java.util.Spliterator;
  * @author oyealex
  * @since 2023-05-18
  */
-public class MoreSpliterators {
-    private MoreSpliterators() {
-        throw new IllegalStateException("no instance available");
-    }
-
+public final class MoreSpliterators extends NoInstance {
     public static <T> Spliterator<T> singleton(T singleton) {
         return new SingletonSpliterator<>(singleton);
     }
