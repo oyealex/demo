@@ -56,7 +56,37 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 
 /**
- * 基于引用的抽象流水线。
+ * 基于引用的抽象流水线实现
+ * <br/>
+ * 此实现为引用类型的数据流水线提供支持。
+ * <p/>
+ * 一个典型的流水线：
+ * <pre>{@code
+ *     Pipes.of("This", "is", "an", "example", "of", "Pipe")
+ *         .takeIf(word -> word.length() < 2)
+ *         .sort()
+ *         .limit(2)
+ *         .toList();
+ * }</pre>
+ * 构造得到流水线的结构：
+ * <pre><code>
+ *     ┌─────┬─────────────────────┬────────────────┬────────────────┬────────────────────┐
+ *     ↓     │                     │                │                │                    │
+ *      Head                    takeIf            sort             limit               toList
+ *  ┌──────────┐             ┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────────────┐
+ *  │ PipeHead │ ←────────── │ takeIfOp │ ←── │  SortOp  │ ←── │  SliceOp │ ←── │ reduceTerminalOp │
+ *  └──────────┘             └──────────┘     └──────────┘     └──────────┘     └──────────────────┘
+ *        │                        │                │                │                    │
+ *        │                     wrapOp           wrapOp           wrapOp                  │
+ *        ↓                        ↓                ↓                ↓                    ↓
+ * ╭─────────────╮ driveData ╭──────────╮     ╭──────────╮     ╭──────────╮        ╭────────────╮ get ╔══════╗
+ * │ Spliterator │ ────────→ │    Op    │ ──→ │    Op    │ ──→ │    Op    │ ─────→ │ TerminalOp │ ──→ ║ list ║
+ * ╰─────────────╯           ╰──────────╯     ╰──────────╯     ╰──────────╯        ╰────────────╯     ╚══════╝
+ * </code></pre>
+ * 运行示意图：
+ * <pre><code>
+ *
+ * </code></pre>
  *
  * @author oyealex
  * @see Pipe
