@@ -574,12 +574,12 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Optional<OUT> min(Comparator<? super OUT> comparator) { // TODO 2023-05-13 00:21 处理null值问题
-        if ((isStdNaturalOrder(comparator) && isFlagSet(SORTED) ||
-            (isStdReverseOrder(comparator) && isFlagSet(REVERSED_SORTED)))) {
+        if (isStdNaturalOrder(comparator) && isFlagSet(SORTED) ||
+            isStdReverseOrder(comparator) && isFlagSet(REVERSED_SORTED)) {
             return findFirst();
         }
-        if ((isStdNaturalOrder(comparator) && isFlagSet(REVERSED_SORTED) ||
-            (isStdReverseOrder(comparator) && isFlagSet(SORTED)))) {
+        if (isStdNaturalOrder(comparator) && isFlagSet(REVERSED_SORTED) ||
+            isStdReverseOrder(comparator) && isFlagSet(SORTED)) {
             return findLast();
         }
         return evaluate(SimpleOps.minTerminalOp(naturalOrderIfNull(comparator)));
@@ -595,13 +595,23 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Tuple<Optional<OUT>, Optional<OUT>> minMax(Comparator<? super OUT> comparator) {
-        throw new UnsupportedOperationException();
+        if (isStdNaturalOrder(comparator) && isFlagSet(SORTED) ||
+            isStdReverseOrder(comparator) && isFlagSet(REVERSED_SORTED)) {
+            return findFirstLast();
+        }
+        if (isStdNaturalOrder(comparator) && isFlagSet(REVERSED_SORTED) ||
+            isStdReverseOrder(comparator) && isFlagSet(SORTED)) {
+            return findFirstLast().swap();
+        }
+        return evaluate(SimpleOps.minMaxTerminalOp(naturalOrderIfNull(comparator)));
     }
 
     @Override
     public <K> Tuple<Optional<OUT>, Optional<OUT>> minMaxByOrderly(LongBiFunction<? super OUT, ? extends K> mapper,
         Comparator<? super K> comparator) {
-        throw new UnsupportedOperationException();
+        requireNonNull(mapper);
+        return evaluate(SimpleOps.minMaxByOrderlyTerminalOp(mapper, naturalOrderIfNull(comparator))).map(
+            first -> first.map(Tuple::getSecond), second -> second.map(Tuple::getSecond));
     }
 
     @Override
@@ -645,6 +655,11 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public Optional<OUT> findLast() {
         return evaluate(SimpleOps.findLastTerminalOp());
+    }
+
+    @Override
+    public Tuple<Optional<OUT>, Optional<OUT>> findFirstLast() {
+        return evaluate(SimpleOps.findFirstLastTerminalOp());
     }
 
     @Override

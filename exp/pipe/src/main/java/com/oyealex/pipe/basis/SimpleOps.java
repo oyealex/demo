@@ -3,6 +3,7 @@ package com.oyealex.pipe.basis;
 import com.oyealex.pipe.basis.functional.LongBiConsumer;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
+import com.oyealex.pipe.utils.NoInstance;
 import com.oyealex.pipe.utils.Tuple;
 
 import java.util.Comparator;
@@ -21,11 +22,7 @@ import static com.oyealex.pipe.flag.PipeFlag.IS_SHORT_CIRCUIT;
  * @author oyealex
  * @since 2023-04-28
  */
-final class SimpleOps {
-    private SimpleOps() {
-        throw new IllegalStateException("no instance available");
-    }
-
+final class SimpleOps extends NoInstance {
     public static <T> TerminalOp<T, Long> countOp() {
         return new TerminalOp.Orderly<>() {
             @Override
@@ -297,6 +294,73 @@ final class SimpleOps {
                     seen = true;
                 }
                 nextOp.accept(value);
+            }
+        };
+    }
+
+    public static <T> TerminalOp<T, Tuple<Optional<T>, Optional<T>>> minMaxTerminalOp(
+        Comparator<? super T> comparator) {
+        return new TerminalOp.FindTupleOpt<>() {
+            @Override
+            public void accept(T value) {
+                if (foundFirst) {
+                    if (comparator.compare(first, value) > 0) {
+                        first = value;
+                    }
+                } else {
+                    first = value;
+                    foundFirst = true;
+                }
+                if (foundSecond) {
+                    if (comparator.compare(second, value) < 0) {
+                        second = value;
+                    }
+                } else {
+                    second = value;
+                    foundSecond = true;
+                }
+            }
+        };
+    }
+
+    public static <T, K> TerminalOp<T, Tuple<Optional<Tuple<K, T>>, Optional<Tuple<K, T>>>> minMaxByOrderlyTerminalOp(
+        LongBiFunction<? super T, ? extends K> mapper, Comparator<? super K> comparator) {
+        return new TerminalOp.FindTupleOpt<>() {
+            private long index = 0L;
+
+            @Override
+            public void accept(T value) {
+                K key = mapper.apply(index++, value);
+                if (foundSecond) {
+                    if (comparator.compare(second.first, key) < 0) {
+                        second = new Tuple<>(key, value);
+                    }
+                } else {
+                    second = new Tuple<>(key, value);
+                    foundSecond = true;
+                }
+                if (foundFirst) {
+                    if (comparator.compare(first.first, key) > 0) {
+                        first = new Tuple<>(key, value);
+                    }
+                } else {
+                    first = new Tuple<>(key, value);
+                    foundFirst = true;
+                }
+            }
+        };
+    }
+
+    public static <T> TerminalOp<T, Tuple<Optional<T>, Optional<T>>> findFirstLastTerminalOp() {
+        return new TerminalOp.FindTupleOpt<>() {
+            @Override
+            public void accept(T value) {
+                second = value;
+                foundSecond = true;
+                if (!foundFirst) {
+                    first = value;
+                    foundFirst = true;
+                }
             }
         };
     }

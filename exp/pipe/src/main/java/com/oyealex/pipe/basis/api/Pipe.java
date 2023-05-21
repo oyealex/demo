@@ -1106,6 +1106,8 @@ public interface Pipe<E> extends AutoCloseable {
         return nonNull().findLast();
     }
 
+    Tuple<Optional<E>, Optional<E>> findFirstLast();
+
     /**
      * 同{@link #findFirst()}。
      *

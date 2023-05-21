@@ -25,7 +25,7 @@ import static java.util.Spliterator.ORDERED;
  * @author oyealex
  * @since 2023-04-28
  */
-public class Pipes {
+public class Pipes { // TODO 2023-05-21 19:05 添加自定义Flag的支持，用于指导生成流水线的优化
     private Pipes() {
         throw new IllegalStateException("no instance available");
     }

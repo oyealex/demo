@@ -1,6 +1,7 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.flag.PipeFlag;
+import com.oyealex.pipe.utils.Tuple;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -64,6 +65,21 @@ interface TerminalOp<T, R> extends Op<T>, Supplier<R> {
         @Override
         public Optional<R> get() {
             return found ? of(result) : empty();
+        }
+    }
+
+    abstract class FindTupleOpt<T, F, S> implements TerminalOp<T, Tuple<Optional<F>, Optional<S>>> {
+        protected F first;
+
+        protected S second;
+
+        protected boolean foundFirst = false;
+
+        protected boolean foundSecond = false;
+
+        @Override
+        public Tuple<Optional<F>, Optional<S>> get() {
+            return new Tuple<>(foundFirst ? of(first) : empty(), foundSecond ? of(second) : empty());
         }
     }
 
