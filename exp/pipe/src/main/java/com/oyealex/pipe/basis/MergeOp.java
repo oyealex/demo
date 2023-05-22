@@ -6,7 +6,6 @@ import com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy;
 
 import java.util.Spliterator;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import static com.oyealex.pipe.basis.api.policy.MergePolicy.DROP_THEIRS;
 import static com.oyealex.pipe.basis.api.policy.MergePolicy.PREFER_THEIRS;
@@ -28,16 +27,16 @@ class MergeOp<OURS, THEIRS, RESULT> extends RefPipe<OURS, RESULT> { // OPT 2023-
 
     private final BiFunction<? super OURS, ? super THEIRS, MergePolicy> mergeHandle;
 
-    private final Function<? super OURS, ? extends RESULT> oursMapper;
+    private final BiFunction<? super OURS, MergePolicy, ? extends RESULT> oursMapper;
 
-    private final Function<? super THEIRS, ? extends RESULT> theirsMapper;
+    private final BiFunction<? super THEIRS, MergePolicy, ? extends RESULT> theirsMapper;
 
     private final MergeRemainingPolicy remainingPolicy;
 
     MergeOp(RefPipe<?, ? extends OURS> prePipe, Pipe<? extends THEIRS> theirsPipe,
         BiFunction<? super OURS, ? super THEIRS, MergePolicy> mergeHandle,
-        Function<? super OURS, ? extends RESULT> oursMapper, Function<? super THEIRS, ? extends RESULT> theirsMapper,
-        MergeRemainingPolicy remainingPolicy) {
+        BiFunction<? super OURS, MergePolicy, ? extends RESULT> oursMapper,
+        BiFunction<? super THEIRS, MergePolicy, ? extends RESULT> theirsMapper, MergeRemainingPolicy remainingPolicy) {
         super(prePipe, NOT_SORTED | NOT_DISTINCT | NOT_SIZED | NOT_NONNULL | NOT_REVERSED_SORTED);
         this.theirsPipe = theirsPipe;
         this.mergeHandle = mergeHandle;
@@ -91,24 +90,24 @@ class MergeOp<OURS, THEIRS, RESULT> extends RefPipe<OURS, RESULT> { // OPT 2023-
             private MergePolicy mergePair(OURS ours, MergePolicy policy) {
                 switch (policy) {
                     case TAKE_OURS:
-                        nextOp.accept(oursMapper.apply(ours));
+                        nextOp.accept(oursMapper.apply(ours, policy));
                         dropTheirs();
                         break;
                     case TAKE_THEIRS:
-                        nextOp.accept(theirsMapper.apply(theirs));
+                        nextOp.accept(theirsMapper.apply(theirs, policy));
                         dropTheirs();
                         break;
                     case PREFER_OURS:
-                        nextOp.accept(oursMapper.apply(ours));
+                        nextOp.accept(oursMapper.apply(ours, policy));
                         break;
                     case OURS_FIRST:
-                        nextOp.accept(oursMapper.apply(ours));
-                        nextOp.accept(theirsMapper.apply(theirs));
+                        nextOp.accept(oursMapper.apply(ours, policy));
+                        nextOp.accept(theirsMapper.apply(theirs, policy));
                         dropTheirs();
                         break;
                     case THEIRS_FIRST:
-                        nextOp.accept(theirsMapper.apply(theirs));
-                        nextOp.accept(oursMapper.apply(ours));
+                        nextOp.accept(theirsMapper.apply(theirs, policy));
+                        nextOp.accept(oursMapper.apply(ours, policy));
                         dropTheirs();
                         break;
                     case DROP_OURS:
@@ -127,7 +126,7 @@ class MergeOp<OURS, THEIRS, RESULT> extends RefPipe<OURS, RESULT> { // OPT 2023-
             private MergePolicy mergeOursWhenPreferTheirs(OURS ours) {
                 MergePolicy policy = PREFER_THEIRS;
                 do {
-                    nextOp.accept(theirsMapper.apply(theirs));
+                    nextOp.accept(theirsMapper.apply(theirs, policy));
                     dropTheirs();
                 } while (!shouldShortCircuit() && takeTheirsNext() &&
                     PREFER_THEIRS.equals(policy = mergeHandle.apply(ours, theirs)));
@@ -165,10 +164,11 @@ class MergeOp<OURS, THEIRS, RESULT> extends RefPipe<OURS, RESULT> { // OPT 2023-
                         break;
                     case TAKE_REMAINING:
                     case TAKE_OURS:
-                        nextOp.accept(oursMapper.apply(ours));
+                        nextOp.accept(oursMapper.apply(ours, MergePolicy.TAKE_OURS));
                         break;
                     case TAKE_THEIRS:
                     case DROP:
+                        dropTheirs();
                         break;
                 }
             }
@@ -184,7 +184,7 @@ class MergeOp<OURS, THEIRS, RESULT> extends RefPipe<OURS, RESULT> { // OPT 2023-
                             break;
                         case TAKE_REMAINING:
                         case TAKE_THEIRS:
-                            nextOp.accept(theirsMapper.apply(theirs));
+                            nextOp.accept(theirsMapper.apply(theirs, MergePolicy.TAKE_THEIRS));
                             dropTheirs();
                         case TAKE_OURS:
                         case DROP:

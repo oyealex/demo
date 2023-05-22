@@ -608,7 +608,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public <T, R> Pipe<R> merge(Pipe<? extends T> pipe, BiFunction<? super OUT, ? super T, MergePolicy> mergeHandle,
-        Function<? super OUT, ? extends R> oursMapper, Function<? super T, ? extends R> theirsMapper,
+        BiFunction<? super OUT, MergePolicy, ? extends R> oursMapper, BiFunction<? super T, MergePolicy, ? extends R> theirsMapper,
         MergeRemainingPolicy remainingPolicy) {
         onClose(pipe::close);
         return new MergeOp<>(this, requireNonNull(pipe), requireNonNull(mergeHandle), requireNonNull(oursMapper),

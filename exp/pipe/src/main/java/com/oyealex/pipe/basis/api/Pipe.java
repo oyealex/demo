@@ -1,5 +1,6 @@
 package com.oyealex.pipe.basis.api;
 
+import com.oyealex.pipe.base.BasePipe;
 import com.oyealex.pipe.basis.Pipes;
 import com.oyealex.pipe.basis.api.policy.MergePolicy;
 import com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy;
@@ -109,7 +110,7 @@ import static java.util.function.Function.identity;
  * @author oyealex
  * @since 2023-02-09
  */
-public interface Pipe<E> extends AutoCloseable {
+public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 根据给定断言保留元素。
      *
@@ -902,8 +903,45 @@ public interface Pipe<E> extends AutoCloseable {
 
     default Pipe<E> merge(Pipe<? extends E> pipe, BiFunction<? super E, ? super E, MergePolicy> mergeHandle,
         MergeRemainingPolicy remainingPolicy) {
-        return merge(pipe, mergeHandle, identity(), identity(), remainingPolicy);
+        return merge(pipe, mergeHandle, (value, policy) -> value, (value, policy) -> value, remainingPolicy);
     }
+
+    /**
+     * 将此流水线和另外一个流水线合并为一个新的流水线。
+     * <p/>
+     * 合并时会将两个流水线中的数据按次序进行比较，由{@code mergeHandle}返回这两个数据的合并策略，
+     * 此策略将指导如何从两个流水线中选择元素加入到新的流水线，各种策略的合并详情见{@link MergePolicy}。
+     * <p/>
+     * 合并时并不要求两条流水线的数据类型相同，但是被选中的数据根据来源不同，会分别经过{@code oursMapper}
+     * 和{@code theirsMapper}统一映射为最终的数据类型{@code R}，映射后的数据组成新的流水线。
+     * <p/>
+     * 由于两条流水线的元素数量可能不一致，或者受合并策略的影响，可能存在一条流水线还有数据待合并而另一条已经耗尽的情况，
+     * 此时需要根据{@code remainingPolicy}来决定剩余数据的处理策略，详见{@link MergeRemainingPolicy}。
+     *
+     * @param pipe 另一条需要合并的流水线。
+     * @param mergeHandle 流水线的合并策略。第一个参数为此流水线的数据，第二个参数为另一条流水线的数据，
+     * 受{@link MergeRemainingPolicy#MERGE_AS_NULL}和流水线自身数据的影响，这两个参数都可能为{@code null}。
+     * 返回值为这两个数据的合并策略，此合并策略<b>必须不能为</b>{@code null}，否则会导致{@link NullPointerException}。
+     * @param oursMapper 来自此流水线的数据被选中进入新流水线时的映射方法，第一个参数为被选中的数据，
+     * 第二个参数为此数据的合并策略。
+     * @param theirsMapper 来自另一条流水线的数据被选中进入新流水线时的映射方法，第一个参数为被选中的数据，
+     * 第二个参数为此数据的合并策略。
+     * @param remainingPolicy 当一条流水线耗尽时另一条流水线数据的处理策略，
+     * 传入{@code null}时等同于{@link MergeRemainingPolicy#TAKE_REMAINING}。
+     * @param <T> 另一条流水线的数据类型
+     * @param <R> 新流水线的数据类型
+     * @return 合并后的新流水线
+     * @throws NullPointerException 当{@code mergeHandle}返回{@code null}时抛出。
+     * @apiNote 对于 {@code oursMapper}和{@code theirsMapper}而言，如果数据因为
+     * {@link MergeRemainingPolicy#TAKE_REMAINING}或{@link MergeRemainingPolicy#TAKE_OURS}
+     * 或{@link MergeRemainingPolicy#TAKE_THEIRS}而保留，则对应的第二个参数合并策略为{@link MergePolicy#TAKE_OURS}
+     * 或{@link MergePolicy#TAKE_THEIRS}。
+     * @see MergePolicy
+     * @see MergeRemainingPolicy
+     */
+    <T, R> Pipe<R> merge(Pipe<? extends T> pipe, BiFunction<? super E, ? super T, MergePolicy> mergeHandle,
+        BiFunction<? super E, MergePolicy, ? extends R> oursMapper,
+        BiFunction<? super T, MergePolicy, ? extends R> theirsMapper, MergeRemainingPolicy remainingPolicy);
 
     default Pipe<E> mergeAlternately(Pipe<? extends E> pipe) {
         return mergeAlternately(pipe, TAKE_REMAINING);
@@ -928,37 +966,6 @@ public interface Pipe<E> extends AutoCloseable {
             return mark[0] ? PREFER_OURS : PREFER_THEIRS;
         }, remainingPolicy);
     }
-
-    /**
-     * 将此流水线和另外一个流水线合并为一个新的流水线。
-     * <p/>
-     * 合并时会将两个流水线中的数据按次序进行比较，由{@code mergeHandle}返回这两个数据的合并策略，
-     * 此策略将指导如何从两个流水线中选择元素加入到新的流水线，各种策略的合并详情见{@link MergePolicy}。
-     * <p/>
-     * 合并时并不要求两条流水线的数据类型相同，但是被选中的数据根据来源不同，会分别经过{@code oursMapper}
-     * 和{@code theirsMapper}统一映射为最终的数据类型{@code R}，映射后的数据组成新的流水线。
-     * <p/>
-     * 由于两条流水线的元素数量可能不一致，或者受合并策略的影响，可能存在一条流水线还有数据待合并而另一条已经耗尽的情况，
-     * 此时需要根据{@code remainingPolicy}来决定剩余数据的处理策略，详见{@link MergeRemainingPolicy}。
-     *
-     * @param pipe 另一条需要合并的流水线。
-     * @param mergeHandle 流水线的合并策略。第一个参数为此流水线的数据，第二个参数为另一条流水线的数据，
-     * 受{@link MergeRemainingPolicy#MERGE_AS_NULL}和流水线自身数据的影响，这两个参数都可能为{@code null}。
-     * 返回值为这两个数据的合并策略，此合并策略<b>必须不能为</b>{@code null}，否则会导致{@link NullPointerException}。
-     * @param oursMapper 来自此流水线的数据被选中进入新流水线时的映射方法。
-     * @param theirsMapper 来自另一条流水线的数据被选中进入新流水线时的映射方法。
-     * @param remainingPolicy 当一条流水线耗尽时另一条流水线数据的处理策略，
-     * 传入{@code null}时等同于{@link MergeRemainingPolicy#TAKE_REMAINING}。
-     * @param <T> 另一条流水线的数据类型
-     * @param <R> 新流水线的数据类型
-     * @return 合并后的新流水线
-     * @throws NullPointerException 当{@code mergeHandle}返回{@code null}时抛出。
-     * @see MergePolicy
-     * @see MergeRemainingPolicy
-     */
-    <T, R> Pipe<R> merge(Pipe<? extends T> pipe, BiFunction<? super E, ? super T, MergePolicy> mergeHandle,
-        Function<? super E, ? extends R> oursMapper, Function<? super T, ? extends R> theirsMapper,
-        MergeRemainingPolicy remainingPolicy);
 
     /**
      * 访问流水线中的每个元素。
@@ -1171,11 +1178,7 @@ public interface Pipe<E> extends AutoCloseable {
         return findFirst();
     }
 
-    Iterator<E> toIterator();
-
     E[] toArray(IntFunction<E[]> generator);
-
-    Spliterator<E> toSpliterator();
 
     default List<E> toList() { // OPT 2023-05-14 00:02 默认可变 or 默认不可变，通过全局配置控制
         return toList(ArrayList::new);
@@ -1273,13 +1276,6 @@ public interface Pipe<E> extends AutoCloseable {
     default <U> U chain(Function<? super Pipe<E>, U> function) {
         return function.apply(this);
     }
-
-    Pipe<E> onClose(Runnable closeAction);
-
-    @Override
-    void close();
-
-    Pipe<E> debug();
 
     default Pipe<E> println() { // DBG 2023-05-20 01:07 调试接口
         return peek(System.out::println);

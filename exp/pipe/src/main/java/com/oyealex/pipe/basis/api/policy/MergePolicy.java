@@ -3,14 +3,13 @@ package com.oyealex.pipe.basis.api.policy;
 import com.oyealex.pipe.basis.api.Pipe;
 
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * MergePolicy
  *
  * @author oyealex
  * @see Pipe#merge(Pipe, BiFunction, MergeRemainingPolicy)
- * @see Pipe#merge(Pipe, BiFunction, Function, Function, MergeRemainingPolicy)
+ * @see Pipe#merge(Pipe, BiFunction, BiFunction, BiFunction, MergeRemainingPolicy)
  * @since 2023-05-17
  */
 public enum MergePolicy {
