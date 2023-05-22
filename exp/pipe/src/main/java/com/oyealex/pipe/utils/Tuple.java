@@ -1,5 +1,6 @@
 package com.oyealex.pipe.utils;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -43,8 +44,29 @@ public final class Tuple<F, S> {
         return new Tuple<>(firstMapper.apply(first), secondMapper.apply(second));
     }
 
+    public <T> Triple<F, S, T> extend(T third) {
+        return new Triple<>(first, second, third);
+    }
+
     @Override
     public String toString() {
         return "(" + first + "," + second + ")";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Tuple<?, ?> tuple = (Tuple<?, ?>) o;
+        return Objects.equals(first, tuple.first) && Objects.equals(second, tuple.second);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(first, second);
     }
 }

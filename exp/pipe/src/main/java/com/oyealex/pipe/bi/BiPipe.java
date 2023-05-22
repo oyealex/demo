@@ -1,5 +1,8 @@
 package com.oyealex.pipe.bi;
 
+import com.oyealex.pipe.base.BasePipe;
+import com.oyealex.pipe.utils.Tuple;
+
 /**
  * 支持两元组的流水线
  *
@@ -8,4 +11,6 @@ package com.oyealex.pipe.bi;
  * @author oyealex
  * @since 2023-03-04
  */
-public interface BiPipe<F, S> {}
+public interface BiPipe<F, S> extends BasePipe<Tuple<F, S>, BiPipe<F, S>> {
+
+}
