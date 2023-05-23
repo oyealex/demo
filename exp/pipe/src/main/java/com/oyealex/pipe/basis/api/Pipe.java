@@ -271,6 +271,14 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
 
     Pipe<E> mapIf(Function<? super E, Optional<? extends E>> mapper);
 
+    default Pipe<E> mapNull(Supplier<? extends E> supplier) {
+        return mapIf(Objects::isNull, nullValue -> supplier.get());
+    }
+
+    default Pipe<E> mapNull(E value) {
+        return mapIf(Objects::isNull, nullValue -> value);
+    }
+
     /**
      * 将此流水线中的元素映射为其他类型，映射方法支持访问元素在流水线中的次序，从0开始计算，使用{@code long}类型的数据表示次序。
      *
