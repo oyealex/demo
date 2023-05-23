@@ -17,7 +17,7 @@ public enum MergeRemainingPolicy {
     MERGE_AS_NULL,
     /** 如果当前流水线有多余，则保留当前流水线的元素 */
     TAKE_OURS,
-    /** 如果其他流水线有多余，则保留当前流水线的元素 */
+    /** 如果其他流水线有多余，则保留其他流水线的元素 */
     TAKE_THEIRS,
     /** 保留任何多余的元素 */
     TAKE_REMAINING,

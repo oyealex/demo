@@ -608,11 +608,17 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public <T, R> Pipe<R> merge(Pipe<? extends T> pipe, BiFunction<? super OUT, ? super T, MergePolicy> mergeHandle,
-        BiFunction<? super OUT, MergePolicy, ? extends R> oursMapper, BiFunction<? super T, MergePolicy, ? extends R> theirsMapper,
-        MergeRemainingPolicy remainingPolicy) {
+        BiFunction<? super OUT, MergePolicy, ? extends R> oursMapper,
+        BiFunction<? super T, MergePolicy, ? extends R> theirsMapper, MergeRemainingPolicy remainingPolicy) {
         onClose(pipe::close);
-        return new MergeOp<>(this, requireNonNull(pipe), requireNonNull(mergeHandle), requireNonNull(oursMapper),
-            requireNonNull(theirsMapper), requireNonNullElse(remainingPolicy, TAKE_REMAINING));
+        return new RefPipe<>(this, NOT_SORTED | NOT_DISTINCT | NOT_SIZED | NOT_NONNULL | NOT_REVERSED_SORTED) {
+            @Override
+            protected Op<OUT> wrapOp(Op<R> nextOp) {
+                return new MergeOp<>(nextOp, requireNonNull(pipe).toSpliterator(), requireNonNull(mergeHandle),
+                    requireNonNull(oursMapper), requireNonNull(theirsMapper),
+                    requireNonNullElse(remainingPolicy, TAKE_REMAINING));
+            }
+        };
     }
 
     @Override
