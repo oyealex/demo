@@ -1,7 +1,7 @@
 package com.oyealex.pipe.bi;
 
 import com.oyealex.pipe.base.BasePipe;
-import com.oyealex.pipe.utils.Tuple;
+import com.oyealex.pipe.assist.Tuple;
 
 /**
  * 支持两元组的流水线

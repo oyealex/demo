@@ -40,4 +40,8 @@ public abstract class PipeTestBase {
     protected static Pipe<String> oddStrPipe() {
         return oddIntegerPipe().map(String::valueOf);
     }
+
+    protected static Pipe<String> prefixedSeqStrPipe(String prefix) {
+        return seqStrPipe().map(v -> prefix + v);
+    }
 }

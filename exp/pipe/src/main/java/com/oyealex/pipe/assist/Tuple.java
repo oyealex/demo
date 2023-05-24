@@ -1,4 +1,4 @@
-package com.oyealex.pipe.utils;
+package com.oyealex.pipe.assist;
 
 import java.util.Objects;
 import java.util.function.Function;

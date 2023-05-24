@@ -4,7 +4,7 @@ import com.oyealex.pipe.basis.functional.LongBiConsumer;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import com.oyealex.pipe.utils.NoInstance;
-import com.oyealex.pipe.utils.Tuple;
+import com.oyealex.pipe.assist.Tuple;
 
 import java.util.Comparator;
 import java.util.Optional;

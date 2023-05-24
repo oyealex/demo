@@ -14,7 +14,7 @@ import com.oyealex.pipe.bi.BiPipe;
 import com.oyealex.pipe.flag.PipeFlag;
 import com.oyealex.pipe.spliterator.MoreSpliterators;
 import com.oyealex.pipe.tri.TriPipe;
-import com.oyealex.pipe.utils.Tuple;
+import com.oyealex.pipe.assist.Tuple;
 
 import java.util.Comparator;
 import java.util.Iterator;

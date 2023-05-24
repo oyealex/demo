@@ -42,20 +42,20 @@ class PipeMergeTest extends PipeTestBase {
     @Test
     @DisplayName("当剩余数据合并策略为 MERGE_AS_NULL 时能够正确交替合并两个流水线，并将缺少的数据作为null参与合并")
     void should_merge_alternately_with_MERGE_AS_NULL_remaining_policy() {
-        System.out.println(evenStrPipe().limit(2).mergeAlternately(oddStrPipe().limit(4), MERGE_AS_NULL).mapNull("_").toList());
-        System.out.println(evenStrPipe().limit(4).mergeAlternately(oddStrPipe().limit(2), MERGE_AS_NULL).mapNull("_").toList());
+        System.out.println(prefixedSeqStrPipe("A").limit(2).mergeAlternately(prefixedSeqStrPipe("B").limit(4), MERGE_AS_NULL).mapNull("_").println().limit(1).toList());
+        System.out.println(prefixedSeqStrPipe("A").limit(4).mergeAlternately(prefixedSeqStrPipe("B").limit(2), MERGE_AS_NULL).mapNull("_").println().limit(1).toList());
         System.out.println();
-        System.out.println(evenStrPipe().limit(2).mergeAlternately(oddStrPipe().limit(4), TAKE_OURS).mapNull("_").toList());
-        System.out.println(evenStrPipe().limit(4).mergeAlternately(oddStrPipe().limit(2), TAKE_OURS).mapNull("_").toList());
+        System.out.println(prefixedSeqStrPipe("A").limit(2).mergeAlternately(prefixedSeqStrPipe("B").limit(4), TAKE_OURS).mapNull("_").println().limit(1).toList());
+        System.out.println(prefixedSeqStrPipe("A").limit(4).mergeAlternately(prefixedSeqStrPipe("B").limit(2), TAKE_OURS).mapNull("_").println().limit(1).toList());
         System.out.println();
-        System.out.println(evenStrPipe().limit(2).mergeAlternately(oddStrPipe().limit(4), TAKE_THEIRS).mapNull("_").toList());
-        System.out.println(evenStrPipe().limit(4).mergeAlternately(oddStrPipe().limit(2), TAKE_THEIRS).mapNull("_").toList());
+        System.out.println(prefixedSeqStrPipe("A").limit(2).mergeAlternately(prefixedSeqStrPipe("B").limit(4), TAKE_THEIRS).mapNull("_").println().limit(1).toList());
+        System.out.println(prefixedSeqStrPipe("A").limit(4).mergeAlternately(prefixedSeqStrPipe("B").limit(2), TAKE_THEIRS).mapNull("_").println().limit(1).toList());
         System.out.println();
-        System.out.println(evenStrPipe().limit(2).mergeAlternately(oddStrPipe().limit(4), TAKE_REMAINING).mapNull("_").toList());
-        System.out.println(evenStrPipe().limit(4).mergeAlternately(oddStrPipe().limit(2), TAKE_REMAINING).mapNull("_").toList());
+        System.out.println(prefixedSeqStrPipe("A").limit(2).mergeAlternately(prefixedSeqStrPipe("B").limit(4), TAKE_REMAINING).mapNull("_").println().limit(1).toList());
+        System.out.println(prefixedSeqStrPipe("A").limit(4).mergeAlternately(prefixedSeqStrPipe("B").limit(2), TAKE_REMAINING).mapNull("_").println().limit(1).toList());
         System.out.println();
-        System.out.println(evenStrPipe().limit(2).mergeAlternately(oddStrPipe().limit(4), DROP).mapNull("_").toList());
-        System.out.println(evenStrPipe().limit(4).mergeAlternately(oddStrPipe().limit(2), DROP).mapNull("_").toList());
+        System.out.println(prefixedSeqStrPipe("A").limit(2).mergeAlternately(prefixedSeqStrPipe("B").limit(4), DROP).mapNull("_").println().limit(1).toList());
+        System.out.println(prefixedSeqStrPipe("A").limit(4).mergeAlternately(prefixedSeqStrPipe("B").limit(2), DROP).mapNull("_").println().limit(1).toList());
     }
 
     @ParameterizedTest(name = "当剩余数据合并策略为" + ARGUMENTS_PLACEHOLDER + "时能够正确交替合并两个流水线")

@@ -10,7 +10,7 @@ import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import com.oyealex.pipe.bi.BiPipe;
 import com.oyealex.pipe.tri.TriPipe;
-import com.oyealex.pipe.utils.Tuple;
+import com.oyealex.pipe.assist.Tuple;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,8 +42,8 @@ import java.util.function.ToIntFunction;
 import java.util.function.ToLongFunction;
 import java.util.stream.Stream;
 
-import static com.oyealex.pipe.basis.api.policy.MergePolicy.PREFER_OURS;
-import static com.oyealex.pipe.basis.api.policy.MergePolicy.PREFER_THEIRS;
+import static com.oyealex.pipe.basis.api.policy.MergePolicy.OURS_FIRST;
+import static com.oyealex.pipe.basis.api.policy.MergePolicy.THEIRS_FIRST;
 import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.TAKE_REMAINING;
 import static com.oyealex.pipe.flag.PipeFlag.EMPTY;
 import static com.oyealex.pipe.utils.MiscUtil.isStdIdentify;
@@ -956,11 +956,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     }
 
     default Pipe<E> mergeAlternately(Pipe<? extends E> pipe, MergeRemainingPolicy remainingPolicy) {
-        boolean[] mark = new boolean[]{false};
-        return merge(pipe, (ignoredOurs, ignoredTheirs) -> {
-            mark[0] = !mark[0];
-            return mark[0] ? PREFER_OURS : PREFER_THEIRS;
-        }, remainingPolicy);
+        return merge(pipe, (ignoredOurs, ignoredTheirs) -> OURS_FIRST, remainingPolicy);
     }
 
     default Pipe<E> mergeAlternatelyTheirsFirst(Pipe<? extends E> pipe) {
@@ -968,11 +964,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     }
 
     default Pipe<E> mergeAlternatelyTheirsFirst(Pipe<? extends E> pipe, MergeRemainingPolicy remainingPolicy) {
-        boolean[] mark = new boolean[]{true};
-        return merge(pipe, (ignoredOurs, ignoredTheirs) -> {
-            mark[0] = !mark[0];
-            return mark[0] ? PREFER_OURS : PREFER_THEIRS;
-        }, remainingPolicy);
+        return merge(pipe, (ignoredOurs, ignoredTheirs) -> THEIRS_FIRST, remainingPolicy);
     }
 
     /**
