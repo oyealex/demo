@@ -3,6 +3,9 @@ package com.oyealex.pipe;
 import com.oyealex.pipe.basis.Pipes;
 import com.oyealex.pipe.basis.api.Pipe;
 
+import java.util.List;
+import java.util.Random;
+
 /**
  * PipeTestBase
  *
@@ -43,5 +46,30 @@ public abstract class PipeTestBase {
 
     protected static Pipe<String> prefixedSeqStrPipe(String prefix) {
         return seqStrPipe().map(v -> prefix + v);
+    }
+
+    protected static Pipe<String> generateRandStr() {
+        Random random = new Random();
+        return Pipes.generate(() -> {
+            char[] chars = new char[random.nextInt(10)];
+            for (int i = 0; i < chars.length; i++) {
+                switch (random.nextInt(3)) {
+                    case 0:
+                        chars[i] = (char) ('0' + random.nextInt(10));
+                        break;
+                    case 1:
+                        chars[i] = (char) ('A' + random.nextInt(26));
+                        break;
+                    default:
+                        chars[i] = (char) ('a' + random.nextInt(26));
+                        break;
+                }
+            }
+            return new String(chars);
+        });
+    }
+
+    protected static List<String> generateRandStrList() {
+        return generateRandStr().limit(10).toList();
     }
 }

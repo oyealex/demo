@@ -1,5 +1,6 @@
 package com.oyealex.pipe.basis;
 
+import com.oyealex.pipe.assist.Tuple;
 import com.oyealex.pipe.basis.api.DoublePipe;
 import com.oyealex.pipe.basis.api.IntPipe;
 import com.oyealex.pipe.basis.api.LongPipe;
@@ -14,7 +15,6 @@ import com.oyealex.pipe.bi.BiPipe;
 import com.oyealex.pipe.flag.PipeFlag;
 import com.oyealex.pipe.spliterator.MoreSpliterators;
 import com.oyealex.pipe.tri.TriPipe;
-import com.oyealex.pipe.assist.Tuple;
 
 import java.util.Comparator;
 import java.util.Iterator;
@@ -29,6 +29,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 import java.util.function.ToLongFunction;
@@ -53,7 +54,6 @@ import static com.oyealex.pipe.utils.MiscUtil.isStdReverseOrder;
 import static com.oyealex.pipe.utils.MiscUtil.naturalOrderIfNull;
 import static java.lang.Long.MAX_VALUE;
 import static java.util.Objects.requireNonNull;
-import static java.util.Objects.requireNonNullElse;
 
 /**
  * 基于引用的抽象流水线实现
@@ -219,7 +219,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public Pipe<OUT> takeIf(Predicate<? super OUT> predicate) {
         requireNonNull(predicate);
-        return new RefPipe<>(this, NOT_SIZED) {
+        return new RefPipe<OUT, OUT>(this, NOT_SIZED) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
                 return SimpleOps.takeIfOp(nextOp, predicate);
@@ -230,7 +230,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public Pipe<OUT> takeIfOrderly(LongBiPredicate<? super OUT> predicate) {
         requireNonNull(predicate);
-        return new RefPipe<>(this, NOT_SIZED) {
+        return new RefPipe<OUT, OUT>(this, NOT_SIZED) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
                 return SimpleOps.takeIfOrderlyOp(nextOp, predicate);
@@ -281,11 +281,11 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Pipe<OUT> nonNull() {
+    public Pipe<OUT> dropNull() {
         if (isFlagSet(NONNULL)) {
             return this;
         }
-        return new RefPipe<>(this, NOT_SIZED | IS_NONNULL) {
+        return new RefPipe<OUT, OUT>(this, NOT_SIZED | IS_NONNULL) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
                 return SimpleOps.takeIfOp(nextOp, Objects::nonNull);
@@ -296,7 +296,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public <R> Pipe<R> map(Function<? super OUT, ? extends R> mapper) {
         requireNonNull(mapper);
-        return new RefPipe<>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT | NOT_NONNULL) {
+        return new RefPipe<OUT, R>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT | NOT_NONNULL) {
             @Override
             protected Op<OUT> wrapOp(Op<R> nextOp) {
                 return SimpleOps.mapOp(nextOp, mapper);
@@ -308,7 +308,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     public Pipe<OUT> mapIf(Predicate<? super OUT> condition, Function<? super OUT, ? extends OUT> mapper) {
         requireNonNull(condition);
         requireNonNull(mapper);
-        return new RefPipe<>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT | NOT_NONNULL) {
+        return new RefPipe<OUT, OUT>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT | NOT_NONNULL) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
                 return SimpleOps.mapIfOp(nextOp, condition, mapper);
@@ -319,7 +319,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public Pipe<OUT> mapIf(Function<? super OUT, Optional<? extends OUT>> mapper) {
         requireNonNull(mapper);
-        return new RefPipe<>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT) {
+        return new RefPipe<OUT, OUT>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
                 return SimpleOps.mapIfOp(nextOp, mapper);
@@ -328,9 +328,20 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
+    public Pipe<OUT> mapNull(Supplier<? extends OUT> supplier) {
+        requireNonNull(supplier);
+        return new RefPipe<OUT, OUT>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT | IS_NONNULL) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return SimpleOps.mapNullOp(nextOp, supplier);
+            }
+        };
+    }
+
+    @Override
     public <R> Pipe<R> mapOrderly(LongBiFunction<? super OUT, ? extends R> mapper) {
         requireNonNull(mapper);
-        return new RefPipe<>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT | NOT_NONNULL) {
+        return new RefPipe<OUT, R>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT | NOT_NONNULL) {
             @Override
             protected Op<OUT> wrapOp(Op<R> nextOp) {
                 return SimpleOps.mapOrderlyOp(nextOp, mapper);
@@ -482,7 +493,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public Pipe<OUT> peek(Consumer<? super OUT> consumer) {
         requireNonNull(consumer);
-        return new RefPipe<>(this, EMPTY) {
+        return new RefPipe<OUT, OUT>(this, EMPTY) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
                 return SimpleOps.peekOp(nextOp, consumer);
@@ -493,7 +504,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public Pipe<OUT> peekOrderly(LongBiConsumer<? super OUT> consumer) {
         requireNonNull(consumer);
-        return new RefPipe<>(this, EMPTY) {
+        return new RefPipe<OUT, OUT>(this, EMPTY) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
                 return SimpleOps.peekOrderlyOp(nextOp, consumer);
@@ -573,7 +584,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<OUT> disperse(OUT delimiter) {
-        return new RefPipe<>(this,
+        return new RefPipe<OUT, OUT>(this,
             NOT_SIZED | NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT | (delimiter == null ? NOT_NONNULL : EMPTY)) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
@@ -611,12 +622,12 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         BiFunction<? super OUT, MergePolicy, ? extends R> oursMapper,
         BiFunction<? super T, MergePolicy, ? extends R> theirsMapper, MergeRemainingPolicy remainingPolicy) {
         onClose(pipe::close);
-        return new RefPipe<>(this, NOT_SORTED | NOT_DISTINCT | NOT_SIZED | NOT_NONNULL | NOT_REVERSED_SORTED) {
+        return new RefPipe<OUT, R>(this, NOT_SORTED | NOT_DISTINCT | NOT_SIZED | NOT_NONNULL | NOT_REVERSED_SORTED) {
             @Override
             protected Op<OUT> wrapOp(Op<R> nextOp) {
                 return new MergeOp<>(nextOp, requireNonNull(pipe).toSpliterator(), requireNonNull(mergeHandle),
                     requireNonNull(oursMapper), requireNonNull(theirsMapper),
-                    requireNonNullElse(remainingPolicy, TAKE_REMAINING));
+                    remainingPolicy == null ? TAKE_REMAINING : remainingPolicy);
             }
         };
     }
@@ -768,10 +779,10 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<OUT> debug() {
-        return new RefPipe<>(this, EMPTY) {
+        return new RefPipe<OUT, OUT>(this, EMPTY) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return new ChainedOp<>(nextOp) {
+                return new ChainedOp<OUT, OUT>(nextOp) {
                     @Override
                     public void begin(long size) {
                         super.begin(size);

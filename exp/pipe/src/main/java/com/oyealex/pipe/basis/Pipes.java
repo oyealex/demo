@@ -118,7 +118,7 @@ public final class Pipes extends NoInstance { // TODO 2023-05-21 19:05 添加自
      */
     public static <T> Pipe<T> generate(Supplier<? extends T> supplier) {
         requireNonNull(supplier);
-        return new PipeHead<>(new Spliterators.AbstractSpliterator<>(MAX_VALUE, IMMUTABLE) {
+        return new PipeHead<>(new Spliterators.AbstractSpliterator<T>(MAX_VALUE, IMMUTABLE) {
             @Override
             public boolean tryAdvance(Consumer<? super T> action) {
                 requireNonNull(action).accept(supplier.get());
@@ -171,7 +171,7 @@ public final class Pipes extends NoInstance { // TODO 2023-05-21 19:05 添加自
      */
     public static <T> Pipe<T> iterate(final T seed, final UnaryOperator<T> generator) {
         requireNonNull(generator);
-        return new PipeHead<>(new Spliterators.AbstractSpliterator<>(MAX_VALUE, ORDERED | IMMUTABLE) {
+        return new PipeHead<>(new Spliterators.AbstractSpliterator<T>(MAX_VALUE, ORDERED | IMMUTABLE) {
             private T previous;
 
             private boolean started;

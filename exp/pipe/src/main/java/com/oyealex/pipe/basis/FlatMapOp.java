@@ -32,7 +32,7 @@ abstract class FlatMapOp<T, R> extends RefPipe<T, R> {
 
         @Override
         protected Op<T> wrapOp(Op<R> nextOp) {
-            return new InternalOp<>(nextOp) {
+            return new InternalOp<T, R>(nextOp) {
                 @Override
                 protected Pipe<? extends R> mapToPipe(T value) {
                     return mapper.apply(value);
@@ -51,7 +51,7 @@ abstract class FlatMapOp<T, R> extends RefPipe<T, R> {
 
         @Override
         protected Op<T> wrapOp(Op<R> nextOp) {
-            return new InternalOp<>(nextOp) {
+            return new InternalOp<T, R>(nextOp) {
                 private long index = 0L;
 
                 @Override

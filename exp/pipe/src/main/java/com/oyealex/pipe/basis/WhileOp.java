@@ -26,7 +26,7 @@ abstract class WhileOp<T> extends RefPipe<T, T> {
 
         @Override
         protected Op<T> wrapOp(Op<T> nextOp) {
-            return new InternalOp<>(nextOp, true) {
+            return new InternalOp<T>(nextOp, true) {
                 @Override
                 public void accept(T value) {
                     if (shouldTake && (shouldTake = predicate.test(value))) {
@@ -47,7 +47,7 @@ abstract class WhileOp<T> extends RefPipe<T, T> {
 
         @Override
         protected Op<T> wrapOp(Op<T> nextOp) {
-            return new InternalOp<>(nextOp, false) {
+            return new InternalOp<T>(nextOp, false) {
                 @Override
                 public void accept(T value) {
                     if (shouldTake || (shouldTake = !predicate.test(value))) {
@@ -68,7 +68,7 @@ abstract class WhileOp<T> extends RefPipe<T, T> {
 
         @Override
         protected Op<T> wrapOp(Op<T> nextOp) {
-            return new InternalOp<>(nextOp, true) {
+            return new InternalOp<T>(nextOp, true) {
                 private long index = 0L;
 
                 @Override
@@ -91,7 +91,7 @@ abstract class WhileOp<T> extends RefPipe<T, T> {
 
         @Override
         protected Op<T> wrapOp(Op<T> nextOp) {
-            return new InternalOp<>(nextOp, false) {
+            return new InternalOp<T>(nextOp, false) {
                 private long index = 0L;
 
                 @Override

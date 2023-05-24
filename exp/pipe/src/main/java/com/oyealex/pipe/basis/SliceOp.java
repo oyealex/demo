@@ -23,7 +23,7 @@ class SliceOp<IN> extends RefPipe<IN, IN> {
 
     @Override
     protected Op<IN> wrapOp(Op<IN> nextOp) {
-        return new ChainedOp<>(nextOp) {
+        return new ChainedOp<IN, IN>(nextOp) {
             private long skipped = 0L;
 
             private long limited = 0L;

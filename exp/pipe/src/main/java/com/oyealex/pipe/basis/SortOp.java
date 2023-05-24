@@ -1,7 +1,7 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.assist.Tuple;
+import com.oyealex.pipe.basis.functional.LongBiFunction;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -35,7 +35,7 @@ abstract class SortOp<T> extends RefPipe<T, T> {
 
         @Override
         protected Op<T> wrapOp(Op<T> nextOp) {
-            return new ChainedOp.ListRepeater<>(nextOp) {
+            return new ChainedOp.ListRepeater<T>(nextOp) {
                 @Override
                 protected void beforeEnd() {
                     elements.sort(comparator);
@@ -59,7 +59,7 @@ abstract class SortOp<T> extends RefPipe<T, T> {
 
         @Override
         protected Op<T> wrapOp(Op<T> nextOp) {
-            return new ChainedOp.NonShortCircuit<>(nextOp) {
+            return new ChainedOp.NonShortCircuit<T, T>(nextOp) {
                 private List<Tuple<K, T>> elements;
 
                 private int index = 0; // 排序操作无法处理超过数组最大数量的元素，所以次序字段使用int即可

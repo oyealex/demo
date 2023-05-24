@@ -37,7 +37,7 @@ abstract class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
         @Override
         protected Op<T> wrapOp(Op<Pipe<T>> nextOp) {
             // OPT 2023-05-12 22:59 空间优先 or 时间优先策略，根据全局配置动态选择
-            return new ChainedOp.ShortCircuitRecorded<>(nextOp) {
+            return new ChainedOp.ShortCircuitRecorded<T, Pipe<T>>(nextOp) {
                 private T[] partition;
 
                 private int index;
@@ -127,7 +127,7 @@ abstract class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
 
         @Override
         protected Op<T> wrapOp(Op<Pipe<T>> nextOp) {
-            return new ChainedOp.ShortCircuitRecorded<>(nextOp) {
+            return new ChainedOp.ShortCircuitRecorded<T, Pipe<T>>(nextOp) {
                 private List<T> partition;
 
                 @Override

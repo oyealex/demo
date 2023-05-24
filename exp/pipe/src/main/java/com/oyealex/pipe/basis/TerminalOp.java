@@ -31,7 +31,7 @@ interface TerminalOp<T, R> extends Op<T>, Supplier<R> {
 
     static <T> TerminalOp<T, Void> wrap(Consumer<? super T> action) {
         Objects.requireNonNull(action);
-        return new TerminalOp<>() {
+        return new TerminalOp<T, Void>() {
             @Override
             public void accept(T value) {
                 action.accept(value);

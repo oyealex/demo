@@ -1,5 +1,7 @@
 package com.oyealex.pipe.flag;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -190,18 +192,20 @@ public enum PipeFlag { // TODO 2023-05-20 01:02 重新审视所有标记使用�
             flag.isCleared(flagValue) ? "NOT_" + flag.name() : null).filter(Objects::nonNull).collect(toList());
     }
 
-    private static final Map<Integer, String> SPLITERATOR_CHARACTERISTICS_MAP = Map.of(
-        // @formatter:off
-        Spliterator.ORDERED, "ORDERED",
-        Spliterator.DISTINCT, "DISTINCT",
-        Spliterator.SORTED, "SORTED",
-        Spliterator.SIZED, "SIZED",
-        Spliterator.NONNULL, "NONNULL",
-        Spliterator.IMMUTABLE, "IMMUTABLE",
-        Spliterator.CONCURRENT, "CONCURRENT",
-        Spliterator.SUBSIZED, "SUBSIZED"
-        // @formatter:on
-    );
+    private static final Map<Integer, String> SPLITERATOR_CHARACTERISTICS_MAP;
+
+    static {
+        Map<Integer, String> map = new HashMap<>();
+        map.put(Spliterator.ORDERED, "ORDERED");
+        map.put(Spliterator.DISTINCT, "DISTINCT");
+        map.put(Spliterator.SORTED, "SORTED");
+        map.put(Spliterator.SIZED, "SIZED");
+        map.put(Spliterator.NONNULL, "NONNULL");
+        map.put(Spliterator.IMMUTABLE, "IMMUTABLE");
+        map.put(Spliterator.CONCURRENT, "CONCURRENT");
+        map.put(Spliterator.SUBSIZED, "SUBSIZED");
+        SPLITERATOR_CHARACTERISTICS_MAP = Collections.unmodifiableMap(map);
+    }
 
     static List<String> toReadableSplitCharacteristics(int flagVale) {
         return SPLITERATOR_CHARACTERISTICS_MAP.entrySet()

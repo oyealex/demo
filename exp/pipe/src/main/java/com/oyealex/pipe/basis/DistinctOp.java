@@ -28,7 +28,7 @@ abstract class DistinctOp<T> extends RefPipe<T, T> {
 
         @Override
         protected Op<T> wrapOp(Op<T> nextOp) {
-            return new ChainedOp<>(nextOp) {
+            return new ChainedOp<T, T>(nextOp) {
                 private T last;
 
                 private boolean nullExisted;

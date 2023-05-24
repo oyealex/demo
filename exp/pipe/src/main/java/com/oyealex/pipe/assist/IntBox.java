@@ -12,7 +12,7 @@ import java.util.function.Supplier;
 public final class IntBox implements IntSupplier, Supplier<Integer> {
     private int value;
 
-    public IntBox(int value) {
+    private IntBox(int value) {
         this.value = value;
     }
 
@@ -22,6 +22,22 @@ public final class IntBox implements IntSupplier, Supplier<Integer> {
 
     public void setValue(int value) {
         this.value = value;
+    }
+
+    public int incrementAndGet() {
+        return ++value;
+    }
+
+    public int getAndIncrement() {
+        return value++;
+    }
+
+    public int decrementAndGet() {
+        return --value;
+    }
+
+    public int getAndDecrement() {
+        return value--;
     }
 
     @Override
@@ -42,5 +58,13 @@ public final class IntBox implements IntSupplier, Supplier<Integer> {
     @Override
     public String toString() {
         return "IntBox(" + value + ")";
+    }
+
+    public static IntBox box() {
+        return new IntBox(0);
+    }
+
+    public static IntBox box(int initValue) {
+        return new IntBox(initValue);
     }
 }

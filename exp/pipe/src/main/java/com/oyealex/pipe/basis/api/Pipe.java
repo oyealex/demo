@@ -1,5 +1,6 @@
 package com.oyealex.pipe.basis.api;
 
+import com.oyealex.pipe.assist.Tuple;
 import com.oyealex.pipe.base.BasePipe;
 import com.oyealex.pipe.basis.Pipes;
 import com.oyealex.pipe.basis.api.policy.MergePolicy;
@@ -10,7 +11,6 @@ import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import com.oyealex.pipe.bi.BiPipe;
 import com.oyealex.pipe.tri.TriPipe;
-import com.oyealex.pipe.assist.Tuple;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -104,7 +104,7 @@ import static java.util.function.Function.identity;
  * 由于实际运用中并行流水线很少使用，为了降低实现复杂度并执行更多的针对性优化，并结合本库的核心目标，
  * 在当前实现中流水线的任何API均不是线程安全的，哪怕提供了线程安全的数据源和操作，流水线总是串行执行数据操作。
  * <p/>
- * <i>不排除后续此库扩展为支持线程安全的可能。</i>
+ * <i>不排除后续扩展为支持线程安全的可能。</i>
  *
  * @param <E> 数据类型
  * @author oyealex
@@ -115,8 +115,8 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * 根据给定断言保留元素。
      *
      * @param predicate 断言方法，满足断言的元素会保留。
-     * @return 新的流水线
-     * @throws NullPointerException 当{@code predicate}为null时抛出
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code predicate}为null时抛出。
      * @see #dropIf(Predicate)
      * @see #takeWhile(Predicate)
      */
@@ -126,16 +126,34 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * 根据给定断言保留元素，断言支持访问元素次序。
      *
      * @param predicate 断言方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要判断是否保留的元素。
-     * @return 新的流水线
-     * @throws NullPointerException 当{@code predicate}为null时抛出
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code predicate}为null时抛出。
      * @see #takeIf(Predicate)
+     * @see #dropIfOrderly(LongBiPredicate)
      */
     Pipe<E> takeIfOrderly(LongBiPredicate<? super E> predicate);
 
+    /**
+     * 保留第一个元素，丢弃其他所有元素。
+     *
+     * @return 最多只含有一个元素的新的流水线。
+     * @apiNote 同 {@code limit(1)}。
+     * @see #limit(long)
+     * @see #takeLast()
+     * @see #findFirst()
+     */
     default Pipe<E> takeFirst() {
         return limit(1L);
     }
 
+    /**
+     * 保留最后一个元素，丢弃其他所有元素。
+     *
+     * @return 最多只含有一个元素的新的流水线。
+     * @see #takeLast(int)
+     * @see #takeFirst()
+     * @see #findLast()
+     */
     default Pipe<E> takeLast() {
         return takeLast(1);
     }
@@ -182,7 +200,6 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param predicate 断言方法
      * @return 新的流水线
-     * @see Stream#takeWhile(Predicate)
      */
     Pipe<E> takeWhile(Predicate<? super E> predicate);
 
@@ -199,7 +216,6 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param predicate 断言方法
      * @return 新的流水线
-     * @see Stream#dropWhile(Predicate)
      */
     Pipe<E> dropWhile(Predicate<? super E> predicate);
 
@@ -216,7 +232,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @return 新的流水线
      */
-    Pipe<E> nonNull();
+    Pipe<E> dropNull();
 
     /**
      * 仅保留按照给定映射方法结果非空的元素。
@@ -224,7 +240,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param mapper 映射方法
      * @return 新的流水线
      */
-    default Pipe<E> nonNullBy(Function<? super E, ?> mapper) {
+    default Pipe<E> dropNullBy(Function<? super E, ?> mapper) {
         requireNonNull(mapper);
         return takeIf(value -> mapper.apply(value) != null);
     }
@@ -271,11 +287,10 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
 
     Pipe<E> mapIf(Function<? super E, Optional<? extends E>> mapper);
 
-    default Pipe<E> mapNull(Supplier<? extends E> supplier) {
-        return mapIf(Objects::isNull, nullValue -> supplier.get());
-    }
+    Pipe<E> mapNull(Supplier<? extends E> supplier);
 
     default Pipe<E> mapNull(E value) {
+        requireNonNull(value);
         return mapIf(Objects::isNull, nullValue -> value);
     }
 
@@ -975,6 +990,10 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      */
     void forEach(Consumer<? super E> action);
 
+    default void run() {
+        forEach(ignored -> {});
+    }
+
     /**
      * 访问流水线中的每个元素，支持访问元素的次序。
      *
@@ -1112,6 +1131,10 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      */
     long count();
 
+    default boolean isEmpty() {
+        return count() == 0L;
+    }
+
     boolean anyMatch(Predicate<? super E> predicate);
 
     boolean allMatch(Predicate<? super E> predicate);
@@ -1152,7 +1175,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     Optional<E> findFirst();
 
     default Optional<E> findFirstNonnull() {
-        return nonNull().findFirst();
+        return dropNull().findFirst();
     }
 
     /**
@@ -1163,7 +1186,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     Optional<E> findLast();
 
     default Optional<E> findLastNonnull() {
-        return nonNull().findLast();
+        return dropNull().findLast();
     }
 
     Tuple<Optional<E>, Optional<E>> findFirstLast();

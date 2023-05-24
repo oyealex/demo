@@ -21,7 +21,7 @@ class ShuffleOp<T> extends RefPipe<T, T> {
 
     @Override
     protected Op<T> wrapOp(Op<T> nextOp) {
-        return new ChainedOp.ListRepeater<>(nextOp) {
+        return new ChainedOp.ListRepeater<T>(nextOp) {
             @Override
             protected void beforeEnd() {
                 shuffle();
