@@ -1,6 +1,6 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.PipeTestBase;
+import com.oyealex.pipe.PipeTestFixture;
 import com.oyealex.pipe.basis.api.Pipe;
 import com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +31,7 @@ import static org.junit.jupiter.params.ParameterizedTest.ARGUMENTS_PLACEHOLDER;
  * @see Pipe#merge(Pipe, BiFunction, BiFunction, BiFunction, MergeRemainingPolicy)
  * @since 2023-05-24
  */
-class PipeMergeTest extends PipeTestBase {
+class PipeMergeTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确交替合并两个流水线")
     void should_merge_alternately_rightly() {

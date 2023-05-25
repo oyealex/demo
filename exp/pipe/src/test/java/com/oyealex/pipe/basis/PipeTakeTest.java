@@ -1,6 +1,6 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.PipeTestBase;
+import com.oyealex.pipe.PipeTestFixture;
 import com.oyealex.pipe.assist.IntBox;
 import com.oyealex.pipe.basis.api.Pipe;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 /**
- * PipeTakeTest
+ * 针对流水线{@code take}系列API的测试用例。
  *
  * @author oyealex
  * @see Pipe#takeIf(Predicate)
@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
  * @see Pipe#takeWhileOrderly(LongBiPredicate)
  * @since 2023-05-25
  */
-class PipeTakeTest extends PipeTestBase {
+class PipeTakeTest extends PipeTestFixture {
     // normal test
 
     @Test
@@ -87,14 +87,14 @@ class PipeTakeTest extends PipeTestBase {
 
     @Test
     @DisplayName("当尝试获取的前N个元素数量小于流水线元素数量时，能够正确获得前N个元素")
-    void should_get_first_N_elements_when_try_take_first_N_elements_and_N_is_smaller_then_the_pipe_size() {
+    void should_get_first_N_elements_when_try_take_first_N_elements_and_N_is_smaller_than_the_pipe_size() {
         List<String> sample = infiniteIntegerStrPipe().limit(10).toList();
         assertEquals(sample.subList(0, 5), list(sample).takeFirst(5).toList());
     }
 
     @Test
     @DisplayName("当尝试获取的前N个元素数量大于等于流水线元素数量时，能够正确获得全部元素")
-    void should_get_first_N_elements_when_try_take_first_N_elements_and_N_is_equal_to_the_pipe_size() {
+    void should_get_first_N_elements_when_try_take_first_N_elements_and_N_is_equal_to_or_bigger_than_the_pipe_size() {
         List<String> sample = infiniteIntegerStrPipe().limit(10).toList();
         assertEquals(sample, list(sample).takeFirst(10).toList());
         assertEquals(sample, list(sample).takeFirst(20).toList());
@@ -108,7 +108,7 @@ class PipeTakeTest extends PipeTestBase {
 
     @Test
     @DisplayName("获取前N个元素之后应当短路流水线，N小于流水线元素数量")
-    void should_circuit_after_taking_first_N_element_when_N_is_smaller_then_pipe_size() {
+    void should_circuit_after_taking_first_N_element_when_N_is_smaller_than_pipe_size() {
         List<String> handled = new ArrayList<>();
         List<String> firstN = infiniteIntegerStrPipe().limit(10).peek(handled::add).takeFirst(5).toList();
         assertEquals(firstN, handled);
@@ -129,14 +129,14 @@ class PipeTakeTest extends PipeTestBase {
 
     @Test
     @DisplayName("当尝试获取的最后N个元素数量小于流水线元素数量时，能够正确获得最后N个元素")
-    void should_get_last_N_elements_when_try_take_last_N_elements_and_N_is_smaller_then_the_pipe_size() {
+    void should_get_last_N_elements_when_try_take_last_N_elements_and_N_is_smaller_than_the_pipe_size() {
         List<String> sample = infiniteIntegerStrPipe().limit(10).toList();
         assertEquals(sample.subList(5, 10), list(sample).takeLast(5).toList());
     }
 
     @Test
     @DisplayName("当尝试获取的最后N个元素数量大于等于流水线元素数量时，能够正确获得全部元素")
-    void should_get_last_N_elements_when_try_take_last_N_elements_and_N_is_equal_to_the_pipe_size() {
+    void should_get_last_N_elements_when_try_take_last_N_elements_and_N_is_equal_to_or_bigger_than_the_pipe_size() {
         List<String> sample = infiniteIntegerStrPipe().limit(10).toList();
         assertEquals(sample, list(sample).takeLast(10).toList());
         assertEquals(sample, list(sample).takeLast(20).toList());

@@ -1,6 +1,6 @@
 package com.oyealex.pipe.flag;
 
-import com.oyealex.pipe.PipeTestBase;
+import com.oyealex.pipe.PipeTestFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * @author oyealex
  * @since 2023-05-05
  */
-class PipeFlagTest extends PipeTestBase {
+class PipeFlagTest extends PipeTestFixture {
     @Test
     @DisplayName("当设置标记时能够正确组合标记")
     void should_combine_flags_rightly_when_set_flag() {

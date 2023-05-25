@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
  * @author oyealex
  * @since 2023-05-12
  */
-class SmokeTest extends PipeTestBase {
+class SmokeTest extends PipeTestFixture {
     @Test
     void smoke() {
     }

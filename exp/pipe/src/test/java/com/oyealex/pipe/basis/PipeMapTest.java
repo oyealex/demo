@@ -1,6 +1,6 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.PipeTestBase;
+import com.oyealex.pipe.PipeTestFixture;
 import com.oyealex.pipe.basis.api.Pipe;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import org.junit.jupiter.api.DisplayName;
@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * @see Pipe#flatMapToDouble(Function)
  * @since 2023-04-28
  */
-class PipeMapTest extends PipeTestBase {
+class PipeMapTest extends PipeTestFixture {
     @Test
     @DisplayName("能够将元素正确地转换为其他类型")
     void should_map_element_to_another_type_rightly() {

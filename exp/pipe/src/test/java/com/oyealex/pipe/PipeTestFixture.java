@@ -12,7 +12,7 @@ import java.util.Random;
  * @author oyealex
  * @since 2023-04-28
  */
-public abstract class PipeTestBase {
+public abstract class PipeTestFixture {
     protected static final String[] ELEMENTS
         = "these are unit tests for pipe filter api, and these unit tests can test if the pipe api work rightly".split(
         "[ ,]");
@@ -71,11 +71,27 @@ public abstract class PipeTestBase {
         });
     }
 
+    protected static List<Integer> generateIntegerList() {
+        return infiniteIntegerPipe().limit(NORMAL_SIZE).toList();
+    }
+
     protected static List<String> generateRandStrList() {
         return infiniteRandomStrPipe().limit(NORMAL_SIZE).toList();
     }
 
     protected static List<String> generateIntegerStrList() {
         return infiniteIntegerStrPipe().limit(NORMAL_SIZE).toList();
+    }
+
+    protected static Pipe<Integer> infiniteOddIntegerWithNullsPipe() {
+        return infiniteIntegerPipe().map(value -> (value & 1) == 1 ? null : value);
+    }
+
+    protected static Pipe<String> infiniteOddIntegerStrWithNullsPipe() {
+        return infiniteIntegerPipe().map(value -> (value & 1) == 1 ? null : String.valueOf(value));
+    }
+
+    protected static List<String> generateOddIntegerStrWithNullsList() {
+        return infiniteOddIntegerStrWithNullsPipe().limit(NORMAL_SIZE).toList();
     }
 }
