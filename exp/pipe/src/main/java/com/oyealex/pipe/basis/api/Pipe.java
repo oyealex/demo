@@ -123,7 +123,31 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     Pipe<E> takeIf(Predicate<? super E> predicate);
 
     /**
+     * 根据给定断言过滤元素。
+     *
+     * @param predicate 断言方法，满足断言的元素会被保留。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code predicate}为null时抛出。
+     * @apiNote 同 {@link #takeIf(Predicate)}
+     * @see #takeIf(Predicate)
+     * @see Stream#filter(Predicate)
+     */
+    default Pipe<E> filter(Predicate<? super E> predicate) {
+        return takeIf(predicate);
+    }
+
+    /**
      * 根据给定断言保留元素，断言支持访问元素次序。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * long index = 0L;
+     * for (E element : pipeElements) {
+     *     if (predicate.test(index++, element)) {
+     *         // do something
+     *     }
+     * }
+     * }</pre>
      *
      * @param predicate 断言方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要判断是否保留的元素。
      * @return 新的流水线。
@@ -147,6 +171,21 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     }
 
     /**
+     * 保留前{@code count}个元素，丢弃其他所有元素。
+     *
+     * @return 包含前 {@code count}个元素的新的流水线。
+     * @throws IllegalArgumentException 当需要保留的元素数量小于0时抛出
+     * @apiNote 同 {@link #limit(long)}。
+     * @see #limit(long)
+     * @see #takeFirst()
+     * @see #takeLast(int)
+     * @see #findFirst()
+     */
+    default Pipe<E> takeFirst(int count) {
+        return limit(count);
+    }
+
+    /**
      * 保留最后一个元素，丢弃其他所有元素。
      *
      * @return 最多只含有一个元素的新的流水线。
@@ -154,11 +193,63 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @see #takeFirst()
      * @see #findLast()
      */
-    default Pipe<E> takeLast() {
+    default Pipe<E> takeLast() { // OPT 2023-05-26 00:08 在无限流上调用此方法抛出异常
         return takeLast(1);
     }
 
+    /**
+     * 保留最后给定数量的元素。
+     *
+     * @param count 需要保留的最后几个元素的数量。
+     * @return 新的流水线。
+     * @throws IllegalArgumentException 当{@code count}为负值时抛出。
+     */
     Pipe<E> takeLast(int count);
+
+    /**
+     * 保留元素直到给定的断言首次为{@code False}，丢弃之后的元素。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * for (E element : pipeElements) {
+     *     if (predicate.test(element)) {
+     *         // do something
+     *     } else {
+     *         break;
+     *     }
+     * }
+     * }</pre>
+     *
+     * @param predicate 断言方法
+     * @return 新的流水线
+     * @throws NullPointerException 当{@code predicate}为null时抛出。
+     * @apiNote 此方法支持对流水线执行短路优化，当断言首次返回{@code false}后，流水线剩余的元素允许被短路，
+     * 因此{@code predicate}可能无法测试每个元素。
+     */
+    Pipe<E> takeWhile(Predicate<? super E> predicate);
+
+    /**
+     * 保留元素直到给定的断言首次为{@code False}，丢弃之后的元素，断言支持访问{@code long}类型的元素次序。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * long index = 0L;
+     * for (E element : pipeElements) {
+     *     if (predicate.test(index++, element)) {
+     *         // do something
+     *     } else {
+     *         break;
+     *     }
+     * }
+     * }</pre>
+     *
+     * @param predicate 断言方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为判断是否需要保留的元素。
+     * @return 新的流水线
+     * @throws NullPointerException 当{@code predicate}为null时抛出。
+     * @apiNote 此方法支持对流水线执行短路优化，当断言首次返回{@code false}后，流水线剩余的元素允许被短路，
+     * 因此{@code predicate}可能无法测试每个元素。
+     */
+    Pipe<E> takeWhileOrderly(LongBiPredicate<? super E> predicate);
 
     /**
      * 根据给定断言的结果丢弃元素。
@@ -194,22 +285,6 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     }
 
     Pipe<E> dropLast(int count);
-
-    /**
-     * 保留元素直到给定的断言首次为{@code False}，丢弃之后的元素。
-     *
-     * @param predicate 断言方法
-     * @return 新的流水线
-     */
-    Pipe<E> takeWhile(Predicate<? super E> predicate);
-
-    /**
-     * 保留元素直到给定的断言首次为{@code False}，丢弃之后的元素，断言支持访问{@code long}类型的元素次序。
-     *
-     * @param predicate 断言方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为判断是否需要保留的元素。
-     * @return 新的流水线
-     */
-    Pipe<E> takeWhileOrderly(LongBiPredicate<? super E> predicate);
 
     /**
      * 丢弃元素直到给定的断言首次为{@code False}，保留之后的元素。

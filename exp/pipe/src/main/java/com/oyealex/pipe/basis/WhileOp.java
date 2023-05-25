@@ -1,9 +1,11 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
-import com.oyealex.pipe.flag.PipeFlag;
 
 import java.util.function.Predicate;
+
+import static com.oyealex.pipe.flag.PipeFlag.IS_SHORT_CIRCUIT;
+import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
 
 /**
  * KeepOrDropWhileStage
@@ -12,15 +14,15 @@ import java.util.function.Predicate;
  * @since 2023-05-10
  */
 abstract class WhileOp<T> extends RefPipe<T, T> {
-    protected WhileOp(RefPipe<?, ? extends T> prePipe) {
-        super(prePipe, PipeFlag.NOT_SIZED);
+    protected WhileOp(RefPipe<?, ? extends T> prePipe, int opFlag) {
+        super(prePipe, opFlag);
     }
 
     static class TakeWhile<T> extends com.oyealex.pipe.basis.WhileOp<T> {
         private final Predicate<? super T> predicate;
 
         TakeWhile(RefPipe<?, ? extends T> prePipe, Predicate<? super T> predicate) {
-            super(prePipe);
+            super(prePipe, NOT_SIZED | IS_SHORT_CIRCUIT);
             this.predicate = predicate;
         }
 
@@ -33,6 +35,11 @@ abstract class WhileOp<T> extends RefPipe<T, T> {
                         nextOp.accept(value);
                     }
                 }
+
+                @Override
+                public boolean canShortCircuit() {
+                    return !shouldTake || nextOp.canShortCircuit();
+                }
             };
         }
     }
@@ -41,7 +48,7 @@ abstract class WhileOp<T> extends RefPipe<T, T> {
         private final Predicate<? super T> predicate;
 
         DropWhile(RefPipe<?, ? extends T> prePipe, Predicate<? super T> predicate) {
-            super(prePipe);
+            super(prePipe, NOT_SIZED);
             this.predicate = predicate;
         }
 
@@ -62,7 +69,7 @@ abstract class WhileOp<T> extends RefPipe<T, T> {
         private final LongBiPredicate<? super T> predicate;
 
         TakeWhileOrderly(RefPipe<?, ? extends T> prePipe, LongBiPredicate<? super T> predicate) {
-            super(prePipe);
+            super(prePipe, NOT_SIZED | IS_SHORT_CIRCUIT);
             this.predicate = predicate;
         }
 
@@ -77,6 +84,11 @@ abstract class WhileOp<T> extends RefPipe<T, T> {
                         nextOp.accept(value);
                     }
                 }
+
+                @Override
+                public boolean canShortCircuit() {
+                    return !shouldTake || nextOp.canShortCircuit();
+                }
             };
         }
     }
@@ -85,7 +97,7 @@ abstract class WhileOp<T> extends RefPipe<T, T> {
         private final LongBiPredicate<? super T> predicate;
 
         DropWhileOrderly(RefPipe<?, ? extends T> prePipe, LongBiPredicate<? super T> predicate) {
-            super(prePipe);
+            super(prePipe, NOT_SIZED);
             this.predicate = predicate;
         }
 

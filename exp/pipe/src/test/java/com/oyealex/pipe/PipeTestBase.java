@@ -20,35 +20,37 @@ public abstract class PipeTestBase {
     protected static final String[] OTHER_ELEMENTS
         = "this is some strings who are ready to prepend or append into pipes".split("[ ,]");
 
-    protected static Pipe<Integer> seqIntegerPipe() {
+    private static final int NORMAL_SIZE = 10;
+
+    protected static Pipe<Integer> infiniteIntegerPipe() {
         return Pipes.iterate(0, i -> i + 1);
     }
 
-    private static Pipe<Integer> evenIntegerPipe() {
+    private static Pipe<Integer> infiniteEvenIntegerPipe() {
         return Pipes.iterate(0, i -> i + 2);
     }
 
-    private static Pipe<Integer> oddIntegerPipe() {
+    private static Pipe<Integer> infiniteOddIntegerPipe() {
         return Pipes.iterate(1, i -> i + 2);
     }
 
-    protected static Pipe<String> seqStrPipe() {
-        return seqIntegerPipe().map(String::valueOf);
+    protected static Pipe<String> infiniteIntegerStrPipe() {
+        return infiniteIntegerPipe().map(String::valueOf);
     }
 
-    protected static Pipe<String> evenStrPipe() {
-        return evenIntegerPipe().map(String::valueOf);
+    protected static Pipe<String> infiniteEvenIntegerStrPipe() {
+        return infiniteEvenIntegerPipe().map(String::valueOf);
     }
 
-    protected static Pipe<String> oddStrPipe() {
-        return oddIntegerPipe().map(String::valueOf);
+    protected static Pipe<String> infiniteOddIntegerStrPipe() {
+        return infiniteOddIntegerPipe().map(String::valueOf);
     }
 
-    protected static Pipe<String> prefixedSeqStrPipe(String prefix) {
-        return seqStrPipe().map(v -> prefix + v);
+    protected static Pipe<String> prefixedIntegerStrPipe(String prefix) {
+        return infiniteIntegerStrPipe().map(v -> prefix + v);
     }
 
-    protected static Pipe<String> generateRandStr() {
+    protected static Pipe<String> infiniteRandomStrPipe() {
         Random random = new Random();
         return Pipes.generate(() -> {
             char[] chars = new char[random.nextInt(10)];
@@ -70,6 +72,10 @@ public abstract class PipeTestBase {
     }
 
     protected static List<String> generateRandStrList() {
-        return generateRandStr().limit(10).toList();
+        return infiniteRandomStrPipe().limit(NORMAL_SIZE).toList();
+    }
+
+    protected static List<String> generateIntegerStrList() {
+        return infiniteIntegerStrPipe().limit(NORMAL_SIZE).toList();
     }
 }

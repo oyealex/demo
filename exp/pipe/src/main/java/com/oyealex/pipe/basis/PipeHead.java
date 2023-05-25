@@ -19,8 +19,13 @@ class PipeHead<OUT> extends RefPipe<Void, OUT> {
     /** 流水线关闭时执行的动作 */
     private Runnable closeAction;
 
-    public PipeHead(Spliterator<? extends OUT> sourceSpliterator) {
+    PipeHead(Spliterator<? extends OUT> sourceSpliterator) {
         super(PipeFlag.fromSpliterator(sourceSpliterator));
+        this.sourceSpliterator = sourceSpliterator;
+    }
+
+    PipeHead(Spliterator<? extends OUT> sourceSpliterator, int extraFlag) { // OPT 2023-05-26 00:54 对额外标记进行校验
+        super(PipeFlag.fromSpliterator(sourceSpliterator) | extraFlag);
         this.sourceSpliterator = sourceSpliterator;
     }
 
