@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * PipeDropTest
+ * 针对流水线{@code drop}系列API的测试用例。
  *
  * @author oyealex
  * @see Pipe#dropIf(Predicate)

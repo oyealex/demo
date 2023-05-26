@@ -116,7 +116,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param predicate 断言方法，满足断言的元素会保留。
      * @return 新的流水线。
-     * @throws NullPointerException 当{@code predicate}为null时抛出。
+     * @throws NullPointerException 当{@code predicate}为{@code null}时抛出。
      * @see #takeIfOrderly(LongBiPredicate)
      * @see #takeWhile(Predicate)
      * @see #dropIf(Predicate)
@@ -129,7 +129,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param predicate 断言方法，满足断言的元素会被保留。
      * @return 新的流水线。
-     * @throws NullPointerException 当{@code predicate}为null时抛出。
+     * @throws NullPointerException 当{@code predicate}为{@code null}时抛出。
      * @apiNote 同 {@link #takeIf(Predicate)}
      * @see #takeIf(Predicate)
      * @see Stream#filter(Predicate)
@@ -146,14 +146,14 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * long index = 0L;
      * for (E element : pipeElements) {
      *     if (predicate.test(index++, element)) {
-     *         // do something
+     *         doSomething(element);
      *     }
      * }
      * }</pre>
      *
      * @param predicate 断言方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要判断是否保留的元素。
      * @return 新的流水线。
-     * @throws NullPointerException 当{@code predicate}为null时抛出。
+     * @throws NullPointerException 当{@code predicate}为{@code null}时抛出。
      * @see #takeIf(Predicate)
      * @see #dropIfOrderly(LongBiPredicate)
      */
@@ -217,7 +217,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * <pre>{@code
      * for (E element : pipeElements) {
      *     if (predicate.test(element)) {
-     *         // do something
+     *         doSomething(element);
      *     } else {
      *         break;
      *     }
@@ -226,7 +226,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param predicate 断言方法。
      * @return 新的流水线。
-     * @throws NullPointerException 当{@code predicate}为null时抛出。
+     * @throws NullPointerException 当{@code predicate}为{@code null}时抛出。
      * @apiNote 此方法支持对流水线执行短路优化，当断言首次返回{@code false}后，流水线剩余的元素允许被短路，
      * 因此{@code predicate}可能无法测试每个元素。
      * @see #takeWhileOrderly(LongBiPredicate)
@@ -242,7 +242,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * long index = 0L;
      * for (E element : pipeElements) {
      *     if (predicate.test(index++, element)) {
-     *         // do something
+     *         doSomething(element);
      *     } else {
      *         break;
      *     }
@@ -251,7 +251,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param predicate 断言方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为判断是否需要保留的元素。
      * @return 新的流水线。
-     * @throws NullPointerException 当{@code predicate}为null时抛出。
+     * @throws NullPointerException 当{@code predicate}为{@code null}时抛出。
      * @apiNote 此方法支持对流水线执行短路优化，当断言首次返回{@code false}后，流水线剩余的元素允许被短路，
      * 因此{@code predicate}可能无法测试每个元素。
      * @see #takeWhile(Predicate)
@@ -264,7 +264,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param predicate 断言方法，满足断言的元素会丢弃。
      * @return 新的流水线。
-     * @throws NullPointerException 当{@code predicate}为null时抛出。
+     * @throws NullPointerException 当{@code predicate}为{@code null}时抛出。
      * @see #dropIfOrderly(LongBiPredicate)
      * @see #dropWhile(Predicate)
      * @see #takeIf(Predicate)
@@ -281,14 +281,14 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * long index = 0L;
      * for (E element : pipeElements) {
      *     if (!predicate.test(index++, element)) {
-     *         // do something
+     *         doSomething(element);
      *     }
      * }
      * }</pre>
      *
      * @param predicate 断言方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要判断是否丢弃的元素。
      * @return 新的流水线。
-     * @throws NullPointerException 当{@code predicate}为null时抛出。
+     * @throws NullPointerException 当{@code predicate}为{@code null}时抛出。
      * @see #dropIf(Predicate)
      * @see #takeIfOrderly(LongBiPredicate)
      */
@@ -353,14 +353,14 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * boolean shouldTake = false;
      * for (E element : pipeElements) {
      *     if (shouldTake || (shouldTake = !predicate.test(element))) {
-     *         // do something
+     *         doSomething(element);
      *     }
      * }
      * }</pre>
      *
      * @param predicate 断言方法。
      * @return 新的流水线。
-     * @throws NullPointerException 当{@code predicate}为null时抛出。
+     * @throws NullPointerException 当{@code predicate}为{@code null}时抛出。
      * @apiNote 当断言首次返回 {@code false}后，流水线剩余的元素直接流向下游，无需再使用{@code predicate}测试元素，
      * 因此{@code predicate}可能无法测试每个元素。
      * @see #dropWhileOrderly(LongBiPredicate)
@@ -377,14 +377,14 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * boolean shouldTake = false;
      * for (E element : pipeElements) {
      *     if (shouldTake || (shouldTake = !predicate.test(index++, element))) {
-     *         // do something
+     *         doSomething(element);
      *     }
      * }
      * }</pre>
      *
      * @param predicate 断言方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为判断是否需要保留的元素。
      * @return 新的流水线。
-     * @throws NullPointerException 当{@code predicate}为null时抛出。
+     * @throws NullPointerException 当{@code predicate}为{@code null}时抛出。
      * @apiNote 当断言首次返回 {@code false}后，流水线剩余的元素直接流向下游，无需再使用{@code predicate}测试元素，
      * 因此{@code predicate}可能无法测试每个元素。
      * @see #dropWhile(Predicate)
@@ -407,14 +407,14 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * <pre>{@code
      * for (E element : pipeElements) {
      *     if (mapper.apply(element) != null) {
-     *         // do something
+     *         doSomething(element);
      *     }
      * }
      * }</pre>
      *
      * @param mapper 映射方法
      * @return 新的流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
      * @see #dropNull()
      */
     default Pipe<E> dropNullBy(Function<? super E, ?> mapper) {
@@ -423,20 +423,124 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     }
 
     /**
-     * 将此流水线中的元素映射为其他类型。
+     * 将此流水线中的元素映射为新的值。
      *
-     * @param mapper 映射方法
-     * @param <R> 新的类型
-     * @return 包含新类型元素的流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @param mapper 映射方法。
+     * @param <R> 新的类型。
+     * @return 包含新类型元素的流水线。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
      * @see Stream#map(Function)
      */
     <R> Pipe<R> map(Function<? super E, ? extends R> mapper);
 
     /**
-     * 将流水线中的数据映射为字符串。
+     * 将此流水线中的元素映射为新的值，映射方法支持访问元素在流水线中的次序，从0开始计算，使用{@code long}类型的数据表示次序。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * long index = 0L;
+     * for (E element : pipeElements) {
+     *     doSomething(mapper.apply(index++, element));
+     * }
+     * }</pre>
      *
-     * @return 包含数据字符串的流水线
+     * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
+     * @param <R> 新的类型。
+     * @return 包含新类型元素的流水线
+     * @throws NullPointerException 当{@code mapper}为null时抛出
+     */
+    <R> Pipe<R> mapOrderly(LongBiFunction<? super E, ? extends R> mapper);
+
+    /**
+     * 将满足{@code condition}条件的元素映射为{@code replacement}。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * for (E element : pipeElements) {
+     *     doSomething(condition.test(element) ? replacement : element);
+     * }
+     * }</pre>
+     *
+     * @param condition 对元素执行映射的条件。
+     * @param replacement 满足条件的元素需要映射为的对象。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code condition}为{@code null}时抛出。
+     * @see #mapIf(Predicate, Function)
+     * @see #mapIf(Predicate, Supplier)
+     * @see #mapIf(Function)
+     */
+    default Pipe<E> mapIf(Predicate<? super E> condition, E replacement) {
+        return mapIf(condition, () -> replacement);
+    }
+
+    /**
+     * 将满足{@code condition}条件的元素映射为{@code replacementSupplier}提供的值。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * for (E element : pipeElements) {
+     *     doSomething(condition.test(element) ? replacementSupplier.get() : element);
+     * }
+     * }</pre>
+     *
+     * @param condition 对元素执行映射的条件。
+     * @param replacementSupplier 满足条件的元素需要映射为的对象的获取方法。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code condition}或{@code replacementSupplier}为{@code null}时抛出。
+     * @see #mapIf(Predicate, Object)
+     * @see #mapIf(Predicate, Function)
+     * @see #mapIf(Function)
+     */
+    default Pipe<E> mapIf(Predicate<? super E> condition, Supplier<? extends E> replacementSupplier) {
+        requireNonNull(replacementSupplier);
+        return mapIf(condition, ignoredValue -> replacementSupplier.get());
+    }
+
+    /**
+     * 将满足{@code condition}条件的元素使用{@code mapper}映射。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * for (E element : pipeElements) {
+     *     doSomething(condition.test(element) ? mapper.apply(element) : element);
+     * }
+     * }</pre>
+     *
+     * @param condition 对元素执行映射的条件。
+     * @param mapper 满足条件的元素的映射方法。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code condition}或{@code mapper}为{@code null}时抛出。
+     * @see #mapIf(Predicate, Object)
+     * @see #mapIf(Predicate, Supplier)
+     * @see #mapIf(Function)
+     */
+    Pipe<E> mapIf(Predicate<? super E> condition, Function<? super E, ? extends E> mapper);
+
+    /**
+     * 将元素通过{@code mapper}映射，如果结果值{@link Optional}不为空，则将对应元素映射为其值，否则维持原始值。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * for (E element : pipeElements) {
+     *     doSomething(mapper.apply(element).orElse(element));
+     * }
+     * }</pre>
+     *
+     * @param mapper 满足条件的元素需要映射为的对象。
+     * @param <R> 一个{@link Optional}类型，值类型为{@code E}或其子类
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @see #mapIf(Predicate, Object)
+     * @see #mapIf(Predicate, Function)
+     * @see #mapIf(Predicate, Supplier)
+     */
+    <R extends Optional<? extends E>> Pipe<E> mapIf(Function<? super E, R> mapper);
+
+    /**
+     * 使用{@link Objects#toString(Object)}将流水线中的数据映射为字符串。
+     *
+     * @return 包含数据字符串的流水线。
+     * @see #mapToString(String)
      */
     default Pipe<String> mapToString() {
         return map(Objects::toString);
@@ -444,42 +548,68 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
 
     /**
      * 将流水线中的数据映射为字符串。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * for (E element : pipeElements) {
+     *     doSomething(element == null ? nullDefault : element.toString());
+     * }
+     * }</pre>
      *
      * @param nullDefault 当数据为{@code null}时的目标字符串。
-     * @return 包含数据字符串的流水线
+     * @return 包含数据字符串的流水线。
+     * @see #mapToString()
      */
     default Pipe<String> mapToString(String nullDefault) {
         return map(value -> Objects.toString(value, nullDefault));
     }
 
-    default Pipe<E> mapIf(Predicate<? super E> condition, E replacement) {
-        return mapIf(condition, () -> replacement);
-    }
-
-    default Pipe<E> mapIf(Predicate<? super E> condition, Supplier<? extends E> replacementSupplier) {
-        return mapIf(condition, ignoredValue -> replacementSupplier.get());
-    }
-
-    Pipe<E> mapIf(Predicate<? super E> condition, Function<? super E, ? extends E> mapper);
-
-    Pipe<E> mapIf(Function<? super E, Optional<? extends E>> mapper);
-
-    Pipe<E> mapNull(Supplier<? extends E> supplier);
-
+    /**
+     * 将空值{@code null}映射为给定的值。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * for (E element : pipeElements) {
+     *     doSomething(element == null ? value : element);
+     * }
+     * }</pre>
+     *
+     * @param value {@code null}需要映射为的对象，不可为{@code null}。
+     * @return 不包含任何 {@code null}的新的流水线。
+     * @throws NullPointerException 当{@code value}为{@code null}时抛出。
+     * @see #mapNull(Supplier)
+     */
     default Pipe<E> mapNull(E value) {
         requireNonNull(value);
-        return mapIf(Objects::isNull, nullValue -> value);
+        return mapNull(() -> value);
     }
 
     /**
-     * 将此流水线中的元素映射为其他类型，映射方法支持访问元素在流水线中的次序，从0开始计算，使用{@code long}类型的数据表示次序。
+     * 将空值{@code null}映射为给定{@code supplier}提供的值。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * for (E element : pipeElements) {
+     *     if (element == null) {
+     *         E newValue = supplier.get();
+     *         if (newValue == null) {
+     *             throw new NullPointerException();
+     *         } else {
+     *             doSomething(newValue);
+     *         }
+     *     } else {
+     *         doSomething(element);
+     *     }
+     * }
+     * }</pre>
      *
-     * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
-     * @param <R> 新的类型
-     * @return 包含新类型元素的流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @param supplier 映射对象的获取方法，获取的对象不可为{@code null}。
+     * @return 不包含任何 {@code null}的新的流水线。
+     * @throws NullPointerException 当{@code supplier}为{@code null}时抛出。
+     * @apiNote 在流水线运行期间 {@code supplier}产生的任何空值，均会导致抛出{@link NullPointerException}。
+     * @see #mapNull(Object)
      */
-    <R> Pipe<R> mapOrderly(LongBiFunction<? super E, ? extends R> mapper);
+    Pipe<E> mapNull(Supplier<? extends E> supplier);
 
     /**
      * 将流水线中的元素映射为int类型。

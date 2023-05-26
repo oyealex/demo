@@ -267,7 +267,7 @@ final class SimpleOps extends NoInstance {
         };
     }
 
-    public static <T> Op<T> mapIfOp(Op<T> nextOp, Function<? super T, Optional<? extends T>> mapper) {
+    public static <T, R extends Optional<? extends T>> Op<T> mapIfOp(Op<T> nextOp, Function<? super T, R> mapper) {
         return new ChainedOp<T, T>(nextOp) {
             @Override
             public void accept(T value) {

@@ -13,6 +13,8 @@ import java.util.Random;
  * @since 2023-04-28
  */
 public abstract class PipeTestFixture {
+    protected static final String SOME_STR = "SOME_STR";
+
     protected static final String[] ELEMENTS
         = "these are unit tests for pipe filter api, and these unit tests can test if the pipe api work rightly".split(
         "[ ,]");

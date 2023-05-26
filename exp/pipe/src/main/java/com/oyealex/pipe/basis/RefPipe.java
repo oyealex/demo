@@ -317,7 +317,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Pipe<OUT> mapIf(Function<? super OUT, Optional<? extends OUT>> mapper) {
+    public <R extends Optional<? extends OUT>> Pipe<OUT> mapIf(Function<? super OUT, R> mapper) {
         requireNonNull(mapper);
         return new RefPipe<OUT, OUT>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT) {
             @Override
