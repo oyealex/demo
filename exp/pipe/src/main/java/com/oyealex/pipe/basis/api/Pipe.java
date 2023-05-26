@@ -144,7 +144,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * 大致等同于：
      * <pre>{@code
      * long index = 0L;
-     * for (E element : pipeElements) {
+     * for (E element : getPipeElements()) {
      *     if (predicate.test(index++, element)) {
      *         doSomething(element);
      *     }
@@ -215,7 +215,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * <p/>
      * 大致等同于：
      * <pre>{@code
-     * for (E element : pipeElements) {
+     * for (E element : getPipeElements()) {
      *     if (predicate.test(element)) {
      *         doSomething(element);
      *     } else {
@@ -240,7 +240,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * 大致等同于：
      * <pre>{@code
      * long index = 0L;
-     * for (E element : pipeElements) {
+     * for (E element : getPipeElements()) {
      *     if (predicate.test(index++, element)) {
      *         doSomething(element);
      *     } else {
@@ -279,7 +279,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * 大致等同于：
      * <pre>{@code
      * long index = 0L;
-     * for (E element : pipeElements) {
+     * for (E element : getPipeElements()) {
      *     if (!predicate.test(index++, element)) {
      *         doSomething(element);
      *     }
@@ -351,7 +351,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * 大致等同于：
      * <pre>{@code
      * boolean shouldTake = false;
-     * for (E element : pipeElements) {
+     * for (E element : getPipeElements()) {
      *     if (shouldTake || (shouldTake = !predicate.test(element))) {
      *         doSomething(element);
      *     }
@@ -375,7 +375,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * <pre>{@code
      * long index = 0L;
      * boolean shouldTake = false;
-     * for (E element : pipeElements) {
+     * for (E element : getPipeElements()) {
      *     if (shouldTake || (shouldTake = !predicate.test(index++, element))) {
      *         doSomething(element);
      *     }
@@ -405,7 +405,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * <p/>
      * 大致等同于：
      * <pre>{@code
-     * for (E element : pipeElements) {
+     * for (E element : getPipeElements()) {
      *     if (mapper.apply(element) != null) {
      *         doSomething(element);
      *     }
@@ -439,7 +439,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * 大致等同于：
      * <pre>{@code
      * long index = 0L;
-     * for (E element : pipeElements) {
+     * for (E element : getPipeElements()) {
      *     doSomething(mapper.apply(index++, element));
      * }
      * }</pre>
@@ -447,7 +447,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @param <R> 新的类型。
      * @return 包含新类型元素的流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      */
     <R> Pipe<R> mapOrderly(LongBiFunction<? super E, ? extends R> mapper);
 
@@ -456,7 +456,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * <p/>
      * 大致等同于：
      * <pre>{@code
-     * for (E element : pipeElements) {
+     * for (E element : getPipeElements()) {
      *     doSomething(condition.test(element) ? replacement : element);
      * }
      * }</pre>
@@ -478,7 +478,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * <p/>
      * 大致等同于：
      * <pre>{@code
-     * for (E element : pipeElements) {
+     * for (E element : getPipeElements()) {
      *     doSomething(condition.test(element) ? replacementSupplier.get() : element);
      * }
      * }</pre>
@@ -501,7 +501,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * <p/>
      * 大致等同于：
      * <pre>{@code
-     * for (E element : pipeElements) {
+     * for (E element : getPipeElements()) {
      *     doSomething(condition.test(element) ? mapper.apply(element) : element);
      * }
      * }</pre>
@@ -521,7 +521,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * <p/>
      * 大致等同于：
      * <pre>{@code
-     * for (E element : pipeElements) {
+     * for (E element : getPipeElements()) {
      *     doSomething(mapper.apply(element).orElse(element));
      * }
      * }</pre>
@@ -551,7 +551,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * <p/>
      * 大致等同于：
      * <pre>{@code
-     * for (E element : pipeElements) {
+     * for (E element : getPipeElements()) {
      *     doSomething(element == null ? nullDefault : element.toString());
      * }
      * }</pre>
@@ -569,7 +569,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * <p/>
      * 大致等同于：
      * <pre>{@code
-     * for (E element : pipeElements) {
+     * for (E element : getPipeElements()) {
      *     doSomething(element == null ? value : element);
      * }
      * }</pre>
@@ -589,7 +589,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * <p/>
      * 大致等同于：
      * <pre>{@code
-     * for (E element : pipeElements) {
+     * for (E element : getPipeElements()) {
      *     if (element == null) {
      *         E newValue = supplier.get();
      *         if (newValue == null) {
@@ -616,7 +616,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param mapper 映射方法
      * @return int流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#mapToInt(ToIntFunction)
      */
     IntPipe mapToInt(ToIntFunction<? super E> mapper);
@@ -626,7 +626,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @return int流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#mapToInt(ToIntFunction)
      */
     // OPT 2023-05-10 01:39 添加对应的基于次序的函数式接口
@@ -637,7 +637,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param mapper 映射方法
      * @return long流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#mapToLong(ToLongFunction)
      */
     LongPipe mapToLong(ToLongFunction<? super E> mapper);
@@ -647,7 +647,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @return long流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#mapToLong(ToLongFunction)
      */
     // OPT 2023-05-10 01:39 添加对应的基于次序的函数式接口
@@ -658,7 +658,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param mapper 映射方法
      * @return double流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#mapToDouble(ToDoubleFunction)
      */
     DoublePipe mapToDouble(ToDoubleFunction<? super E> mapper);
@@ -668,7 +668,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @return double流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#mapToDouble(ToDoubleFunction)
      */
     // OPT 2023-05-10 01:39 添加对应的基于次序的函数式接口
@@ -676,36 +676,87 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
 
     /**
      * 将流水线中的元素映射为新的流水线，并按照次序拼接为一条流水线。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * for (E element : getPipeElements()) {
+     *     for (R newElement : getPipeElements(mapper.apply(element))) {
+     *         doSomething(newElement);
+     *     }
+     * }
+     * }</pre>
      *
-     * @param mapper 映射方法
-     * @param <R> 新流水线中的元素类型
-     * @return 映射并拼接后的流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @param mapper 映射方法。
+     * @param <R> 新流水线中的元素类型。
+     * @return 映射并拼接后的流水线。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
      * @see Stream#flatMap(Function)
+     * @see #flatMapOrderly(LongBiFunction)
+     * @see #flatMapCollection(Function)
      */
     <R> Pipe<R> flatMap(Function<? super E, ? extends Pipe<? extends R>> mapper);
 
+    /**
+     * 将流水线中的元素映射为新的流水线，并按照次序拼接为一条流水线，支持访问元素的次序。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * long index = 0L;
+     * for (E element : getPipeElements()) {
+     *     for (R newElement : getPipeElements(mapper.apply(index++, element))) {
+     *         doSomething(newElement);
+     *     }
+     * }
+     * }</pre>
+     *
+     * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
+     * @param <R> 新流水线中的元素类型。
+     * @return 映射并拼接后的流水线。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @see #flatMap(Function)
+     * @see #flatMapCollection(Function)
+     */
+    <R> Pipe<R> flatMapOrderly(LongBiFunction<? super E, ? extends Pipe<? extends R>> mapper);
+
+    /**
+     * 将流水线中的元素映射为容器，并将容器中的元素按照次序拼接为一条流水线。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * for (E element : getPipeElements()) {
+     *     for (R newElement : mapper.apply(element)) {
+     *         doSomething(newElement);
+     *     }
+     * }
+     * }</pre>
+     *
+     * @param mapper 映射方法。
+     * @param <R> 新流水线中的元素类型。
+     * @return 映射并拼接后的流水线。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @apiNote 由于无法确定具体的 {@link Collection}类型，流水线无法进行更进一步的优化，如果有必要请使用{@link Pipes}工具类
+     * 中的方法显式构造流水线的方式映射并拼接流水线。
+     * @see #flatMap(Function)
+     * @see #flatMapOrderly(LongBiFunction)
+     */
     default <R> Pipe<R> flatMapCollection(Function<? super E, ? extends Collection<? extends R>> mapper) {
-        return map(mapper).flatMap(Pipes::iterable);
+        return map(mapper).flatMap(Pipes::collection);
     }
 
     /**
-     * 将流水线中的元素映射为新的流水线，并按照次序拼接为一条流水线，支持访问元素的次序。
+     * 将流水线中的每个元素包装为一个个流水线，这些流水线仅包含一个元素。
      *
-     * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
-     * @param <R> 新流水线中的元素类型
-     * @return 映射并拼接后的流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
-     * @see Stream#flatMap(Function)
+     * @return 新的流水线。
+     * @apiNote 此方法常在需要对单个元素使用流水线的方法时使用。
      */
-    <R> Pipe<R> flatMapOrderly(LongBiFunction<? super E, ? extends Pipe<? extends R>> mapper);
+    Pipe<Pipe<E>> flatMapSingleton(); // OPT 2023-05-27 00:50 完善注释中的使用示例
 
     /**
      * 将流水线中的元素映射为新的int流水线，并按照次序拼接为一条int流水线。
      *
      * @param mapper 映射方法
      * @return 映射并拼接后的int流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#flatMapToInt(Function)
      */
     IntPipe flatMapToInt(Function<? super E, ? extends IntPipe> mapper);
@@ -715,7 +766,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @return 映射并拼接后的int流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#flatMapToInt(Function)
      */
     IntPipe flatMapToIntOrderly(LongBiFunction<? super E, ? extends IntPipe> mapper);
@@ -725,7 +776,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param mapper 映射方法
      * @return 映射并拼接后的long流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#flatMapToLong(Function)
      */
     LongPipe flatMapToLong(Function<? super E, ? extends LongPipe> mapper);
@@ -735,7 +786,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @return 映射并拼接后的long流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#flatMapToLong(Function)
      */
     LongPipe flatMapToLongOrderly(LongBiFunction<? super E, ? extends LongPipe> mapper);
@@ -745,7 +796,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param mapper 映射方法
      * @return 映射并拼接后的double流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#flatMapToDouble(Function)
      */
     DoublePipe flatMapToDouble(Function<? super E, ? extends DoublePipe> mapper);
@@ -755,12 +806,10 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @return 映射并拼接后的double流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#flatMapToDouble(Function)
      */
     DoublePipe flatMapToDoubleOrderly(LongBiFunction<? super E, ? extends DoublePipe> mapper);
-
-    Pipe<Pipe<E>> flatMapSingleton();
 
     /**
      * 使用给定的映射方法，将此流水线扩展为两元组的流水线，其中两元组的第一个元素仍然为当前流水线中的元素。
@@ -768,7 +817,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param secondMapper 两元组第二个元素的映射方法
      * @param <S> 两元组第二个元素的类型
      * @return 映射后的两元组流水线
-     * @throws NullPointerException 当映射方法为null时抛出
+     * @throws NullPointerException 当映射方法为{@code null}时抛出
      */
     default <S> BiPipe<E, S> extendToTuple(Function<? super E, ? extends S> secondMapper) {
         return extendToTuple(identity(), secondMapper);
@@ -782,7 +831,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param <F> 两元组第一个元素的类型
      * @param <S> 两元组第二个元素的类型
      * @return 映射后的两元组流水线
-     * @throws NullPointerException 当任意映射方法为null时抛出
+     * @throws NullPointerException 当任意映射方法为{@code null}时抛出
      */
     <F, S> BiPipe<F, S> extendToTuple(Function<? super E, ? extends F> firstMapper,
         Function<? super E, ? extends S> secondMapper);
@@ -799,7 +848,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param <S> 三元组第二个元素的类型
      * @param <T> 三元组第三个元素的类型
      * @return 映射后的三元组流水线
-     * @throws NullPointerException 当任意映射方法为null时抛出
+     * @throws NullPointerException 当任意映射方法为{@code null}时抛出
      */
     <F, S, T> TriPipe<F, S, T> extendToTriple(Function<? super E, ? extends F> firstMapper,
         Function<? super E, ? extends S> secondMapper, Function<? super E, ? extends T> thirdMapper);
@@ -818,7 +867,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param mapper 去重依据的映射方法
      * @param <K> 映射结果的类型
      * @return 元素去重之后的流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      */
     <K> Pipe<E> distinctBy(Function<? super E, ? extends K> mapper);
 
@@ -828,7 +877,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param mapper 去重依据的映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @param <K> 映射结果的类型
      * @return 元素去重之后的流水线
-     * @throws NullPointerException 当{@code mapper}为null时抛出
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      */
     <K> Pipe<E> distinctByOrderly(LongBiFunction<? super E, ? extends K> mapper);
 

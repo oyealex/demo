@@ -390,6 +390,11 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
+    public Pipe<Pipe<OUT>> flatMapSingleton() {
+        return map(value -> spliterator(MoreSpliterators.singleton(value)));
+    }
+
+    @Override
     public IntPipe flatMapToInt(Function<? super OUT, ? extends IntPipe> mapper) {
         throw new IllegalStateException();
     }
@@ -417,11 +422,6 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public DoublePipe flatMapToDoubleOrderly(LongBiFunction<? super OUT, ? extends DoublePipe> mapper) {
         throw new IllegalStateException();
-    }
-
-    @Override
-    public Pipe<Pipe<OUT>> flatMapSingleton() {
-        return map(value -> spliterator(MoreSpliterators.singleton(value)));
     }
 
     @Override

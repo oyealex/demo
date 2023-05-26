@@ -15,13 +15,6 @@ import java.util.Random;
 public abstract class PipeTestFixture {
     protected static final String SOME_STR = "SOME_STR";
 
-    protected static final String[] ELEMENTS
-        = "these are unit tests for pipe filter api, and these unit tests can test if the pipe api work rightly".split(
-        "[ ,]");
-
-    protected static final String[] OTHER_ELEMENTS
-        = "this is some strings who are ready to prepend or append into pipes".split("[ ,]");
-
     private static final int NORMAL_SIZE = 10;
 
     protected static Pipe<Integer> infiniteIntegerPipe() {
@@ -81,8 +74,12 @@ public abstract class PipeTestFixture {
         return infiniteRandomStrPipe().limit(NORMAL_SIZE).toList();
     }
 
-    protected static List<String> generateIntegerStrList() {
+    protected static List<String> generateIntegerStrList(int size) {
         return infiniteIntegerStrPipe().limit(NORMAL_SIZE).toList();
+    }
+
+    protected static List<String> generateIntegerStrList() {
+        return generateIntegerStrList(NORMAL_SIZE);
     }
 
     protected static Pipe<Integer> infiniteOddIntegerWithNullsPipe() {

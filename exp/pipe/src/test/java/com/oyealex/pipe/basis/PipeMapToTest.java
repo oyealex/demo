@@ -2,6 +2,7 @@ package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.PipeTestFixture;
 import com.oyealex.pipe.basis.api.Pipe;
+import org.junit.jupiter.api.Disabled;
 
 import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
@@ -19,4 +20,5 @@ import java.util.function.ToLongFunction;
  * @see Pipe#mapToDoubleOrderly(ToDoubleFunction)
  * @since 2023-05-26
  */
+@Disabled("mapTo系列API尚未实现")
 class PipeMapToTest extends PipeTestFixture {}
