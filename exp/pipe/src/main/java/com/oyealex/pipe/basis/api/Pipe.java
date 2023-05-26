@@ -1,5 +1,6 @@
 package com.oyealex.pipe.basis.api;
 
+import com.oyealex.pipe.annotations.Todo;
 import com.oyealex.pipe.assist.Tuple;
 import com.oyealex.pipe.base.BasePipe;
 import com.oyealex.pipe.basis.Pipes;
@@ -619,6 +620,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#mapToInt(ToIntFunction)
      */
+    @Todo
     IntPipe mapToInt(ToIntFunction<? super E> mapper);
 
     /**
@@ -630,6 +632,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @see Stream#mapToInt(ToIntFunction)
      */
     // OPT 2023-05-10 01:39 添加对应的基于次序的函数式接口
+    @Todo
     IntPipe mapToIntOrderly(ToIntFunction<? super E> mapper);
 
     /**
@@ -640,6 +643,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#mapToLong(ToLongFunction)
      */
+    @Todo
     LongPipe mapToLong(ToLongFunction<? super E> mapper);
 
     /**
@@ -651,6 +655,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @see Stream#mapToLong(ToLongFunction)
      */
     // OPT 2023-05-10 01:39 添加对应的基于次序的函数式接口
+    @Todo
     LongPipe mapToLongOrderly(ToLongFunction<? super E> mapper);
 
     /**
@@ -661,6 +666,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#mapToDouble(ToDoubleFunction)
      */
+    @Todo
     DoublePipe mapToDouble(ToDoubleFunction<? super E> mapper);
 
     /**
@@ -672,6 +678,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @see Stream#mapToDouble(ToDoubleFunction)
      */
     // OPT 2023-05-10 01:39 添加对应的基于次序的函数式接口
+    @Todo
     DoublePipe mapToDoubleOrderly(ToDoubleFunction<? super E> mapper);
 
     /**
@@ -759,6 +766,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#flatMapToInt(Function)
      */
+    @Todo
     IntPipe flatMapToInt(Function<? super E, ? extends IntPipe> mapper);
 
     /**
@@ -769,6 +777,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#flatMapToInt(Function)
      */
+    @Todo
     IntPipe flatMapToIntOrderly(LongBiFunction<? super E, ? extends IntPipe> mapper);
 
     /**
@@ -779,6 +788,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#flatMapToLong(Function)
      */
+    @Todo
     LongPipe flatMapToLong(Function<? super E, ? extends LongPipe> mapper);
 
     /**
@@ -789,6 +799,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#flatMapToLong(Function)
      */
+    @Todo
     LongPipe flatMapToLongOrderly(LongBiFunction<? super E, ? extends LongPipe> mapper);
 
     /**
@@ -799,6 +810,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#flatMapToDouble(Function)
      */
+    @Todo
     DoublePipe flatMapToDouble(Function<? super E, ? extends DoublePipe> mapper);
 
     /**
@@ -809,6 +821,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
      * @see Stream#flatMapToDouble(Function)
      */
+    @Todo
     DoublePipe flatMapToDoubleOrderly(LongBiFunction<? super E, ? extends DoublePipe> mapper);
 
     /**
@@ -819,6 +832,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @return 映射后的两元组流水线
      * @throws NullPointerException 当映射方法为{@code null}时抛出
      */
+    @Todo
     default <S> BiPipe<E, S> extendToTuple(Function<? super E, ? extends S> secondMapper) {
         return extendToTuple(identity(), secondMapper);
     }
@@ -833,9 +847,11 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @return 映射后的两元组流水线
      * @throws NullPointerException 当任意映射方法为{@code null}时抛出
      */
+    @Todo
     <F, S> BiPipe<F, S> extendToTuple(Function<? super E, ? extends F> firstMapper,
         Function<? super E, ? extends S> secondMapper);
 
+    @Todo
     BiPipe<E, E> pairExtend(boolean keepLastIncompletePair);
 
     /**
@@ -850,6 +866,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @return 映射后的三元组流水线
      * @throws NullPointerException 当任意映射方法为{@code null}时抛出
      */
+    @Todo
     <F, S, T> TriPipe<F, S, T> extendToTriple(Function<? super E, ? extends F> firstMapper,
         Function<? super E, ? extends S> secondMapper, Function<? super E, ? extends T> thirdMapper);
 
