@@ -35,9 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @see Pipe#dropNullBy(Function)
  * @since 2023-05-26
  */
-public class PipeDropTest extends PipeTestFixture {
-    // normal test
-
+class PipeDropTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确根据断言丢弃元素")
     void should_drop_elements_as_predicate_rightly() {

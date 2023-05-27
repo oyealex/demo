@@ -35,8 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
  * @since 2023-05-27
  */
 class PipeFlatMapTest extends PipeTestFixture {
-    // normal test
-
     @Test
     @DisplayName("能够正确扁平映射元素")
     void should_flat_map_elements_rightly() {

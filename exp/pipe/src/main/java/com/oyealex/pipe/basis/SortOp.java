@@ -7,11 +7,13 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import static com.oyealex.pipe.flag.PipeFlag.IS_REVERSED_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.IS_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_REVERSED_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SORTED;
 import static com.oyealex.pipe.utils.MiscUtil.checkArraySize;
 import static com.oyealex.pipe.utils.MiscUtil.isStdNaturalOrder;
+import static com.oyealex.pipe.utils.MiscUtil.isStdReverseOrder;
 
 /**
  * SortStage
@@ -24,12 +26,20 @@ abstract class SortOp<T> extends RefPipe<T, T> {
         super(prePipe, opFlag);
     }
 
+    private static <T> int parseOpFlag(Comparator<? super T> comparator) {
+        if (isStdNaturalOrder(comparator)) {
+            return IS_SORTED | NOT_REVERSED_SORTED;
+        } else if (isStdReverseOrder(comparator)) {
+            return NOT_SORTED | IS_REVERSED_SORTED;
+        }
+        return NOT_SORTED | NOT_REVERSED_SORTED;
+    }
+
     static class Normal<T> extends SortOp<T> {
         private final Comparator<? super T> comparator;
 
         Normal(RefPipe<?, ? extends T> prePipe, Comparator<? super T> comparator) {
-            super(prePipe,
-                isStdNaturalOrder(comparator) ? IS_SORTED | NOT_REVERSED_SORTED : NOT_SORTED | NOT_REVERSED_SORTED);
+            super(prePipe, parseOpFlag(comparator));
             this.comparator = comparator;
         }
 
@@ -51,8 +61,7 @@ abstract class SortOp<T> extends RefPipe<T, T> {
 
         Orderly(RefPipe<?, ? extends T> prePipe, Comparator<? super K> comparator,
             LongBiFunction<? super T, ? extends K> mapper) {
-            super(prePipe,
-                isStdNaturalOrder(comparator) ? IS_SORTED | NOT_REVERSED_SORTED : NOT_SORTED | NOT_REVERSED_SORTED);
+            super(prePipe, parseOpFlag(comparator));
             this.comparator = comparator;
             this.mapper = mapper;
         }

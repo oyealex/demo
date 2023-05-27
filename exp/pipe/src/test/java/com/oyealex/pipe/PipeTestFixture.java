@@ -15,7 +15,7 @@ import java.util.Random;
 public abstract class PipeTestFixture {
     protected static final String SOME_STR = "SOME_STR";
 
-    private static final int NORMAL_SIZE = 10;
+    protected static final int NORMAL_SIZE = 10;
 
     protected static Pipe<Integer> infiniteIntegerPipe() {
         return Pipes.iterate(0, i -> i + 1);
@@ -70,7 +70,7 @@ public abstract class PipeTestFixture {
         return infiniteIntegerPipe().limit(NORMAL_SIZE).toList();
     }
 
-    protected static List<String> generateRandStrList() {
+    protected static List<String> generateRandomStrList() {
         return infiniteRandomStrPipe().limit(NORMAL_SIZE).toList();
     }
 
@@ -92,5 +92,9 @@ public abstract class PipeTestFixture {
 
     protected static List<String> generateOddIntegerStrWithNullsList() {
         return infiniteOddIntegerStrWithNullsPipe().limit(NORMAL_SIZE).toList();
+    }
+
+    protected static <T> List<T> duplicateList(List<T> sample) {
+        return Pipes.list(sample).append(Pipes.list(sample)).shuffle().toList();
     }
 }

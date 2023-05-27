@@ -12,6 +12,7 @@ import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
 import com.oyealex.pipe.bi.BiPipe;
 import com.oyealex.pipe.tri.TriPipe;
+import com.oyealex.pipe.utils.MiscUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -131,7 +132,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param predicate 断言方法，满足断言的元素会被保留。
      * @return 新的流水线。
      * @throws NullPointerException 当{@code predicate}为{@code null}时抛出。
-     * @apiNote 同 {@link #takeIf(Predicate)}
+     * @apiNote 此方法等价于 {@link #takeIf(Predicate)}，为了方便从{@link Stream#filter(Predicate)}迁移而存在。
      * @see #takeIf(Predicate)
      * @see Stream#filter(Predicate)
      */
@@ -163,8 +164,8 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 保留第一个元素，丢弃其他所有元素。
      *
-     * @return 最多只含有一个元素的新的流水线。
-     * @apiNote 同 {@code limit(1)}。
+     * @return 最多只含有第一个元素的新的流水线。
+     * @apiNote 此方法等价于 {@code limit(1)}，作为更接近自然语言表达方式的版本而存在。
      * @see #takeFirst(int)
      * @see #takeLast()
      * @see #findFirst()
@@ -177,9 +178,9 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 保留前{@code count}个元素，丢弃其他所有元素。
      *
-     * @return 包含前 {@code count}个元素的新的流水线。
+     * @return 最多包含前 {@code count}个元素的新的流水线。
      * @throws IllegalArgumentException 当需要保留的元素数量小于0时抛出。
-     * @apiNote 同 {@link #limit(long)}。
+     * @apiNote 此方法等价于 {@code limit(count)}，作为更接近自然语言表达方式的版本而存在。
      * @see #takeFirst()
      * @see #takeLast(int)
      * @see #limit(long)
@@ -191,7 +192,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 保留最后一个元素，丢弃其他所有元素。
      *
-     * @return 最多只含有一个元素的新的流水线。
+     * @return 最多只含有最后一个元素的新的流水线。
      * @see #takeLast(int)
      * @see #takeFirst()
      * @see #findLast()
@@ -204,7 +205,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * 保留最后给定数量的元素。
      *
      * @param count 需要保留的最后几个元素的数量。
-     * @return 新的流水线。
+     * @return 最多包含后 {@code count}个元素的新的流水线。
      * @throws IllegalArgumentException 当{@code count}为负值时抛出。
      * @see #takeLast()
      * @see #takeFirst(int)
@@ -228,8 +229,9 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param predicate 断言方法。
      * @return 新的流水线。
      * @throws NullPointerException 当{@code predicate}为{@code null}时抛出。
-     * @apiNote 此方法支持对流水线执行短路优化，当断言首次返回{@code false}后，流水线剩余的元素允许被短路，
-     * 因此{@code predicate}可能无法测试每个元素。
+     * @apiNote 此方法为了方便从 {@code Stream.takeWhile(predicate)}（JDK8更高版本）迁移而存在。
+     * @implNote 此方法支持对流水线执行短路优化，当断言首次返回{@code false}后，流水线剩余的元素允许被短路，
+     * 因此{@code predicate}可能无法对每个元素调用。
      * @see #takeWhileOrderly(LongBiPredicate)
      * @see #dropWhile(Predicate)
      */
@@ -253,7 +255,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param predicate 断言方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为判断是否需要保留的元素。
      * @return 新的流水线。
      * @throws NullPointerException 当{@code predicate}为{@code null}时抛出。
-     * @apiNote 此方法支持对流水线执行短路优化，当断言首次返回{@code false}后，流水线剩余的元素允许被短路，
+     * @implNote 此方法支持对流水线执行短路优化，当断言首次返回{@code false}后，流水线剩余的元素允许被短路，
      * 因此{@code predicate}可能无法测试每个元素。
      * @see #takeWhile(Predicate)
      * @see #dropWhileOrderly(LongBiPredicate)
@@ -301,7 +303,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * 丢弃第一个元素，保留剩下的所有元素。
      *
      * @return 丢弃了第一个元素的新的流水线。
-     * @apiNote 同 {@code skip(1)}
+     * @apiNote 此方法等价于 {@code skip(1)}，作为更接近自然语言表达方式的版本而存在。
      * @see #dropFirst(int)
      * @see #takeFirst()
      * @see #skip(long)
@@ -315,7 +317,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @return 丢弃了前 {@code count}个元素的新的流水线。
      * @throws IllegalArgumentException 当需要丢弃的元素数量小于0时抛出。
-     * @apiNote 同 {@link #skip(long)}。
+     * @apiNote 此方法等价于 {@code skip(count)}，作为更接近自然语言表达方式的版本而存在。
      * @see #dropFirst()
      * @see #dropLast(int)
      * @see #skip(long)
@@ -362,7 +364,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param predicate 断言方法。
      * @return 新的流水线。
      * @throws NullPointerException 当{@code predicate}为{@code null}时抛出。
-     * @apiNote 当断言首次返回 {@code false}后，流水线剩余的元素直接流向下游，无需再使用{@code predicate}测试元素，
+     * @implNote 当断言首次返回 {@code false}后，流水线剩余的元素直接流向下游，无需再使用{@code predicate}测试元素，
      * 因此{@code predicate}可能无法测试每个元素。
      * @see #dropWhileOrderly(LongBiPredicate)
      * @see #takeWhile(Predicate)
@@ -386,7 +388,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param predicate 断言方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为判断是否需要保留的元素。
      * @return 新的流水线。
      * @throws NullPointerException 当{@code predicate}为{@code null}时抛出。
-     * @apiNote 当断言首次返回 {@code false}后，流水线剩余的元素直接流向下游，无需再使用{@code predicate}测试元素，
+     * @implNote 当断言首次返回 {@code false}后，流水线剩余的元素直接流向下游，无需再使用{@code predicate}测试元素，
      * 因此{@code predicate}可能无法测试每个元素。
      * @see #dropWhile(Predicate)
      * @see #takeWhileOrderly(LongBiPredicate)
@@ -607,7 +609,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param supplier 映射对象的获取方法，获取的对象不可为{@code null}。
      * @return 不包含任何 {@code null}的新的流水线。
      * @throws NullPointerException 当{@code supplier}为{@code null}时抛出。
-     * @apiNote 在流水线运行期间 {@code supplier}产生的任何空值，均会导致抛出{@link NullPointerException}。
+     * @implNote 在流水线运行期间 {@code supplier}产生的任何空值，均会导致抛出{@link NullPointerException}。
      * @see #mapNull(Object)
      */
     Pipe<E> mapNull(Supplier<? extends E> supplier);
@@ -741,7 +743,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param <R> 新流水线中的元素类型。
      * @return 映射并拼接后的流水线。
      * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
-     * @apiNote 由于无法确定具体的 {@link Collection}类型，流水线无法进行更进一步的优化，如果有必要请使用{@link Pipes}工具类
+     * @implNote 由于无法确定具体的 {@link Collection}类型，流水线无法进行更进一步的优化，如果有必要请使用{@link Pipes}工具类
      * 中的方法显式构造流水线的方式映射并拼接流水线。
      * @see #flatMap(Function)
      * @see #flatMapOrderly(LongBiFunction)
@@ -754,7 +756,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * 将流水线中的每个元素包装为一个个流水线，这些流水线仅包含一个元素。
      *
      * @return 新的流水线。
-     * @apiNote 此方法常在需要对单个元素使用流水线的方法时使用。
+     * @apiNote 此方法通常在需要对单个元素使用流水线的方法时使用。
      */
     Pipe<Pipe<E>> flatMapSingleton(); // OPT 2023-05-27 00:50 完善注释中的使用示例
 
@@ -851,6 +853,12 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     <F, S> BiPipe<F, S> extendToTuple(Function<? super E, ? extends F> firstMapper,
         Function<? super E, ? extends S> secondMapper);
 
+    /**
+     * 将流水线中的元素逐对扩展为两元组。
+     *
+     * @param keepLastIncompletePair 是否保留最后一个不完整的元组。
+     * @return 扩展后的两元组流水线。
+     */
     @Todo
     BiPipe<E, E> pairExtend(boolean keepLastIncompletePair);
 
@@ -873,75 +881,141 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 对流水线中的元素去重，以{@link Object#equals(Object)}为依据。
      *
-     * @return 元素去重之后的流水线
+     * @return 元素去重之后的流水线。
      * @see Stream#distinct()
+     * @see #distinctBy(Function)
      */
     Pipe<E> distinct();
 
     /**
      * 对流水线中的元素去重，以给定的映射结果为依据。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * Set<K> seen = new HashSet<>();
+     * for (E element : getPipeElements()) {
+     *     K key = mapper.apply(element);
+     *     if (!seen.contains(key)) {
+     *         doSomething(element);
+     *     } else {
+     *         seen.add(key);
+     *     }
+     * }
+     * }</pre>
      *
-     * @param mapper 去重依据的映射方法
-     * @param <K> 映射结果的类型
-     * @return 元素去重之后的流水线
-     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
+     * @param mapper 去重依据的映射方法。
+     * @param <K> 映射结果的类型。
+     * @return 元素按照映射结果去重之后的流水线。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @see #distinct()
+     * @see #distinctByOrderly(LongBiFunction)
      */
     <K> Pipe<E> distinctBy(Function<? super E, ? extends K> mapper);
 
     /**
      * 对流水线中的元素去重，以给定的映射结果为依据，支持访问元素次序。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * long index = 0L;
+     * Set<K> seen = new HashSet<>();
+     * for (E element : getPipeElements()) {
+     *     K key = mapper.apply(index++, element);
+     *     if (!seen.contains(key)) {
+     *         doSomething(element);
+     *     } else {
+     *         seen.add(key);
+     *     }
+     * }
+     * }</pre>
      *
      * @param mapper 去重依据的映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
-     * @param <K> 映射结果的类型
-     * @return 元素去重之后的流水线
-     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
+     * @param <K> 映射结果的类型。
+     * @return 元素按照映射结果去重之后的流水线。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @see #distinctBy(Function)
      */
     <K> Pipe<E> distinctByOrderly(LongBiFunction<? super E, ? extends K> mapper);
 
     /**
-     * 对流水线中的元素排序，以默认顺序排序。
+     * 对流水线中的元素排序，以自然顺序排序。
      * <p/>
-     * 要求元素实现了{@link Comparable}，否则可能在流水线的终结操作中抛出{@link ClassCastException}异常。
+     * 要求元素实现了{@link Comparable}，否则会在流水线的终结操作中抛出{@link ClassCastException}异常。
      *
-     * @return 元素排序后的流水线
-     * @apiNote 流水线会针对元素的排序情况进行优化：例如如果元素已经处于自然有序状态，则本次排序会被省略；
-     * 或者如果元素已经处于自然逆序状态，则会以相对高效的逆序代替自然排序，
-     * 此时每个元素的{@link Comparable#compareTo(Object)}方法调用会被省略。
+     * @return 元素自然有序的流水线。
+     * @apiNote 此接口通常在元素实现了 {@link Comparable}时作为{@code sort(null)}或{@code sort(Comparator.naturalOrder())}
+     * 的代替使用。
+     * @implNote 流水线支持针对元素的排序情况进行优化：例如如果元素已经处于自然有序状态，则本次排序会被省略；
+     * 或者如果元素已经处于自然逆序状态，则会以相对高效的逆序{@link #reverse()}代替自然排序，此时每个元素的
+     * {@link Comparable#compareTo(Object)}方法调用会被省略。
      * @see Stream#sorted()
+     * @see #sortReversely()
+     * @see #sort(Comparator)
+     * @see #reverse()
      */
     default Pipe<E> sort() {
         return sort(null);
     }
 
     /**
+     * 对流水线中的元素排序，以自然逆序排序。
+     * <p/>
+     * 要求元素实现了{@link Comparable}，否则会在流水线的终结操作中抛出{@link ClassCastException}异常。
+     *
+     * @return 元素自然逆序的流水线。
+     * @apiNote 此接口通常在元素实现了 {@link Comparable}时作为{@code sort(null)}或{@code sort(Comparator.reverseOrder())}
+     * 的代替使用。
+     * @implNote 流水线允许针对元素的排序情况进行优化：例如如果元素已经处于自然有序状态，则本次排序会被省略；
+     * 或者如果元素已经处于自然逆序状态，则会以相对高效的逆序{@link #reverse()}代替自然排序，此时每个元素的
+     * {@link Comparable#compareTo(Object)}方法调用会被省略。
+     * @see #sort()
+     * @see #reverse()
+     */
+    default Pipe<E> sortReversely() {
+        return sort(MiscUtil.optimizedReverseOrder(null));
+    }
+
+    /**
      * 对流水线中的元素排序，以给定的比较方法排序。
      *
-     * @param comparator 元素比较方法
-     * @return 元素排序后的流水线
+     * @param comparator 元素排序比较器，如果比较器为{@code null}则默认以{@link Comparator#naturalOrder()}作为比较器，
+     * 此时如果元素没有实现{@link Comparable}接口则会在流水线终结操作中抛出{@link ClassCastException}异常。
+     * @return 元素按照给定比较器排序后的流水线。
+     * @implNote 如果元素已经实现了 {@link Comparable}接口，流水线允许对某些排序场景进行优化：<br/>
+     * 当期望以自然顺序排序时，推荐传入{@link Comparator#naturalOrder()}作为比较器，或者使用{@link #sort()}方法；<br/>
+     * 当期望以自然逆序排序时，推荐传入{@link Comparator#reverseOrder()}作为比较器，或者使用{@link #sortReversely()}方法。
      * @see Stream#sorted(Comparator)
+     * @see #sort()
+     * @see #sortReversely()
      */
     Pipe<E> sort(Comparator<? super E> comparator);
 
     /**
-     * 对流水线中的元素排序，以默认顺序排序，排序的依据为映射后的结果。
+     * 对流水线中的元素排序，以给定映射后的结果的自然顺序排序。
      * <p/>
      * 要求映射后的结果类型{@code R}实现了{@link Comparable}。
      *
-     * @param mapper 排序依据的映射方法
-     * @param <K> 映射结果的类型
-     * @return 元素排序后的流水线
+     * @param mapper 排序依据的映射方法。
+     * @param <K> 映射结果的类型。
+     * @return 元素按照映射结果自然顺序排序后的流水线。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @implNote 如果 {@code mapper}为{@link Function#identity()}则此方法等同于{@code sort()}。
+     * @see #sortBy(Function, Comparator)
      */
     default <K extends Comparable<? super K>> Pipe<E> sortBy(Function<? super E, ? extends K> mapper) {
         return isStdIdentify(mapper) ? sort() : sort(comparing(mapper));
     }
 
     /**
-     * 对流水线中的元素排序，以给定的比较方法排序，排序的依据为映射后的结果。
+     * 对流水线中的元素排序，以给定的比较器对映射之后的结果排序顺序为准。
      *
-     * @param mapper 排序依据的映射方法
-     * @param comparator 元素比较方法
-     * @param <K> 映射结果的类型
-     * @return 元素排序后的流水线
+     * @param mapper 排序依据的映射方法。
+     * @param comparator 元素比较方法。
+     * @param <K> 映射结果的类型。
+     * @return 元素排序后的流水线。
+     * @throws NullPointerException 当{@code mapper}或{@code comparator}为{@code null}时抛出。
+     * @implNote 如果 {@code mapper}为{@link Function#identity()}则此方法等同于{@code sort(comparator)}。
+     * @see #sortBy(Function)
      */
     @SuppressWarnings("unchecked")
     default <K> Pipe<E> sortBy(Function<? super E, ? extends K> mapper, Comparator<? super K> comparator) {
@@ -954,8 +1028,8 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * 要求映射后的结果类型{@code R}实现了{@link Comparable}。
      *
      * @param mapper 排序依据的映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
-     * @param <K> 映射结果的类型
-     * @return 元素排序后的流水线
+     * @param <K> 映射结果的类型。
+     * @return 元素排序后的流水线。
      */
     default <K extends Comparable<? super K>> Pipe<E> sortByOrderly(LongBiFunction<? super E, ? extends K> mapper) {
         return sortByOrderly(mapper, naturalOrder());
@@ -965,9 +1039,9 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * 对流水线中的元素排序，以给定的比较方法排序，排序的依据为映射后的结果。
      *
      * @param mapper 排序依据的映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
-     * @param comparator 元素比较方法
-     * @param <R> 映射结果的类型
-     * @return 元素排序后的流水线
+     * @param comparator 元素比较方法。
+     * @param <R> 映射结果的类型。
+     * @return 元素排序后的流水线。
      */
     <R> Pipe<E> sortByOrderly(LongBiFunction<? super E, ? extends R> mapper, Comparator<? super R> comparator);
 

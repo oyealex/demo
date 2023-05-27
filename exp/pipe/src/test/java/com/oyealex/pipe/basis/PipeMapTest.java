@@ -37,8 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @since 2023-04-28
  */
 class PipeMapTest extends PipeTestFixture {
-    // normal test
-
     @Test
     @DisplayName("能够正确映射元素")
     void should_map_elements_rightly() {

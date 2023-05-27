@@ -35,8 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
  * @since 2023-05-25
  */
 class PipeTakeTest extends PipeTestFixture {
-    // normal test
-
     @Test
     @DisplayName("能够正确根据断言保留元素")
     void should_take_elements_as_predicate_rightly() {
