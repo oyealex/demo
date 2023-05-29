@@ -513,7 +513,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Pipe<OUT> limit(long size) {
+    public Pipe<OUT> limit(long size, Predicate<? super OUT> predicate) {
         if (size < 0) {
             throw new IllegalArgumentException("limit size cannot be negative, size: " + size);
         }
@@ -523,11 +523,11 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         if (size == MAX_VALUE) {
             return this;
         }
-        return new SliceOp<>(this, 0, size);
+        return new SliceOp<>(this, 0, size, predicate);
     }
 
     @Override
-    public Pipe<OUT> skip(long size) {
+    public Pipe<OUT> skip(long size, Predicate<? super OUT> predicate) {
         if (size < 0) {
             throw new IllegalArgumentException("skip size cannot be negative, size: " + size);
         }
@@ -537,11 +537,11 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         if (size == MAX_VALUE) {
             return empty();
         }
-        return new SliceOp<>(this, size, MAX_VALUE);
+        return new SliceOp<>(this, size, MAX_VALUE, predicate);
     }
 
     @Override
-    public Pipe<OUT> slice(long startInclusive, long endExclusive) {
+    public Pipe<OUT> slice(long startInclusive, long endExclusive, Predicate<? super OUT> predicate) {
         if (startInclusive < 0 || endExclusive < 0 || startInclusive > endExclusive) {
             throw new IllegalArgumentException("invalid slice bound: [" + startInclusive + ", " + endExclusive + ")");
         }
@@ -551,7 +551,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         if (startInclusive == 0 && endExclusive == MAX_VALUE) {
             return this;
         }
-        return new SliceOp<>(this, startInclusive, endExclusive - startInclusive);
+        return new SliceOp<>(this, startInclusive, endExclusive - startInclusive, predicate);
     }
 
     @Override

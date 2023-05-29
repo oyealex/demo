@@ -2,6 +2,7 @@ package com.oyealex.pipe.utils;
 
 import java.util.Comparator;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
@@ -50,5 +51,9 @@ public final class MiscUtil {
         } else {
             return comparator.reversed();
         }
+    }
+
+    public static <E> Predicate<? super E> truePredicate() {
+        return ignored -> true;
     }
 }

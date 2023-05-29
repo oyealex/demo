@@ -4,7 +4,6 @@ import com.oyealex.pipe.PipeTestFixture;
 import com.oyealex.pipe.assist.IntBox;
 import com.oyealex.pipe.basis.api.Pipe;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -188,28 +187,4 @@ class PipeSortTest extends PipeTestFixture {
     }
 
     private static class UnComparableTestDouble {}
-
-    private static class ComparableTestDouble implements Comparable<ComparableTestDouble> {
-        private final String value;
-
-        private boolean compareToCalled = false;
-
-        private ComparableTestDouble(String value) {
-            this.value = value;
-        }
-
-        private boolean isCompareToCalled() {
-            return compareToCalled;
-        }
-
-        @Override
-        public int compareTo(@NotNull PipeSortTest.ComparableTestDouble o) {
-            compareToCalled = true;
-            return value.length() - o.value.length();
-        }
-
-        private void reset() {
-            compareToCalled = false;
-        }
-    }
 }

@@ -1,5 +1,7 @@
 package com.oyealex.pipe.basis;
 
+import java.util.function.Predicate;
+
 import static com.oyealex.pipe.flag.PipeFlag.EMPTY;
 import static com.oyealex.pipe.flag.PipeFlag.IS_SHORT_CIRCUIT;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
@@ -15,10 +17,13 @@ class SliceOp<IN> extends RefPipe<IN, IN> {
 
     private final long limit;
 
-    SliceOp(RefPipe<?, ? extends IN> prePipe, long skip, long limit) {
+    private final Predicate<? super IN> predicate; // TODO 2023-05-30 01:23 断言会导致begin size不同，需要分化处理
+
+    SliceOp(RefPipe<?, ? extends IN> prePipe, long skip, long limit, Predicate<? super IN> predicate) {
         super(prePipe, NOT_SIZED | (limit != Long.MAX_VALUE ? IS_SHORT_CIRCUIT : EMPTY));
         this.skip = skip;
         this.limit = limit;
+        this.predicate = predicate;
     }
 
     @Override

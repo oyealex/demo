@@ -2,8 +2,10 @@ package com.oyealex.pipe;
 
 import com.oyealex.pipe.basis.Pipes;
 import com.oyealex.pipe.basis.api.Pipe;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 /**
@@ -15,7 +17,7 @@ import java.util.Random;
 public abstract class PipeTestFixture {
     protected static final String SOME_STR = "SOME_STR";
 
-    protected static final int NORMAL_SIZE = 10;
+    protected static final int NORMAL_SIZE = 20;
 
     protected static Pipe<Integer> infiniteIntegerPipe() {
         return Pipes.iterate(0, i -> i + 1);
@@ -96,5 +98,42 @@ public abstract class PipeTestFixture {
 
     protected static <T> List<T> duplicateList(List<T> sample) {
         return Pipes.list(sample).append(Pipes.list(sample)).shuffle().toList();
+    }
+
+    protected static class ComparableTestDouble implements Comparable<ComparableTestDouble> {
+        private final String value;
+
+        private boolean compareToCalled = false;
+
+        public ComparableTestDouble(String value) {
+            this.value = value;
+        }
+
+        public boolean isCompareToCalled() {
+            return compareToCalled;
+        }
+
+        public void reset() {
+            compareToCalled = false;
+        }
+
+        @Override
+        public int compareTo(@NotNull ComparableTestDouble o) {
+            compareToCalled = true;
+            return value.length() - o.value.length();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ComparableTestDouble that = (ComparableTestDouble) o;
+            return Objects.equals(value, that.value);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(value);
+        }
     }
 }
