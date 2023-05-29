@@ -49,6 +49,7 @@ import static com.oyealex.pipe.basis.api.policy.MergePolicy.THEIRS_FIRST;
 import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.TAKE_REMAINING;
 import static com.oyealex.pipe.flag.PipeFlag.EMPTY;
 import static com.oyealex.pipe.utils.MiscUtil.isStdIdentify;
+import static com.oyealex.pipe.utils.MiscUtil.naturalOrderIfNull;
 import static com.oyealex.pipe.utils.MiscUtil.optimizedReverseOrder;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
@@ -978,7 +979,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 对流水线中的元素排序，以给定的比较方法排序。
      *
-     * @param comparator 元素排序比较器，如果比较器为{@code null}则默认以{@link Comparator#naturalOrder()}作为比较器，
+     * @param comparator 元素比较器，如果比较器为{@code null}则默认以{@link Comparator#naturalOrder()}作为比较器，
      * 此时如果元素没有实现{@link Comparable}接口则会在流水线终结操作中抛出{@link ClassCastException}异常。
      * @return 元素按照给定比较器排序后的流水线。
      * @implNote 如果元素已经实现了 {@link Comparable}接口，流水线允许对某些排序场景进行优化：<br/>
@@ -1001,6 +1002,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
      * @implNote 如果 {@code mapper}为{@link Function#identity()}则此方法等同于{@code sort()}。
      * @see #sortBy(Function, Comparator)
+     * @see #sortBy(Function)
      */
     default <K extends Comparable<? super K>> Pipe<E> sortBy(Function<? super E, ? extends K> mapper) {
         return isStdIdentify(mapper) ? sort() : sort(comparing(mapper));
@@ -1010,26 +1012,31 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * 对流水线中的元素排序，以给定的比较器对映射之后的结果排序顺序为准。
      *
      * @param mapper 排序依据的映射方法。
-     * @param comparator 元素比较方法。
+     * @param comparator 元素比较器，如果比较器为{@code null}则默认以{@link Comparator#naturalOrder()}作为比较器。
      * @param <K> 映射结果的类型。
      * @return 元素排序后的流水线。
-     * @throws NullPointerException 当{@code mapper}或{@code comparator}为{@code null}时抛出。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
      * @implNote 如果 {@code mapper}为{@link Function#identity()}则此方法等同于{@code sort(comparator)}。
      * @see #sortBy(Function)
+     * @see #sortByOrderly(LongBiFunction, Comparator)
      */
     @SuppressWarnings("unchecked")
     default <K> Pipe<E> sortBy(Function<? super E, ? extends K> mapper, Comparator<? super K> comparator) {
-        return isStdIdentify(mapper) ? sort((Comparator<? super E>) comparator) : sort(comparing(mapper, comparator));
+        return isStdIdentify(mapper) ? sort((Comparator<? super E>) comparator) :
+            sort(comparing(mapper, naturalOrderIfNull(comparator)));
     }
 
     /**
-     * 对流水线中的元素排序，以默认顺序排序，排序的依据为映射后的结果，支持访问元素次序。
+     * 对流水线中的元素排序，以给定的映射方法映射后的结果自然顺序为准，支持访问元素次序。
      * <p/>
      * 要求映射后的结果类型{@code R}实现了{@link Comparable}。
      *
      * @param mapper 排序依据的映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @param <K> 映射结果的类型。
      * @return 元素排序后的流水线。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @see #sortBy(Function, Comparator)
+     * @see #sortBy(Function)
      */
     default <K extends Comparable<? super K>> Pipe<E> sortByOrderly(LongBiFunction<? super E, ? extends K> mapper) {
         return sortByOrderly(mapper, naturalOrder());
@@ -1039,9 +1046,12 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * 对流水线中的元素排序，以给定的比较方法排序，排序的依据为映射后的结果。
      *
      * @param mapper 排序依据的映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
-     * @param comparator 元素比较方法。
+     * @param comparator 元素比较器，如果比较器为{@code null}则默认以{@link Comparator#naturalOrder()}作为比较器。
      * @param <R> 映射结果的类型。
      * @return 元素排序后的流水线。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @see #sortBy(Function, Comparator)
+     * @see #sortByOrderly(LongBiFunction)
      */
     <R> Pipe<E> sortByOrderly(LongBiFunction<? super E, ? extends R> mapper, Comparator<? super R> comparator);
 

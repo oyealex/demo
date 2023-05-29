@@ -15,6 +15,7 @@ import java.util.function.Predicate;
 import static com.oyealex.pipe.basis.Pipes.list;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -162,17 +163,19 @@ class PipeDropTest extends PipeTestFixture {
     @Test
     @DisplayName("当给定的断言方法为空时抛出异常")
     void should_throw_exception_when_predicate_is_null() {
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().dropIf(null));
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().dropIfOrderly(null));
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().dropWhile(null));
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().dropWhileOrderly(null));
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().dropNullBy(null));
+        assertAll(() -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().dropIf(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().dropIfOrderly(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().dropWhile(null)),
+            () -> assertThrowsExactly(NullPointerException.class,
+                () -> infiniteIntegerStrPipe().dropWhileOrderly(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().dropNullBy(null)));
     }
 
     @Test
     @DisplayName("当尝试丢弃的元素数量为负值时抛出异常")
     void should_throw_exception_when_given_count_is_negative() {
-        assertThrowsExactly(IllegalArgumentException.class, () -> infiniteIntegerStrPipe().dropFirst(-1));
-        assertThrowsExactly(IllegalArgumentException.class, () -> infiniteIntegerStrPipe().dropLast(-1));
+        assertAll(
+            () -> assertThrowsExactly(IllegalArgumentException.class, () -> infiniteIntegerStrPipe().dropFirst(-1)),
+            () -> assertThrowsExactly(IllegalArgumentException.class, () -> infiniteIntegerStrPipe().dropLast(-1)));
     }
 }

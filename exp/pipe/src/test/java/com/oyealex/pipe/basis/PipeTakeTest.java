@@ -16,6 +16,7 @@ import static com.oyealex.pipe.basis.Pipes.list;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
@@ -155,6 +156,17 @@ class PipeTakeTest extends PipeTestFixture {
     }
 
     @Test
+    @DisplayName("能够正确根据有序断言保留元素直到断言首次为false")
+    void should_take_elements_as_predicate_with_order_rightly_when_take_while() {
+        List<String> sample = generateIntegerStrList();
+        IntBox counter = IntBox.box();
+        assertEquals(sample.stream().filter(ignored -> counter.getAndIncrement() < 5).collect(toList()),
+            list(sample).takeWhileOrderly((order, value) -> order < 5).toList());
+    }
+
+    // optimization test
+
+    @Test
     @DisplayName("当takeWhile的断言首次为false后应当短路流水线")
     void should_circuit_after_predicate_get_false_when_take_while() {
         IntBox counter = IntBox.box();
@@ -164,39 +176,32 @@ class PipeTakeTest extends PipeTestFixture {
         assertEquals(sample.subList(0, 6), handled);
     }
 
-    @Test
-    @DisplayName("能够正确根据有序断言保留元素直到断言首次为false")
-    void should_take_elements_as_predicate_with_order_rightly_when_take_while() {
-        List<String> sample = generateIntegerStrList();
-        IntBox counter = IntBox.box();
-        assertEquals(sample.stream().filter(ignored -> counter.getAndIncrement() < 5).collect(toList()),
-            list(sample).takeWhileOrderly((order, value) -> order < 5).toList());
-    }
-
     // exception test
 
     @Test
     @DisplayName("当给定的断言方法为空时抛出异常")
     void should_throw_exception_when_predicate_is_null() {
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().takeIf(null));
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().filter(null));
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().takeIfOrderly(null));
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().takeWhile(null));
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().takeWhileOrderly(null));
+        assertAll(() -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().takeIf(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().filter(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().takeIfOrderly(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().takeWhile(null)),
+            () -> assertThrowsExactly(NullPointerException.class,
+                () -> infiniteIntegerStrPipe().takeWhileOrderly(null)));
     }
 
     @Test
     @DisplayName("当尝试获取的元素数量为负值时抛出异常")
     void should_throw_exception_when_given_count_is_negative() {
-        assertThrowsExactly(IllegalArgumentException.class, () -> infiniteIntegerStrPipe().takeFirst(-1));
-        assertThrowsExactly(IllegalArgumentException.class, () -> infiniteIntegerStrPipe().takeLast(-1));
+        assertAll(
+            () -> assertThrowsExactly(IllegalArgumentException.class, () -> infiniteIntegerStrPipe().takeFirst(-1)),
+            () -> assertThrowsExactly(IllegalArgumentException.class, () -> infiniteIntegerStrPipe().takeLast(-1)));
     }
 
     @Test
     @DisplayName("当尝试获取无限流中的最后N个元素时抛出异常")
     @Disabled("特性尚未实现")
     void should_throw_exception_when_try_to_take_last_N_elements_in_infinite_pipe() {
-        assertThrowsExactly(IllegalStateException.class, () -> infiniteIntegerStrPipe().takeLast());
-        assertThrowsExactly(IllegalStateException.class, () -> infiniteIntegerStrPipe().takeLast(10));
+        assertAll(() -> assertThrowsExactly(IllegalStateException.class, () -> infiniteIntegerStrPipe().takeLast()),
+            () -> assertThrowsExactly(IllegalStateException.class, () -> infiniteIntegerStrPipe().takeLast(10)));
     }
 }

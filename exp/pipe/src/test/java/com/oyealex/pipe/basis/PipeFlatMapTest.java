@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 import static com.oyealex.pipe.basis.Pipes.list;
 import static java.util.stream.Collectors.toList;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
@@ -82,8 +83,8 @@ class PipeFlatMapTest extends PipeTestFixture {
     @Test
     @DisplayName("当给定的映射方法为null时应当抛出异常")
     void should_throw_exception_when_mapper_is_null() {
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().flatMap(null));
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().flatMapOrderly(null));
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().flatMapCollection(null));
+        assertAll(() -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().flatMap(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().flatMapOrderly(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().flatMapCollection(null)));
     }
 }

@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 
 import static com.oyealex.pipe.basis.Pipes.list;
 import static java.util.stream.Collectors.toList;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -133,19 +134,19 @@ class PipeMapTest extends PipeTestFixture {
     @Test
     @DisplayName("当给定的函数式方法参数为空时抛出异常")
     void should_throw_exception_when_functional_param_is_null() {
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().map(null));
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().mapOrderly(null));
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().mapIf(null, ""));
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().mapIf(null, () -> ""));
-        assertThrowsExactly(NullPointerException.class,
-            () -> infiniteIntegerStrPipe().mapIf(ignored -> true, (Supplier<String>) null));
-        assertThrowsExactly(NullPointerException.class,
-            () -> infiniteIntegerStrPipe().mapIf(null, val -> val + SOME_STR));
-        assertThrowsExactly(NullPointerException.class,
-            () -> infiniteIntegerStrPipe().mapIf(ignored -> true, (Function<? super String, String>) null));
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().mapIf(null));
-        assertThrowsExactly(NullPointerException.class,
-            () -> infiniteIntegerStrPipe().mapNull((Supplier<String>) null));
+        assertAll(() -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().map(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().mapOrderly(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().mapIf(null, "")),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().mapIf(null, () -> "")),
+            () -> assertThrowsExactly(NullPointerException.class,
+                () -> infiniteIntegerStrPipe().mapIf(ignored -> true, (Supplier<String>) null)),
+            () -> assertThrowsExactly(NullPointerException.class,
+                () -> infiniteIntegerStrPipe().mapIf(null, val -> val + SOME_STR)),
+            () -> assertThrowsExactly(NullPointerException.class,
+                () -> infiniteIntegerStrPipe().mapIf(ignored -> true, (Function<? super String, String>) null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().mapIf(null)),
+            () -> assertThrowsExactly(NullPointerException.class,
+                () -> infiniteIntegerStrPipe().mapNull((Supplier<String>) null)));
     }
 
     @Test
