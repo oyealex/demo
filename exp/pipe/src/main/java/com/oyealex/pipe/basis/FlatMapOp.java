@@ -63,7 +63,7 @@ abstract class FlatMapOp<T, R> extends RefPipe<T, R> {
     }
 
     private static abstract class InternalOp<T, R> extends ChainedOp.ShortCircuitRecorded<T, R> {
-        public InternalOp(Op<R> nextOp) {
+        private InternalOp(Op<R> nextOp) {
             super(nextOp);
         }
 

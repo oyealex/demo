@@ -12,50 +12,94 @@ import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
  * @author oyealex
  * @since 2023-04-28
  */
-class SliceOp<IN> extends RefPipe<IN, IN> {
-    private final long skip;
+abstract class SliceOp<IN> extends RefPipe<IN, IN> {
+    protected final long skip;
 
-    private final long limit;
+    protected final long limit;
 
-    private final Predicate<? super IN> predicate; // TODO 2023-05-30 01:23 断言会导致begin size不同，需要分化处理
-
-    SliceOp(RefPipe<?, ? extends IN> prePipe, long skip, long limit, Predicate<? super IN> predicate) {
+    protected SliceOp(RefPipe<?, ? extends IN> prePipe, long skip, long limit) {
         super(prePipe, NOT_SIZED | (limit != Long.MAX_VALUE ? IS_SHORT_CIRCUIT : EMPTY));
         this.skip = skip;
         this.limit = limit;
-        this.predicate = predicate;
     }
 
-    @Override
-    protected Op<IN> wrapOp(Op<IN> nextOp) {
-        return new ChainedOp<IN, IN>(nextOp) {
-            private long skipped = 0L;
+    static class Normal<IN> extends SliceOp<IN> {
+        Normal(RefPipe<?, ? extends IN> prePipe, long skip, long limit) {
+            super(prePipe, skip, limit);
+        }
 
-            private long limited = 0L;
-
-            @Override
-            public void begin(long size) {
-                if (size <= 0) {
-                    nextOp.begin(size);
-                } else {
-                    nextOp.begin(Math.min(Math.max(0, size - skip), limit));
+        @Override
+        protected Op<IN> wrapOp(Op<IN> nextOp) {
+            return new InternalOp<IN>(nextOp, limit) {
+                @Override
+                public void begin(long size) {
+                    if (size <= 0) {
+                        nextOp.begin(size);
+                    } else {
+                        nextOp.begin(Math.min(Math.max(0, size - skip), limit));
+                    }
                 }
-            }
 
-            @Override
-            public void accept(IN in) {
-                if (skipped < skip) {
-                    skipped++;
-                } else if (limited < limit) {
-                    limited++;
-                    nextOp.accept(in);
+                @Override
+                public void accept(IN in) {
+                    if (skipped < skip) {
+                        skipped++;
+                    } else if (limited < limit) {
+                        limited++;
+                        nextOp.accept(in);
+                    }
                 }
-            }
+            };
+        }
+    }
 
-            @Override
-            public boolean canShortCircuit() {
-                return limited >= limit || nextOp.canShortCircuit();
-            }
-        };
+    static class Predicated<IN> extends SliceOp<IN> {
+        protected final Predicate<? super IN> predicate;
+
+        Predicated(RefPipe<?, ? extends IN> prePipe, long skip, long limit, Predicate<? super IN> predicate) {
+            super(prePipe, skip, limit);
+            this.predicate = predicate;
+        }
+
+        @Override
+        protected Op<IN> wrapOp(Op<IN> nextOp) {
+            return new InternalOp<IN>(nextOp, limit) {
+                @Override
+                public void begin(long size) {
+                    nextOp.begin(-1);
+                }
+
+                @Override
+                public void accept(IN in) {
+                    if (skipped < skip) {
+                        if (predicate.test(in)) {
+                            skipped++;
+                        }
+                    } else if (limited < limit) {
+                        if (predicate.test(in)) {
+                            limited++;
+                        }
+                        nextOp.accept(in);
+                    }
+                }
+            };
+        }
+    }
+
+    private static abstract class InternalOp<IN> extends ChainedOp<IN, IN> {
+        protected final long limit;
+        protected long skipped = 0L;
+
+        protected long limited = 0L;
+
+        protected InternalOp(Op<? super IN> nextOp, long limit) {
+            super(nextOp);
+            this.limit = limit;
+        }
+
+        @Override
+        public boolean canShortCircuit() {
+            return limited >= limit || nextOp.canShortCircuit();
+        }
     }
 }

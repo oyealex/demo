@@ -513,21 +513,19 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Pipe<OUT> limit(long size, Predicate<? super OUT> predicate) {
-        if (size < 0) {
-            throw new IllegalArgumentException("limit size cannot be negative, size: " + size);
-        }
-        if (size == 0) {
-            return empty();
-        }
-        if (size == MAX_VALUE) {
-            return this;
-        }
-        return new SliceOp<>(this, 0, size, predicate);
+    public Pipe<OUT> skip(long size) {
+        Pipe<OUT> optmizedPipe = optimizeSkipOp(size);
+        return optmizedPipe != null ? optmizedPipe : new SliceOp.Normal<>(this, size, MAX_VALUE);
     }
 
     @Override
     public Pipe<OUT> skip(long size, Predicate<? super OUT> predicate) {
+        requireNonNull(predicate);
+        Pipe<OUT> optmizedPipe = optimizeSkipOp(size);
+        return optmizedPipe != null ? optmizedPipe : new SliceOp.Predicated<>(this, size, MAX_VALUE, predicate);
+    }
+
+    private Pipe<OUT> optimizeSkipOp(long size) {
         if (size < 0) {
             throw new IllegalArgumentException("skip size cannot be negative, size: " + size);
         }
@@ -537,11 +535,51 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         if (size == MAX_VALUE) {
             return empty();
         }
-        return new SliceOp<>(this, size, MAX_VALUE, predicate);
+        return null;
+    }
+
+    @Override
+    public Pipe<OUT> limit(long size) {
+        Pipe<OUT> optimizedPipe = optimizeLimitOp(size);
+        return optimizedPipe != null ? optimizedPipe : new SliceOp.Normal<>(this, 0, size);
+    }
+
+    @Override
+    public Pipe<OUT> limit(long size, Predicate<? super OUT> predicate) {
+        requireNonNull(predicate);
+        Pipe<OUT> optimizedPipe = optimizeLimitOp(size);
+        return optimizedPipe != null ? optimizedPipe : new SliceOp.Predicated<>(this, 0, size, predicate);
+    }
+
+    private Pipe<OUT> optimizeLimitOp(long size) {
+        if (size < 0) {
+            throw new IllegalArgumentException("limit size cannot be negative, size: " + size);
+        }
+        if (size == 0) {
+            return empty();
+        }
+        if (size == MAX_VALUE) {
+            return this;
+        }
+        return null;
+    }
+
+    @Override
+    public Pipe<OUT> slice(long startInclusive, long endExclusive) {
+        Pipe<OUT> optimizedPipe = optimizeSliceOp(startInclusive, endExclusive);
+        return optimizedPipe != null ? optimizedPipe :
+            new SliceOp.Normal<>(this, startInclusive, endExclusive - startInclusive);
     }
 
     @Override
     public Pipe<OUT> slice(long startInclusive, long endExclusive, Predicate<? super OUT> predicate) {
+        requireNonNull(predicate);
+        Pipe<OUT> optimizedPipe = optimizeSliceOp(startInclusive, endExclusive);
+        return optimizedPipe != null ? optimizedPipe :
+            new SliceOp.Predicated<>(this, startInclusive, endExclusive - startInclusive, predicate);
+    }
+
+    private Pipe<OUT> optimizeSliceOp(long startInclusive, long endExclusive) {
         if (startInclusive < 0 || endExclusive < 0 || startInclusive > endExclusive) {
             throw new IllegalArgumentException("invalid slice bound: [" + startInclusive + ", " + endExclusive + ")");
         }
@@ -551,7 +589,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         if (startInclusive == 0 && endExclusive == MAX_VALUE) {
             return this;
         }
-        return new SliceOp<>(this, startInclusive, endExclusive - startInclusive, predicate);
+        return null;
     }
 
     @Override

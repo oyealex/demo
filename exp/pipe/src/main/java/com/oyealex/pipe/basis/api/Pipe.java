@@ -51,7 +51,6 @@ import static com.oyealex.pipe.flag.PipeFlag.EMPTY;
 import static com.oyealex.pipe.utils.MiscUtil.isStdIdentify;
 import static com.oyealex.pipe.utils.MiscUtil.naturalOrderIfNull;
 import static com.oyealex.pipe.utils.MiscUtil.optimizedReverseOrder;
-import static com.oyealex.pipe.utils.MiscUtil.truePredicate;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Objects.requireNonNull;
@@ -1117,20 +1116,6 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     Pipe<E> peekOrderly(LongBiConsumer<? super E> consumer);
 
     /**
-     * 仅保留给定数量的元素。
-     *
-     * @param size 需要保留的元素
-     * @return 新的流水线
-     * @throws IllegalArgumentException 当需要保留的元素数量小于0时抛出
-     * @see Stream#limit(long)
-     */
-    default Pipe<E> limit(long size) {
-        return limit(size, truePredicate());
-    }
-
-    Pipe<E> limit(long size, Predicate<? super E> predicate);
-
-    /**
      * 跳过指定数量的元素。
      *
      * @param size 需要跳过元素的数量
@@ -1138,11 +1123,21 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @throws IllegalArgumentException 当需要保留的元素数量小于0时抛出
      * @see Stream#skip(long)
      */
-    default Pipe<E> skip(long size) {
-        return skip(size, truePredicate());
-    }
+    Pipe<E> skip(long size);
 
     Pipe<E> skip(long size, Predicate<? super E> predicate);
+
+    /**
+     * 仅保留给定数量的元素。
+     *
+     * @param size 需要保留的元素
+     * @return 新的流水线
+     * @throws IllegalArgumentException 当需要保留的元素数量小于0时抛出
+     * @see Stream#limit(long)
+     */
+    Pipe<E> limit(long size);
+
+    Pipe<E> limit(long size, Predicate<? super E> predicate);
 
     /**
      * 对元素执行切片，即仅保留{@code startInclusive}到{@code endExclusive}之间的元素。
@@ -1151,9 +1146,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param endExclusive 切片范围结束索引，不包含。
      * @return 新的流水线
      */
-    default Pipe<E> slice(long startInclusive, long endExclusive) {
-        return slice(startInclusive, endExclusive, truePredicate());
-    }
+    Pipe<E> slice(long startInclusive, long endExclusive);
 
     Pipe<E> slice(long startInclusive, long endExclusive, Predicate<? super E> predicate);
 
