@@ -12,7 +12,7 @@ import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
  * @author oyealex
  * @since 2023-04-28
  */
-abstract class SliceOp<IN> extends RefPipe<IN, IN> {
+abstract class SliceOp<IN> extends RefPipe<IN, IN> { // TODO 2023-05-31 00:11 已经达到限制条件后不再执行多余的判断方法
     protected final long skip;
 
     protected final long limit;

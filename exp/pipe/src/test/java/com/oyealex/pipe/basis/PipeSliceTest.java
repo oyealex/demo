@@ -21,10 +21,13 @@ import java.util.function.Predicate;
 class PipeSliceTest extends PipeTestFixture {
     @Test
     void smoke() {
-        Predicate<Integer> predicate = value -> (value & 1) == 0;
-        System.out.println(infiniteIntegerPipe().limit(30).toList());
+        Predicate<Integer> predicate = value -> {
+            System.out.println(value);
+            return (value & 1) == 0;
+        };
+        // System.out.println(infiniteIntegerPipe().limit(30).toList());
         System.out.println(infiniteIntegerPipe().limit(30).skip(5, predicate).toList());
-        System.out.println(infiniteIntegerPipe().limit(30).limit(5, predicate).toList());
-        System.out.println(infiniteIntegerPipe().limit(30).slice(3, 6, predicate).toList());
+        // System.out.println(infiniteIntegerPipe().limit(30).limit(5, predicate).toList());
+        // System.out.println(infiniteIntegerPipe().limit(30).slice(3, 6, predicate).toList());
     }
 }

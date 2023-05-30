@@ -1118,13 +1118,24 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 跳过指定数量的元素。
      *
-     * @param size 需要跳过元素的数量
-     * @return 新的流水线
-     * @throws IllegalArgumentException 当需要保留的元素数量小于0时抛出
+     * @param size 需要跳过元素的数量。
+     * @return 新的流水线。
+     * @throws IllegalArgumentException 当需要保留的元素数量小于0时抛出。
      * @see Stream#skip(long)
+     * @see #skip(long, Predicate)
      */
     Pipe<E> skip(long size);
 
+    /**
+     * 跳过指定数量的元素，仅对满足给定断言的元素进行跳过计数。
+     * <p/>
+     * 在跳过满足给定断言和给定数量的元素之前，不满足断言的元素会持续被跳过；当跳过的元素数量满足要求后，剩余元素不会再执行
+     *
+     * @param size 需要跳过元素的数量。
+     * @param predicate 满足此条件的元素才会被计入跳过数量。
+     * @return 新的流水线。
+     * @throws IllegalArgumentException 当需要保留的元素数量小于0时抛出。
+     */
     Pipe<E> skip(long size, Predicate<? super E> predicate);
 
     /**
