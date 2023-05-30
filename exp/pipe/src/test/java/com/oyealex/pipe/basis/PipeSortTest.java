@@ -131,27 +131,12 @@ class PipeSortTest extends PipeTestFixture {
     // optimization test
 
     @Test
-    @DisplayName("对已经自然有序的流水线执行自然排序不会实际执行排序")
-    void should_do_not_sort_elements_actually_when_the_pipe_is_already_natural_ordered() {
-        testForSortOptimization(Pipe::sort, Pipe::sort);
-    }
-
-    @Test
-    @DisplayName("对已经自然有序的流水线执行自然逆序排序不会实际执行排序")
-    void should_do_not_sort_elements_reversely_actually_when_the_pipe_is_already_natural_ordered() {
-        testForSortOptimization(Pipe::sort, Pipe::sortReversely);
-    }
-
-    @Test
-    @DisplayName("对已经自然逆序的流水线执行自然排序不会实际执行排序")
-    void should_do_not_sort_elements_actually_when_the_pipe_is_already_natural_ordered_reversely() {
-        testForSortOptimization(Pipe::sortReversely, Pipe::sort);
-    }
-
-    @Test
-    @DisplayName("对已经自然逆序的流水线执行自然逆序排序不会实际执行排序")
-    void should_do_not_sort_elements_reversely_actually_when_the_pipe_is_already_natural_ordered_reversely() {
-        testForSortOptimization(Pipe::sortReversely, Pipe::sortReversely);
+    @DisplayName("对已经自然有序或自然逆序的流水线进行任意自然排序或自然逆序不会实际执行排序")
+    void should_not_do_sort_actually_when_the_pipe_is_already_ordered() {
+        assertAll(() -> testForSortOptimization(Pipe::sort, Pipe::sort),
+            () -> testForSortOptimization(Pipe::sort, Pipe::sortReversely),
+            () -> testForSortOptimization(Pipe::sortReversely, Pipe::sort),
+            () -> testForSortOptimization(Pipe::sortReversely, Pipe::sortReversely));
     }
 
     private void testForSortOptimization(Function<Pipe<ComparableTestDouble>, Pipe<ComparableTestDouble>> prepare,

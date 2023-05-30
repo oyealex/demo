@@ -165,10 +165,10 @@ final class SimpleOps extends NoInstance {
                 K key = mapper.apply(index++, value);
                 if (found) {
                     if (comparator.compare(result.first, key) > 0) {
-                        result = new Tuple<>(key, value);
+                        result = Tuple.of(key, value);
                     }
                 } else {
-                    result = new Tuple<>(key, value);
+                    result = Tuple.of(key, value);
                     found = true;
                 }
             }
@@ -340,18 +340,18 @@ final class SimpleOps extends NoInstance {
                 K key = mapper.apply(index++, value);
                 if (foundSecond) {
                     if (comparator.compare(second.first, key) < 0) {
-                        second = new Tuple<>(key, value);
+                        second = Tuple.of(key, value);
                     }
                 } else {
-                    second = new Tuple<>(key, value);
+                    second = Tuple.of(key, value);
                     foundSecond = true;
                 }
                 if (foundFirst) {
                     if (comparator.compare(first.first, key) > 0) {
-                        first = new Tuple<>(key, value);
+                        first = Tuple.of(key, value);
                     }
                 } else {
-                    first = new Tuple<>(key, value);
+                    first = Tuple.of(key, value);
                     foundFirst = true;
                 }
             }

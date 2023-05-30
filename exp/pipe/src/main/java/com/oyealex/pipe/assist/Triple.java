@@ -16,7 +16,7 @@ public final class Triple<F, S, T> {
 
     public final T third;
 
-    public Triple(F first, S second, T third) {
+    private Triple(F first, S second, T third) {
         this.first = first;
         this.second = second;
         this.third = third;
@@ -36,31 +36,31 @@ public final class Triple<F, S, T> {
 
     public <FF, SS, TT> Triple<FF, SS, TT> map(Function<? super F, ? extends FF> firstMapper,
         Function<? super S, ? extends SS> secondMapper, Function<? super T, ? extends TT> thirdMapper) {
-        return new Triple<>(firstMapper.apply(first), secondMapper.apply(second), thirdMapper.apply(third));
+        return Triple.of(firstMapper.apply(first), secondMapper.apply(second), thirdMapper.apply(third));
     }
 
     public <E> Triple<E, S, T> mapFirst(Function<? super F, ? extends E> mapper) {
-        return new Triple<>(mapper.apply(first), second, third);
+        return Triple.of(mapper.apply(first), second, third);
     }
 
     public <E> Triple<F, E, T> mapSecond(Function<? super S, ? extends E> mapper) {
-        return new Triple<>(first, mapper.apply(second), third);
+        return Triple.of(first, mapper.apply(second), third);
     }
 
     public <E> Triple<F, S, E> mapThird(Function<? super T, ? extends E> mapper) {
-        return new Triple<>(first, second, mapper.apply(third));
+        return Triple.of(first, second, mapper.apply(third));
     }
 
     public Tuple<S, T> dropFirst() {
-        return new Tuple<>(second, third);
+        return Tuple.of(second, third);
     }
 
     public Tuple<F, T> dropSecond() {
-        return new Tuple<>(first, third);
+        return Tuple.of(first, third);
     }
 
     public Tuple<F, S> dropThird() {
-        return new Tuple<>(first, second);
+        return Tuple.of(first, second);
     }
 
     @Override
@@ -84,5 +84,9 @@ public final class Triple<F, S, T> {
     @Override
     public String toString() {
         return "(" + first + "," + second + "," + third + ")";
+    }
+
+    public static <F, S, T> Triple<F, S, T> of(F first, S second, T third) {
+        return new Triple<>(first, second, third);
     }
 }

@@ -79,7 +79,7 @@ interface TerminalOp<T, R> extends Op<T>, Supplier<R> {
 
         @Override
         public Tuple<Optional<F>, Optional<S>> get() {
-            return new Tuple<>(foundFirst ? of(first) : empty(), foundSecond ? of(second) : empty());
+            return Tuple.of(foundFirst ? of(first) : empty(), foundSecond ? of(second) : empty());
         }
     }
 

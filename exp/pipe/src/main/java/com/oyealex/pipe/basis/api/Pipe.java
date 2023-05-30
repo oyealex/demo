@@ -1059,34 +1059,50 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 将流水线中的元素按照当前顺序颠倒。
      *
-     * @return 元素顺序颠倒后的流水线
+     * @return 元素顺序颠倒后的流水线。
+     * @apiNote 此方法会用于代替某些场景下的操作，例如对一个已经自然有序的流水线执行自然逆序排序，或已经自然逆序的流水线
+     * 执行自然有序排序，其中后者执行的排序操作允许被优化为逆序操作，以优化掉多余的{@link Comparable#compareTo(Object)}
+     * 方法调用。
+     * <p/>
+     * <b>注意：此类优化暂未考虑对排序稳定性的影响，后续可能添加对此类优化的开关控制。</b>
+     * @implNote 颠倒操作会对处于排序状态的流水线产生影响：会导致已经自然有序的流水线被认定为自然逆序，进而可以优化后续的
+     * 自然逆序排序操作；还会导致已经自然逆序的流水线被认定为自然有序，进而可以优化后续的自然有序排序操作。
      */
     Pipe<E> reverse();
 
     /**
      * 随机打乱流水线中的元素。
+     * <p/>
+     * 使用的随机数非安全随机数，如果对随机有要求，请使用{@link #shuffle(Random)}。
      *
-     * @return 元素顺序被打乱后新的流水线
+     * @return 元素顺序被打乱后新的流水线。
+     * @see #shuffle(Random)
      */
     default Pipe<E> shuffle() {
         return shuffle(new Random());
     }
 
     /**
-     * 使用给定的随机对象打乱流水线中的元素。
+     * 使用给定的随机数生成器打乱流水线中的元素。
      *
-     * @param random 用于随机元素次序的随机对象
-     * @return 元素顺序被打乱后新的流水线
+     * @param random 用于随机元素次序的随机数生成器。
+     * @return 元素顺序被打乱后新的流水线。
+     * @throws NullPointerException 当{@code random}为{@code null}时抛出。
+     * @see #shuffle()
      */
     Pipe<E> shuffle(Random random);
 
     /**
      * 以给定方法访问流水线中的元素。
+     * <p/>
+     * 如果需要以终结地方式对每个元素执行操作，请使用{@link #forEach(Consumer)}。
      *
-     * @param consumer 元素访问方法
-     * @return 新的流水线
-     * @apiNote 不同于经典Stream会优化某些场景下的访问方法调用，Pipe不会主动优化此访问方法。
+     * @param consumer 元素访问方法。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code consumer}为{@code null}时抛出。
+     * @implNote 不同于经典Stream会优化某些场景下的访问方法调用，Pipe不会优化此访问方法。
      * @see Stream#peek(Consumer)
+     * @see #forEach(Consumer)
      */
     Pipe<E> peek(Consumer<? super E> consumer);
 
@@ -1094,8 +1110,9 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * 以给定方法访问流水线中的元素，访问方法支持访问元素在流水线中的次序。
      *
      * @param consumer 元素访问方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为访问的元素。
-     * @return 新的流水线
-     * @apiNote 不同于经典Stream会优化某些场景下的访问方法调用，Pipe不会主动优化此访问方法。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code consumer}为{@code null}时抛出。
+     * @see #peek(Consumer)
      */
     Pipe<E> peekOrderly(LongBiConsumer<? super E> consumer);
 

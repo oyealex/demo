@@ -24,6 +24,22 @@ public final class LongBox implements LongSupplier, Supplier<Long> {
         this.value = value;
     }
 
+    public long incrementAndGet() {
+        return ++value;
+    }
+
+    public long getAndIncrement() {
+        return value++;
+    }
+
+    public long decrementAndGet() {
+        return --value;
+    }
+
+    public long getAndDecrement() {
+        return value--;
+    }
+
     @Override
     public Long get() {
         return getValue();
@@ -42,5 +58,13 @@ public final class LongBox implements LongSupplier, Supplier<Long> {
     @Override
     public String toString() {
         return "LongBox(" + value + ")";
+    }
+
+    public static LongBox box() {
+        return new LongBox(0);
+    }
+
+    public static LongBox box(long initValue) {
+        return new LongBox(initValue);
     }
 }

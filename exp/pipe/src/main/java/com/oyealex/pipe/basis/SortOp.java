@@ -100,7 +100,7 @@ abstract class SortOp<T> extends RefPipe<T, T> {
 
                 @Override
                 public void accept(T value) {
-                    elements.add(new Tuple<>(mapper.apply(index++, value), value));
+                    elements.add(Tuple.of(mapper.apply(index++, value), value));
                 }
             };
         }
