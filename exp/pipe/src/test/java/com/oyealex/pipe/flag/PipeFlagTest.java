@@ -68,7 +68,7 @@ class PipeFlagTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确地将拆分器的特征值转换为流水线标记")
     void should_convert_split_characteristics_to_pipe_flag_rightly() {
-        Spliterator<String> split = new MySplit(Spliterator.IMMUTABLE | Spliterator.DISTINCT | Spliterator.NONNULL,
+        Spliterator<String> split = new Split(Spliterator.IMMUTABLE | Spliterator.DISTINCT | Spliterator.NONNULL,
             false);
         assertEquals(IS_DISTINCT | IS_NONNULL, fromSpliterator(split),
             generateFailedMsgFromSplit(split.characteristics()));
@@ -77,7 +77,7 @@ class PipeFlagTest extends PipeTestFixture {
     @Test
     @DisplayName("如果拆分器已排序并且返回了非空的比较器，则转换后的流水线标记应当标记为NOT_SORTED")
     void should_convert_split_character_to_flag_with_NOT_SORTED_when_split_is_ORDERED_and_return_non_null_comparator() {
-        Spliterator<String> split = new MySplit(
+        Spliterator<String> split = new Split(
             Spliterator.IMMUTABLE | Spliterator.DISTINCT | Spliterator.NONNULL | Spliterator.SORTED, false);
         assertEquals(IS_DISTINCT | IS_NONNULL | NOT_SORTED, fromSpliterator(split),
             generateFailedMsgFromSplit(split.characteristics()));
@@ -86,16 +86,16 @@ class PipeFlagTest extends PipeTestFixture {
     @Test
     @DisplayName("如果拆分器已排序并且返回了空的比较器，则转换后的流水线标记应当标记为IS_SORTED")
     void should_convert_split_character_to_flag_with_IS_SORTED_when_split_is_ORDERED_and_return_null_comparator() {
-        Spliterator<String> split = new MySplit(
+        Spliterator<String> split = new Split(
             Spliterator.CONCURRENT | Spliterator.DISTINCT | Spliterator.NONNULL | Spliterator.SORTED, true);
         assertEquals(IS_DISTINCT | IS_NONNULL | IS_SORTED, fromSpliterator(split),
             generateFailedMsgFromSplit(split.characteristics()));
     }
 
-    private static class MySplit extends Spliterators.AbstractSpliterator<String> {
+    private static class Split extends Spliterators.AbstractSpliterator<String> {
         private final boolean isNaturalSorted;
 
-        MySplit(int additionalCharacteristics, boolean isNaturalSorted) {
+        Split(int additionalCharacteristics, boolean isNaturalSorted) {
             super(0, additionalCharacteristics);
             this.isNaturalSorted = isNaturalSorted;
         }
