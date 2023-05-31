@@ -1055,6 +1055,32 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      */
     <R> Pipe<E> sortByOrderly(LongBiFunction<? super E, ? extends R> mapper, Comparator<? super R> comparator);
 
+    Pipe<E> selectedFirst(Predicate<? super E> select);
+
+    Pipe<E> selectedLast(Predicate<? super E> select);
+
+    /**
+     * 将流水线中的{@code null}置于流水线头部。
+     *
+     * @return 新的流水线。
+     */
+    Pipe<E> nullsFirst();
+
+    default Pipe<E> nullsFirstBy(Function<? super E, ?> mapper) {
+        return selectedFirst(value -> mapper.apply(value) == null);
+    }
+
+    /**
+     * 将流水线中的{@code null}置于流水线末尾。
+     *
+     * @return 新的流水线。
+     */
+    Pipe<E> nullsLast();
+
+    default Pipe<E> nullsLastBy(Function<? super E, ?> mapper) {
+        return selectedLast(value -> mapper.apply(value) == null);
+    }
+
     /**
      * 将流水线中的元素按照当前顺序颠倒。
      *

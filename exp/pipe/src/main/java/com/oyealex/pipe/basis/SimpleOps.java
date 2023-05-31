@@ -371,4 +371,67 @@ final class SimpleOps extends NoInstance {
             }
         };
     }
+
+    public static <T> Op<T> nullsLastOp(Op<T> nextOp) {
+        return new ChainedOp<T, T>(nextOp) {
+            private int nullCount = 0;
+
+            @Override
+            public void accept(T value) {
+                if (value == null) {
+                    nullCount++;
+                } else {
+                    nextOp.accept(value);
+                }
+            }
+
+            @Override
+            public void end() {
+                int count = nullCount;
+                for (int i = 0; i < count; i++) {
+                    nextOp.accept(null);
+                }
+                nextOp.end();
+            }
+        };
+    }
+
+    public static <T> Op<T> nullsFirstOp(Op<T> nextOp) {
+        return new ChainedOp.ToList<T, T>(nextOp) {
+            private int nullCount = 0;
+
+            @Override
+            public void accept(T value) {
+                if (value == null) {
+                    nullCount++;
+                } else {
+                    super.accept(value);
+                }
+            }
+
+            @Override
+            public void end() {
+                int count = nullCount;
+                nextOp.begin(elements.size() + count);
+                if (isShortCircuitRequested) {
+                    for (int i = 0; i < count && !nextOp.canShortCircuit(); i++) {
+                        nextOp.accept(null);
+                    }
+                    for (T value : elements) {
+                        if (nextOp.canShortCircuit()) {
+                            break;
+                        }
+                        nextOp.accept(value);
+                    }
+                } else {
+                    for (int i = 0; i < count; i++) {
+                        nextOp.accept(null);
+                    }
+                    elements.forEach(nextOp);
+                }
+                nextOp.end();
+                elements = null;
+            }
+        };
+    }
 }

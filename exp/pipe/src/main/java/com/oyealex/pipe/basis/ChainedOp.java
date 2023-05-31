@@ -12,7 +12,7 @@ import java.util.Objects;
  * @author oyealex
  * @since 2023-04-28
  */
-abstract class ChainedOp<IN, OUT> implements Op<IN> {
+abstract class ChainedOp<IN, OUT> implements Op<IN> { // OPT 2023-05-31 22:53 所有需要搜集全部元素才能继续的操作在遇到无限流时立即抛出异常
     /** 下一个操作 */
     protected final Op<? super OUT> nextOp;
 

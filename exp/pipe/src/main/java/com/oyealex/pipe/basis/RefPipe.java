@@ -481,6 +481,36 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
+    public Pipe<OUT> selectedFirst(Predicate<? super OUT> select) {
+        return new SelectedFirstOrLastOp.First<>(this, requireNonNull(select));
+    }
+
+    @Override
+    public Pipe<OUT> selectedLast(Predicate<? super OUT> select) {
+        return new SelectedFirstOrLastOp.Last<>(this, requireNonNull(select));
+    }
+
+    @Override
+    public Pipe<OUT> nullsFirst() {
+        return new RefPipe<OUT, OUT>(this, NOT_SORTED | NOT_REVERSED_SORTED) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return SimpleOps.nullsFirstOp(nextOp);
+            }
+        };
+    }
+
+    @Override
+    public Pipe<OUT> nullsLast() {
+        return new RefPipe<OUT, OUT>(this, NOT_SORTED | NOT_REVERSED_SORTED) {
+            @Override
+            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
+                return SimpleOps.nullsLastOp(nextOp);
+            }
+        };
+    }
+
+    @Override
     public Pipe<OUT> reverse() {
         return new ReverseOp<>(this);
     }
