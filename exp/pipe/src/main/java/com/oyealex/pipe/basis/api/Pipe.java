@@ -1779,6 +1779,8 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
 
     default <K, M extends Map<K, List<E>>> M group(Function<? super E, ? extends K> classifier,
         Supplier<? extends M> mapSupplier) {
+        requireNonNull(classifier);
+        requireNonNull(mapSupplier);
         return reduceIdentity(mapSupplier.get(),
             (map, value) -> map.computeIfAbsent(classifier.apply(value), key -> new ArrayList<>()).add(value));
     }
@@ -1786,11 +1788,19 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     @SuppressWarnings("unchecked")
     default <K, V> Map<K, V> groupAndThen(Function<? super E, ? extends K> classifier,
         BiFunction<K, List<E>, V> finisher) {
+        requireNonNull(classifier);
+        requireNonNull(finisher);
         HashMap<K, Object> result = reduceIdentity(new HashMap<>(),
             (map, value) -> ((ArrayList<E>) map.computeIfAbsent(classifier.apply(value),
                 key -> new ArrayList<E>())).add(value));
         result.replaceAll((key, list) -> finisher.apply(key, (List<E>) list));
         return (Map<K, V>) result;
+    }
+
+    default <K> Map<K, Long> groupAndCount(Function<? super E, ? extends K> classifier) {
+        requireNonNull(classifier);
+        return reduceIdentity(new HashMap<>(),
+            (map, value) -> map.compute(classifier.apply(value), (key, count) -> count == null ? 1L : count + 1));
     }
 
     default <K> Map<K, List<E>> groupAndExecute(Function<? super E, ? extends K> classifier,
