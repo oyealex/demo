@@ -39,6 +39,7 @@ import static com.oyealex.pipe.basis.Pipes.spliterator;
 import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.TAKE_REMAINING;
 import static com.oyealex.pipe.flag.PipeFlag.DISTINCT;
 import static com.oyealex.pipe.flag.PipeFlag.EMPTY;
+import static com.oyealex.pipe.flag.PipeFlag.INFINITE;
 import static com.oyealex.pipe.flag.PipeFlag.IS_NONNULL;
 import static com.oyealex.pipe.flag.PipeFlag.NONNULL;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_DISTINCT;
@@ -470,6 +471,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
             (isStdReverseOrder(comparator) && isFlagSet(SORTED)))) {
             return reverse();
         }
+        checkCallOnInfinitePipe();
         return new SortOp.Normal<>(this, naturalOrderIfNull(comparator));
     }
 
@@ -477,11 +479,13 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     public <R> Pipe<OUT> sortByOrderly(LongBiFunction<? super OUT, ? extends R> mapper,
         Comparator<? super R> comparator) {
         requireNonNull(mapper);
+        checkCallOnInfinitePipe();
         return new SortOp.Orderly<>(this, naturalOrderIfNull(comparator), mapper);
     }
 
     @Override
     public Pipe<OUT> selectedFirst(Predicate<? super OUT> select) {
+        checkCallOnInfinitePipe();
         return new SelectedFirstOrLastOp.First<>(this, requireNonNull(select));
     }
 
@@ -492,6 +496,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<OUT> nullsFirst() {
+        checkCallOnInfinitePipe();
         return new RefPipe<OUT, OUT>(this, NOT_SORTED | NOT_REVERSED_SORTED) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
@@ -512,11 +517,13 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<OUT> reverse() {
+        checkCallOnInfinitePipe();
         return new ReverseOp<>(this);
     }
 
     @Override
     public Pipe<OUT> shuffle(Random random) {
+        checkCallOnInfinitePipe();
         return new ShuffleOp<>(this, requireNonNull(random));
     }
 
@@ -702,23 +709,27 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public void forEach(Consumer<? super OUT> action) {
+        checkCallOnInfinitePipe();
         requireNonNull(action);
         evaluate(SimpleOps.forEachOp(action));
     }
 
     @Override
     public void forEachOrderly(LongBiConsumer<? super OUT> action) {
+        checkCallOnInfinitePipe();
         requireNonNull(action);
         evaluate(SimpleOps.forEachOrderlyOp(action));
     }
 
     @Override
     public Optional<OUT> reduce(BinaryOperator<OUT> operator) {
+        checkCallOnInfinitePipe();
         return evaluate(SimpleOps.reduceTerminalOp(operator));
     }
 
     @Override
     public <R> R reduce(R initVar, BiFunction<? super R, ? super OUT, ? extends R> reducer) {
+        checkCallOnInfinitePipe();
         return evaluate(SimpleOps.reduceTerminalOp(initVar, reducer));
     }
 
@@ -732,12 +743,14 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
             isStdReverseOrder(comparator) && isFlagSet(SORTED)) {
             return findLast();
         }
+        checkCallOnInfinitePipe();
         return evaluate(SimpleOps.minTerminalOp(naturalOrderIfNull(comparator)));
     }
 
     @Override
     public <K> Optional<OUT> minByOrderly(LongBiFunction<? super OUT, ? extends K> mapper,
         Comparator<? super K> comparator) {
+        checkCallOnInfinitePipe();
         requireNonNull(mapper);
         return evaluate(SimpleOps.minByOrderlyTerminalOp(mapper, naturalOrderIfNull(comparator))).map(
             result -> result.second);
@@ -753,12 +766,14 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
             isStdReverseOrder(comparator) && isFlagSet(SORTED)) {
             return findFirstLast().swap();
         }
+        checkCallOnInfinitePipe();
         return evaluate(SimpleOps.minMaxTerminalOp(naturalOrderIfNull(comparator)));
     }
 
     @Override
     public <K> Tuple<Optional<OUT>, Optional<OUT>> minMaxByOrderly(LongBiFunction<? super OUT, ? extends K> mapper,
         Comparator<? super K> comparator) {
+        checkCallOnInfinitePipe();
         requireNonNull(mapper);
         return evaluate(SimpleOps.minMaxByOrderlyTerminalOp(mapper, naturalOrderIfNull(comparator))).map(
             first -> first.map(Tuple::getSecond), second -> second.map(Tuple::getSecond));
@@ -766,6 +781,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public long count() {
+        checkCallOnInfinitePipe();
         return evaluate(SimpleOps.countOp());
     }
 
@@ -804,11 +820,13 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Optional<OUT> findLast() {
+        checkCallOnInfinitePipe();
         return evaluate(SimpleOps.findLastTerminalOp());
     }
 
     @Override
     public Tuple<Optional<OUT>, Optional<OUT>> findFirstLast() {
+        checkCallOnInfinitePipe();
         return evaluate(SimpleOps.findFirstLastTerminalOp());
     }
 
@@ -819,6 +837,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public OUT[] toArray(IntFunction<OUT[]> generator) {
+        checkCallOnInfinitePipe();
         return evaluate(new ToArrayTerminalOp<>(generator));
     }
 
@@ -873,5 +892,11 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
                 };
             }
         };
+    }
+
+    private void checkCallOnInfinitePipe() {
+        if (INFINITE.isSet(flag)) {
+            throw new IllegalStateException("invalid call on an infinite pipe");
+        }
     }
 }

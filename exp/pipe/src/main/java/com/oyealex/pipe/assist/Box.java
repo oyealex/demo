@@ -13,11 +13,11 @@ import java.util.function.Supplier;
 public final class Box<T> implements Supplier<T> {
     private T value;
 
-    public Box(T value) {
+    private Box(T value) {
         this.value = value;
     }
 
-    public Box() {
+    private Box() {
     }
 
     public T getValue() {
@@ -53,5 +53,13 @@ public final class Box<T> implements Supplier<T> {
     @Override
     public String toString() {
         return "Box(" + value + ")";
+    }
+
+    public static <T> Box<T> box(T value) {
+        return new Box<>(value);
+    }
+
+    public static <T> Box<T> box() {
+        return new Box<>();
     }
 }

@@ -23,7 +23,7 @@ class PipeSliceTest extends PipeTestFixture {
     void smoke() {
         Predicate<Integer> predicate = value -> {
             System.out.println(value);
-            return (value & 1) == 0;
+            return isEven(value);
         };
         // System.out.println(infiniteIntegerPipe().limit(30).toList());
         System.out.println(infiniteIntegerPipe().limit(30).skip(5, predicate).toList());

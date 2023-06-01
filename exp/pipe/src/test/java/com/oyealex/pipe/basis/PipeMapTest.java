@@ -65,8 +65,8 @@ class PipeMapTest extends PipeTestFixture {
     @DisplayName("能够正确根据条件映射元素为给定值")
     void should_map_to_given_value_as_condition_rightly() {
         List<Integer> sample = generateIntegerList();
-        assertEquals(sample.stream().map(value -> (value & 1) == 1 ? 0 : value).collect(toList()),
-            list(sample).mapIf(value -> (value & 1) == 1, 0).toList());
+        assertEquals(sample.stream().map(value -> isOdd(value) ? 0 : value).collect(toList()),
+            list(sample).mapIf(PipeTestFixture::isOdd, 0).toList());
     }
 
     @Test
@@ -75,8 +75,8 @@ class PipeMapTest extends PipeTestFixture {
         List<Integer> sample = generateIntegerList();
         IntBox seed = IntBox.box();
         IntBox seed2 = IntBox.box();
-        assertEquals(sample.stream().map(value -> (value & 1) == 1 ? seed.getAndIncrement() : value).collect(toList()),
-            list(sample).mapIf(value -> (value & 1) == 1, seed2::getAndIncrement).toList());
+        assertEquals(sample.stream().map(value -> isOdd(value) ? seed.getAndIncrement() : value).collect(toList()),
+            list(sample).mapIf(PipeTestFixture::isOdd, seed2::getAndIncrement).toList());
     }
 
     @Test
@@ -84,15 +84,15 @@ class PipeMapTest extends PipeTestFixture {
     void should_map_to_given_mapper_value_as_condition_rightly() {
         List<Integer> sample = generateIntegerList();
         assertEquals(sample.stream()
-            .map(value -> (value & 1) == 1 ? Integer.numberOfLeadingZeros(value) : value)
-            .collect(toList()), list(sample).mapIf(value -> (value & 1) == 1, Integer::numberOfLeadingZeros).toList());
+            .map(value -> isOdd(value) ? Integer.numberOfLeadingZeros(value) : value)
+            .collect(toList()), list(sample).mapIf(PipeTestFixture::isOdd, Integer::numberOfLeadingZeros).toList());
     }
 
     @Test
     @DisplayName("能够根据给定方法映射结果的Optional情况映射对应的元素")
     void should_map_to_given_mapper_value_as_optional_result_rightly() {
         List<Integer> sample = generateIntegerList();
-        Function<Integer, Optional<Integer>> mapper = value -> (value & 1) == 1 ? Optional.of(-value) :
+        Function<Integer, Optional<Integer>> mapper = value -> isOdd(value) ? Optional.of(-value) :
             Optional.empty();
         assertEquals(sample.stream().map(value -> mapper.apply(value).orElse(value)).collect(toList()),
             list(sample).mapIf(mapper).toList());

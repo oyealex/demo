@@ -978,13 +978,14 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
 
     /**
      * 对流水线中的元素排序，以给定的比较方法排序。
+     * <p/>
+     * 如果元素已经实现了 {@link Comparable}接口，流水线允许对某些排序场景进行优化：<br/>
+     * 当期望以自然顺序排序时，推荐传入{@link Comparator#naturalOrder()}作为比较器，或者使用{@link #sort()}方法；<br/>
+     * 当期望以自然逆序排序时，推荐传入{@link Comparator#reverseOrder()}作为比较器，或者使用{@link #sortReversely()}方法。
      *
      * @param comparator 元素比较器，如果比较器为{@code null}则默认以{@link Comparator#naturalOrder()}作为比较器，
      * 此时如果元素没有实现{@link Comparable}接口则会在流水线终结操作中抛出{@link ClassCastException}异常。
      * @return 元素按照给定比较器排序后的流水线。
-     * @implNote 如果元素已经实现了 {@link Comparable}接口，流水线允许对某些排序场景进行优化：<br/>
-     * 当期望以自然顺序排序时，推荐传入{@link Comparator#naturalOrder()}作为比较器，或者使用{@link #sort()}方法；<br/>
-     * 当期望以自然逆序排序时，推荐传入{@link Comparator#reverseOrder()}作为比较器，或者使用{@link #sortReversely()}方法。
      * @see Stream#sorted(Comparator)
      * @see #sort()
      * @see #sortReversely()
@@ -1055,30 +1056,90 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      */
     <R> Pipe<E> sortByOrderly(LongBiFunction<? super E, ? extends R> mapper, Comparator<? super R> comparator);
 
+    /**
+     * 将被选中的元素置于流水线的头部，选中的元素和未选中的元素各自相对位置保持不变。
+     * <p/>
+     * 一个示意：
+     * <pre><code>
+     *  select: A B C
+     *          before                      after
+     * ┌─────────────────────┐     ┌─────────────────────┐
+     * │ ... 1 A 2 B 3 C ... │ ==> │ A B C ... 1 2 3 ... │
+     * └─────────────────────┘     └─────────────────────┘
+     * </code></pre>
+     *
+     * @param select 需要置于流水线头部的元素的选择方法。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code select}为{@code null}时抛出。
+     * @see #selectedLast(Predicate)
+     */
     Pipe<E> selectedFirst(Predicate<? super E> select);
 
+    /**
+     * 将被选中的元素置于流水线的尾部，选中的元素和未选中的元素各自相对位置保持不变。
+     * <p/>
+     * 一个示意：
+     * <pre><code>
+     *  select: A B C
+     *          before                      after
+     * ┌─────────────────────┐     ┌─────────────────────┐
+     * │ ... 1 A 2 B 3 C ... │ ==> │ ... 1 2 3 ... A B C │
+     * └─────────────────────┘     └─────────────────────┘
+     * </code></pre>
+     *
+     * @param select 需要置于流水线尾部的元素的选择方法。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code select}为{@code null}时抛出。
+     * @see #selectedFirst(Predicate)
+     */
     Pipe<E> selectedLast(Predicate<? super E> select);
 
     /**
-     * 将流水线中的{@code null}置于流水线头部。
+     * 将流水线中的{@code null}置于流水线头部，其他元素之间的相对位置保持不变。
      *
      * @return 新的流水线。
+     * @see #nullsLast()
+     * @see #nullsFirstBy(Function)
      */
     Pipe<E> nullsFirst();
 
+    /**
+     * 将流水线中根据给定方法映射后结果为{@code null}的元素置于流水线头部，需要移动的元素和不需要移动的元素相对位置保持不变。
+     *
+     * @param mapper 映射方法。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @implNote 如果 {@code mapper}为{@link Function#identity()}则此方法等同于{@code nullsFirst()}。
+     * @see #nullsFirst()
+     * @see #nullsLastBy(Function)
+     */
     default Pipe<E> nullsFirstBy(Function<? super E, ?> mapper) {
-        return selectedFirst(value -> mapper.apply(value) == null);
+        requireNonNull(mapper);
+        return isStdIdentify(mapper) ? nullsFirst() : selectedFirst(value -> mapper.apply(value) == null);
     }
 
     /**
-     * 将流水线中的{@code null}置于流水线末尾。
+     * 将流水线中的{@code null}置于流水线末尾，其他元素之间的相对位置保持不变。
      *
      * @return 新的流水线。
+     * @see #nullsFirst()
+     * @see #nullsLastBy(Function)
      */
     Pipe<E> nullsLast();
 
+    /**
+     * 将流水线中根据给定方法映射后结果为{@code null}的元素置于流水线尾部，需要移动的元素和不需要移动的元素相对位置保持不变。
+     *
+     * @param mapper 映射方法。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @implNote 如果 {@code mapper}为{@link Function#identity()}则此方法等同于{@code nullsLast()}。
+     * @see #nullsLast()
+     * @see #nullsFirstBy(Function)
+     */
     default Pipe<E> nullsLastBy(Function<? super E, ?> mapper) {
-        return selectedLast(value -> mapper.apply(value) == null);
+        requireNonNull(mapper);
+        return isStdIdentify(mapper) ? nullsLast() : selectedLast(value -> mapper.apply(value) == null);
     }
 
     /**

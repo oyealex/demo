@@ -19,6 +19,7 @@ import static java.util.Comparator.comparing;
 import static java.util.Comparator.comparingInt;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -74,6 +75,15 @@ class PipeSortTest extends PipeTestFixture {
         List<String> sample = generateRandomStrList();
         assertEquals(sample.stream().sorted(comparingInt(String::length)).collect(toList()),
             list(sample).sortBy(String::length).toList());
+    }
+
+    @Test
+    @DisplayName("如果映射方法为映射自身，则根据映射结果排序等同于根据自身排序")
+    void should_sort_elements_by_mapped_result_in_the_same_way_of_sort_elements_self_when_mapper_is_identify() {
+        List<String> sample = generateRandomStrList();
+        assertAll(() -> assertEquals(list(sample).sortBy(identity()).toList(), list(sample).sort().toList()),
+            () -> assertEquals(list(sample).sortBy(identity(), reverseOrder()).toList(),
+                list(sample).sort(reverseOrder()).toList()));
     }
 
     @Test

@@ -57,8 +57,8 @@ class PipeTakeTest extends PipeTestFixture {
     void should_take_elements_as_predicate_with_order_rightly() {
         List<String> sample = generateIntegerStrList();
         IntBox counter = IntBox.box();
-        assertEquals(sample.stream().filter(ignored -> (counter.getAndIncrement() & 1) == 1).collect(toList()),
-            list(sample).takeIfOrderly((order, value) -> (order & 1) == 1).toList());
+        assertEquals(sample.stream().filter(ignored -> isOdd(counter.getAndIncrement())).collect(toList()),
+            list(sample).takeIfOrderly((order, value) -> isOdd(order)).toList());
     }
 
     @Test

@@ -52,7 +52,7 @@ class PipeDropTest extends PipeTestFixture {
         List<String> sample = generateIntegerStrList();
         IntBox counter = IntBox.box();
         assertEquals(sample.stream().filter(ignored -> (counter.getAndIncrement() & 1) != 1).collect(toList()),
-            list(sample).dropIfOrderly((order, value) -> (order & 1) == 1).toList());
+            list(sample).dropIfOrderly((order, value) -> isOdd(order)).toList());
     }
 
     @Test
@@ -153,7 +153,7 @@ class PipeDropTest extends PipeTestFixture {
     @DisplayName("能够根据映射结果正确丢弃空元素")
     void should_drop_null_elements_by_mapped_value_rightly() {
         List<Integer> sample = generateIntegerList();
-        Function<Integer, String> mapper = value -> (value & 1) == 1 ? null : "";
+        Function<Integer, String> mapper = value -> isOdd(value) ? null : "";
         assertEquals(sample.stream().filter(value -> mapper.apply(value) != null).collect(toList()),
             list(sample).dropNullBy(mapper).toList());
     }

@@ -19,24 +19,48 @@ public abstract class PipeTestFixture {
 
     protected static final int NORMAL_SIZE = 20;
 
+    protected static Pipe<Integer> integerPipe() {
+        return infiniteIntegerPipe().limit(NORMAL_SIZE);
+    }
+
     protected static Pipe<Integer> infiniteIntegerPipe() {
         return Pipes.iterate(0, i -> i + 1);
+    }
+
+    private static Pipe<Integer> evenIntegerPipe() {
+        return infiniteEvenIntegerPipe().limit(NORMAL_SIZE);
     }
 
     private static Pipe<Integer> infiniteEvenIntegerPipe() {
         return Pipes.iterate(0, i -> i + 2);
     }
 
+    private static Pipe<Integer> oddIntegerPipe() {
+        return infiniteOddIntegerPipe().limit(NORMAL_SIZE);
+    }
+
     private static Pipe<Integer> infiniteOddIntegerPipe() {
         return Pipes.iterate(1, i -> i + 2);
+    }
+
+    protected static Pipe<String> integerStrPipe() {
+        return infiniteIntegerStrPipe().limit(NORMAL_SIZE);
     }
 
     protected static Pipe<String> infiniteIntegerStrPipe() {
         return infiniteIntegerPipe().map(String::valueOf);
     }
 
+    protected static Pipe<String> evenIntegerStrPipe() {
+        return infiniteEvenIntegerStrPipe().limit(NORMAL_SIZE);
+    }
+
     protected static Pipe<String> infiniteEvenIntegerStrPipe() {
         return infiniteEvenIntegerPipe().map(String::valueOf);
+    }
+
+    protected static Pipe<String> oddIntegerStrPipe() {
+        return infiniteOddIntegerStrPipe().limit(NORMAL_SIZE);
     }
 
     protected static Pipe<String> infiniteOddIntegerStrPipe() {
@@ -45,6 +69,10 @@ public abstract class PipeTestFixture {
 
     protected static Pipe<String> prefixedIntegerStrPipe(String prefix) {
         return infiniteIntegerStrPipe().map(v -> prefix + v);
+    }
+
+    protected static Pipe<String> randomStrPipe() {
+        return infiniteRandomStrPipe().limit(NORMAL_SIZE);
     }
 
     protected static Pipe<String> infiniteRandomStrPipe() {
@@ -84,12 +112,20 @@ public abstract class PipeTestFixture {
         return generateIntegerStrList(NORMAL_SIZE);
     }
 
+    protected static Pipe<Integer> oddIntegerWithNullsPipe() {
+        return infiniteOddIntegerWithNullsPipe().limit(NORMAL_SIZE);
+    }
+
     protected static Pipe<Integer> infiniteOddIntegerWithNullsPipe() {
-        return infiniteIntegerPipe().map(value -> (value & 1) == 1 ? null : value);
+        return infiniteIntegerPipe().map(value -> isOdd(value) ? null : value);
+    }
+
+    protected static Pipe<String> oddIntegerStrWithNullsPipe() {
+        return infiniteOddIntegerStrWithNullsPipe().limit(NORMAL_SIZE);
     }
 
     protected static Pipe<String> infiniteOddIntegerStrWithNullsPipe() {
-        return infiniteIntegerPipe().map(value -> (value & 1) == 1 ? null : String.valueOf(value));
+        return infiniteIntegerPipe().map(value -> isOdd(value) ? null : String.valueOf(value));
     }
 
     protected static List<String> generateOddIntegerStrWithNullsList() {
@@ -98,6 +134,14 @@ public abstract class PipeTestFixture {
 
     protected static <T> List<T> duplicateList(List<T> sample) {
         return Pipes.list(sample).append(Pipes.list(sample)).shuffle().toList();
+    }
+
+    protected static boolean isOdd(Number value) {
+        return (value.intValue() & 1) == 1;
+    }
+
+    protected static boolean isEven(Number value) {
+        return (value.intValue() & 1) == 0;
     }
 
     protected static class ComparableTestDouble implements Comparable<ComparableTestDouble> {
