@@ -1871,15 +1871,46 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
         return map;
     }
 
+    /**
+     * 使用给定的分隔符、前缀和后缀将流水线拼接为一个字符串。
+     * <p/>
+     * 使用{@link Objects#toString(Object)}作为流水线转换为字符串的方法。
+     *
+     * @param delimiter 分隔符。
+     * @param prefix 前缀。
+     * @param suffix 后缀。
+     * @return 拼接后的字符串。
+     * @see #join(CharSequence)
+     * @see #join()
+     */
     default String join(CharSequence delimiter, CharSequence prefix, CharSequence suffix) {
         return reduce(new StringJoiner(delimiter, prefix, suffix),
             (joiner, value) -> joiner.add(Objects.toString(value))).toString();
     }
 
+    /**
+     * 使用给定的分隔符将流水线拼接为一个字符串。
+     * <p/>
+     * 使用{@link Objects#toString(Object)}作为流水线转换为字符串的方法。
+     *
+     * @param delimiter 分隔符。
+     * @return 拼接后的字符串。
+     * @see #join(CharSequence, CharSequence, CharSequence)
+     * @see #join()
+     */
     default String join(CharSequence delimiter) {
         return join(delimiter, "", "");
     }
 
+    /**
+     * 使用英文逗号分隔符将流水线拼接为一个字符串。
+     * <p/>
+     * 使用{@link Objects#toString(Object)}作为流水线转换为字符串的方法。
+     *
+     * @return 拼接后的字符串。
+     * @see #join(CharSequence, CharSequence, CharSequence)
+     * @see #join(CharSequence)
+     */
     default String join() {
         return join(",", "", "");
     }

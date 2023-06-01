@@ -894,6 +894,8 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         };
     }
 
+    // TODO 2023-06-02 00:40 在方法上添加异常声明
+    // TODO 2023-06-02 00:44 在接口的默认方法上需要调用
     private void checkCallOnInfinitePipe() {
         if (INFINITE.isSet(flag)) {
             throw new IllegalStateException("invalid call on an infinite pipe");
