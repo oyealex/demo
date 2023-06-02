@@ -559,7 +559,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     public Pipe<OUT> skip(long size, Predicate<? super OUT> predicate) {
         requireNonNull(predicate);
         Pipe<OUT> optmizedPipe = optimizeSkipOp(size);
-        return optmizedPipe != null ? optmizedPipe : new SliceOp.Predicated<>(this, size, MAX_VALUE, predicate);
+        return optmizedPipe != null ? optmizedPipe : new SliceOp.PredicatedSkip<>(this, size, predicate);
     }
 
     private Pipe<OUT> optimizeSkipOp(long size) {
@@ -585,7 +585,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     public Pipe<OUT> limit(long size, Predicate<? super OUT> predicate) {
         requireNonNull(predicate);
         Pipe<OUT> optimizedPipe = optimizeLimitOp(size);
-        return optimizedPipe != null ? optimizedPipe : new SliceOp.Predicated<>(this, 0, size, predicate);
+        return optimizedPipe != null ? optimizedPipe : new SliceOp.PredicatedLimit<>(this, size, predicate);
     }
 
     private Pipe<OUT> optimizeLimitOp(long size) {
@@ -613,7 +613,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         requireNonNull(predicate);
         Pipe<OUT> optimizedPipe = optimizeSliceOp(startInclusive, endExclusive);
         return optimizedPipe != null ? optimizedPipe :
-            new SliceOp.Predicated<>(this, startInclusive, endExclusive - startInclusive, predicate);
+            new SliceOp.PredicatedSlice<>(this, startInclusive, endExclusive - startInclusive, predicate);
     }
 
     private Pipe<OUT> optimizeSliceOp(long startInclusive, long endExclusive) {

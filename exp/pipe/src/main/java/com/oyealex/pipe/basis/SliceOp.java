@@ -53,10 +53,10 @@ abstract class SliceOp<IN> extends RefPipe<IN, IN> { // TODO 2023-05-31 00:11 å·
         }
     }
 
-    static class Predicated<IN> extends SliceOp<IN> {
+    static class PredicatedSlice<IN> extends SliceOp<IN> {
         protected final Predicate<? super IN> predicate;
 
-        Predicated(RefPipe<?, ? extends IN> prePipe, long skip, long limit, Predicate<? super IN> predicate) {
+        PredicatedSlice(RefPipe<?, ? extends IN> prePipe, long skip, long limit, Predicate<? super IN> predicate) {
             super(prePipe, skip, limit);
             this.predicate = predicate;
         }
@@ -86,8 +86,62 @@ abstract class SliceOp<IN> extends RefPipe<IN, IN> { // TODO 2023-05-31 00:11 å·
         }
     }
 
+    static class PredicatedSkip<IN> extends PredicatedSlice<IN> {
+        PredicatedSkip(RefPipe<?, ? extends IN> prePipe, long skip, Predicate<? super IN> predicate) {
+            super(prePipe, skip, Long.MAX_VALUE, predicate);
+        }
+
+        @Override
+        protected Op<IN> wrapOp(Op<IN> nextOp) {
+            return new InternalOp<IN>(nextOp, limit) {
+                @Override
+                public void begin(long size) {
+                    nextOp.begin(-1);
+                }
+
+                @Override
+                public void accept(IN in) {
+                    if (skipped < skip) {
+                        if (predicate.test(in)) {
+                            skipped++;
+                        }
+                    } else {
+                        nextOp.accept(in);
+                    }
+                }
+            };
+        }
+    }
+
+    static class PredicatedLimit<IN> extends PredicatedSlice<IN> {
+        PredicatedLimit(RefPipe<?, ? extends IN> prePipe, long limit, Predicate<? super IN> predicate) {
+            super(prePipe, 0, limit, predicate);
+        }
+
+        @Override
+        protected Op<IN> wrapOp(Op<IN> nextOp) {
+            return new InternalOp<IN>(nextOp, limit) {
+                @Override
+                public void begin(long size) {
+                    nextOp.begin(-1);
+                }
+
+                @Override
+                public void accept(IN in) {
+                    if (limited < limit) {
+                        if (predicate.test(in)) {
+                            limited++;
+                        }
+                        nextOp.accept(in);
+                    }
+                }
+            };
+        }
+    }
+
     private static abstract class InternalOp<IN> extends ChainedOp<IN, IN> {
         protected final long limit;
+
         protected long skipped = 0L;
 
         protected long limited = 0L;

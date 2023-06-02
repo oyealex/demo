@@ -1204,48 +1204,117 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
 
     /**
      * 跳过指定数量的元素。
+     * <p/>
+     * {@code pipe.skip(0)}没有任何效果，等同于{@code pipe}自身；{@code pipe.skip(Long.MAX_VALUE)}得到空的流水线。
      *
-     * @param size 需要跳过元素的数量。
+     * @param size 需要跳过元素数量。
      * @return 新的流水线。
      * @throws IllegalArgumentException 当需要保留的元素数量小于0时抛出。
      * @see Stream#skip(long)
      * @see #skip(long, Predicate)
+     * @see #limit(long)
+     * @see #slice(long, long)
      */
     Pipe<E> skip(long size);
 
     /**
-     * 跳过指定数量的元素，仅对满足给定断言的元素进行跳过计数。
+     * 持续跳过元素，直到已经跳过的满足给定断言的元素数量达到给定数量。当跳过的元素数量满足要求后，剩余元素不会再执行断言方法。
      * <p/>
-     * 在跳过满足给定断言和给定数量的元素之前，不满足断言的元素会持续被跳过；当跳过的元素数量满足要求后，剩余元素不会再执行
+     * {@code pipe.skip(0, predicate)}没有任何效果，等同于{@code pipe}自身；{@code pipe.skip(Long.MAX_VALUE, predicate)}
+     * 得到空的流水线。
      *
-     * @param size 需要跳过元素的数量。
+     * @param size 需要跳过元素数量。
      * @param predicate 满足此条件的元素才会被计入跳过数量。
      * @return 新的流水线。
      * @throws IllegalArgumentException 当需要保留的元素数量小于0时抛出。
+     * @throws NullPointerException 当断言方法{@code predicate}为{@code null}时抛出。
+     * @see Stream#skip(long)
+     * @see #skip(long)
+     * @see #limit(long, Predicate)
+     * @see #slice(long, long, Predicate)
      */
     Pipe<E> skip(long size, Predicate<? super E> predicate);
 
     /**
-     * 仅保留给定数量的元素。
+     * 仅保留给定数量的元素，丢弃剩余的元素。
+     * <p/>
+     * {@code pipe.limit(0)}得到空的流水线；{@code pipe.limit(Long.MAX_VALUE)}没有任何效果，等同于{@code pipe}自身。
      *
-     * @param size 需要保留的元素
-     * @return 新的流水线
-     * @throws IllegalArgumentException 当需要保留的元素数量小于0时抛出
+     * @param size 需要保留的元素数量。
+     * @return 新的流水线。
+     * @throws IllegalArgumentException 当需要保留的元素数量小于0时抛出。
      * @see Stream#limit(long)
+     * @see #limit(long, Predicate)
+     * @see #skip(long)
+     * @see #slice(long, long)
      */
     Pipe<E> limit(long size);
 
+    /**
+     * 持续保留元素，直到已经保留的满足给定断言的元素数量达到给定数量，丢弃剩余的元素。
+     * <p/>
+     * {@code pipe.limit(0, predicate)}得到空的流水线；{@code pipe.limit(Long.MAX_VALUE, predicate)}没有任何效果，
+     * 等同于{@code pipe}自身。
+     *
+     * @param size 需要保留的元素数量。
+     * @param predicate 满足此条件的元素才会被计入保留数量。
+     * @return 新的流水线。
+     * @throws IllegalArgumentException 当需要保留的元素数量小于0时抛出。
+     * @throws NullPointerException 当断言方法{@code predicate}为{@code null}时抛出。
+     * @see #limit(long)
+     * @see #skip(long, Predicate)
+     * @see #slice(long, long, Predicate)
+     */
     Pipe<E> limit(long size, Predicate<? super E> predicate);
 
     /**
-     * 对元素执行切片，即仅保留{@code startInclusive}到{@code endExclusive}之间的元素。
+     * 对元素执行切片，仅保留{@code startInclusive}到{@code endExclusive}之间的元素。
+     * <p/>
+     * 等同于：
+     * <pre>{@code
+     * pipe.skip(startInclusive).limit(endInclusive - startInclusive)
+     * }</pre>
+     * <p/>
+     * {@code pipe.slice(0, Long.MAX_VALUE)}不会产生任何效果，等同于{@code pipe}自身。
      *
      * @param startInclusive 切片范围起始索引，包含。
      * @param endExclusive 切片范围结束索引，不包含。
-     * @return 新的流水线
+     * @return 新的流水线。
+     * @throws IllegalArgumentException 当起始索引小于0、结束索引小于0或起始索引大于结束索引时抛出。
+     * @see #skip(long)
+     * @see #limit(long)
+     * @see #slice(long, long, Predicate)
      */
     Pipe<E> slice(long startInclusive, long endExclusive);
 
+    /**
+     * 对元素执行切片，仅保留{@code startInclusive}到{@code endExclusive}之间的元素，仅对满足断言的元素做数量统计。
+     * <p/>
+     * 等同于：
+     * <pre>{@code
+     * pipe.skip(startInclusive, predicate).limit(endInclusive - startInclusive, predicate)
+     * }</pre>
+     * <p/>
+     * {@code pipe.slice(0, Long.MAX_VALUE, predicate)}不会产生任何效果，等同于{@code pipe}自身。
+     * <p/>
+     * 一个实际的例子：
+     * <pre><code>
+     * predicate select: A B C D E
+     * ┌─────────────────────────┐  slice(1, 4, select)  ┌───────────┐
+     * │ 1 A 2 B 3 C 4 D 5 E ... │ ====================> │ B 3 C 4 D │
+     * └─────────────────────────┘                       └───────────┘
+     * </code></pre>
+     *
+     * @param startInclusive 切片范围起始索引，包含。
+     * @param endExclusive 切片范围结束索引，不包含。
+     * @param predicate 满足此条件的元素才会被计入数量。
+     * @return 新的流水线。
+     * @throws IllegalArgumentException 当起始索引小于0、结束索引小于0或起始索引大于结束索引时抛出。
+     * @throws NullPointerException 当断言方法{@code predicate}为{@code null}时抛出。
+     * @see #skip(long)
+     * @see #limit(long)
+     * @see #slice(long, long, Predicate)
+     */
     Pipe<E> slice(long startInclusive, long endExclusive, Predicate<? super E> predicate);
 
     /**
