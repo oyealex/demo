@@ -1,8 +1,8 @@
 package com.oyealex.pipe.basis;
 
+import static com.oyealex.pipe.flag.PipeFlag.EMPTY;
 import static com.oyealex.pipe.flag.PipeFlag.IS_REVERSED_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.IS_SORTED;
-import static com.oyealex.pipe.flag.PipeFlag.EMPTY;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_REVERSED_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.REVERSED_SORTED;

@@ -8,6 +8,10 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.function.Supplier;
 
+import static com.oyealex.pipe.basis.Pipe.generate;
+import static com.oyealex.pipe.basis.Pipe.iterate;
+import static com.oyealex.pipe.basis.Pipe.list;
+
 /**
  * PipeTestBase
  *
@@ -24,7 +28,7 @@ public abstract class PipeTestFixture {
     }
 
     protected static Pipe<Integer> infiniteIntegerPipe() {
-        return Pipe.iterate(0, i -> i + 1);
+        return iterate(0, i -> i + 1);
     }
 
     private static Pipe<Integer> evenIntegerPipe() {
@@ -32,7 +36,7 @@ public abstract class PipeTestFixture {
     }
 
     private static Pipe<Integer> infiniteEvenIntegerPipe() {
-        return Pipe.iterate(0, i -> i + 2);
+        return iterate(0, i -> i + 2);
     }
 
     private static Pipe<Integer> oddIntegerPipe() {
@@ -40,7 +44,7 @@ public abstract class PipeTestFixture {
     }
 
     private static Pipe<Integer> infiniteOddIntegerPipe() {
-        return Pipe.iterate(1, i -> i + 2);
+        return iterate(1, i -> i + 2);
     }
 
     protected static Pipe<String> integerStrPipe() {
@@ -77,7 +81,7 @@ public abstract class PipeTestFixture {
 
     protected static Pipe<String> infiniteRandomStrPipe() {
         Random random = new Random();
-        return Pipe.generate((Supplier<? extends String>) () -> {
+        return generate((Supplier<? extends String>) () -> {
             char[] chars = new char[random.nextInt(10)];
             for (int i = 0; i < chars.length; i++) {
                 switch (random.nextInt(3)) {
@@ -133,7 +137,7 @@ public abstract class PipeTestFixture {
     }
 
     protected static <T> List<T> duplicateList(List<T> sample) {
-        return Pipe.list(sample).append(Pipe.list(sample)).shuffle().toList();
+        return list(sample).append(list(sample)).shuffle().toList();
     }
 
     protected static boolean isOdd(Number value) {

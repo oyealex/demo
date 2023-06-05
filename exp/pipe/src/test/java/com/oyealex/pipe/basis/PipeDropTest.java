@@ -11,6 +11,8 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import static com.oyealex.pipe.basis.Pipe.empty;
+import static com.oyealex.pipe.basis.Pipe.list;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -41,7 +43,7 @@ class PipeDropTest extends PipeTestFixture {
         List<String> sample = generateIntegerStrList();
         Predicate<String> predicate = val -> val.length() > 5;
         assertEquals(sample.stream().filter(predicate.negate()).collect(toList()),
-            Pipe.list(sample).dropIf(predicate).toList());
+            list(sample).dropIf(predicate).toList());
     }
 
     @Test
@@ -50,27 +52,27 @@ class PipeDropTest extends PipeTestFixture {
         List<String> sample = generateIntegerStrList();
         IntBox counter = IntBox.box();
         assertEquals(sample.stream().filter(ignored -> (counter.getAndIncrement() & 1) != 1).collect(toList()),
-            Pipe.list(sample).dropIfOrderly((order, value) -> isOdd(order)).toList());
+            list(sample).dropIfOrderly((order, value) -> isOdd(order)).toList());
     }
 
     @Test
     @DisplayName("在非空流水线中能正丢弃第一个元素")
     void should_drop_first_element_in_non_empty_pipe_rightly() {
         List<String> sample = generateIntegerStrList();
-        assertEquals(sample.subList(1, sample.size()), Pipe.list(sample).dropFirst().toList());
+        assertEquals(sample.subList(1, sample.size()), list(sample).dropFirst().toList());
     }
 
     @Test
     @DisplayName("在空流水线中尝试丢弃第一个元素得到空流水线")
     void should_get_empty_pipe_when_try_to_drop_first_element_in_empty_pipe() {
-        assertEquals(emptyList(), Pipe.empty().dropFirst().toList());
+        assertEquals(emptyList(), empty().dropFirst().toList());
     }
 
     @Test
     @DisplayName("当尝试丢弃的前N个元素数量小于流水线元素数量时，能够正丢弃前N个元素")
     void should_get_elements_except_first_N_when_try_drop_first_N_elements_and_N_is_smaller_than_the_pipe_size() {
         List<String> sample = infiniteIntegerStrPipe().limit(10).toList();
-        assertEquals(sample.subList(5, sample.size()), Pipe.list(sample).dropFirst(5).toList());
+        assertEquals(sample.subList(5, sample.size()), list(sample).dropFirst(5).toList());
     }
 
     @Test
@@ -84,27 +86,27 @@ class PipeDropTest extends PipeTestFixture {
     @DisplayName("当尝试丢弃前0个元素时得到所有元素")
     void should_get_all_elements_when_try_to_get_first_zero_elements() {
         List<String> sample = generateIntegerStrList();
-        assertEquals(sample, Pipe.list(sample).dropFirst(0).toList());
+        assertEquals(sample, list(sample).dropFirst(0).toList());
     }
 
     @Test
     @DisplayName("在非空流水线中能够正丢弃取最后一个元素")
     void should_drop_last_element_in_non_empty_pipe_rightly() {
         List<String> sample = generateIntegerStrList();
-        assertEquals(sample.subList(0, sample.size() - 1), Pipe.list(sample).dropLast().toList());
+        assertEquals(sample.subList(0, sample.size() - 1), list(sample).dropLast().toList());
     }
 
     @Test
     @DisplayName("在空流水线中尝试丢弃最后一个元素得到空流水线")
     void should_get_empty_pipe_when_try_to_get_last_element_in_empty_pipe() {
-        assertEquals(emptyList(), Pipe.empty().dropLast().toList());
+        assertEquals(emptyList(), empty().dropLast().toList());
     }
 
     @Test
     @DisplayName("当尝试丢弃的最后N个元素数量小于流水线元素数量时，能够正丢弃最后N个元素")
     void should_get_elements_except_last_N_when_try_drop_last_N_elements_and_N_is_smaller_than_the_pipe_size() {
         List<String> sample = infiniteIntegerStrPipe().limit(10).toList();
-        assertEquals(sample.subList(0, 5), Pipe.list(sample).dropLast(5).toList());
+        assertEquals(sample.subList(0, 5), list(sample).dropLast(5).toList());
     }
 
     @Test
@@ -118,7 +120,7 @@ class PipeDropTest extends PipeTestFixture {
     @DisplayName("当尝试丢弃最后0个元素时得到所有元素")
     void should_get_all_elements_when_try_to_get_last_zero_elements() {
         List<String> sample = generateIntegerStrList();
-        assertEquals(sample, Pipe.list(sample).dropLast(0).toList());
+        assertEquals(sample, list(sample).dropLast(0).toList());
     }
 
     @Test
@@ -127,7 +129,7 @@ class PipeDropTest extends PipeTestFixture {
         IntBox counter = IntBox.box();
         List<String> sample = generateIntegerStrList();
         assertEquals(sample.subList(5, sample.size()),
-            Pipe.list(sample).dropWhile(str -> counter.getAndIncrement() < 5).toList());
+            list(sample).dropWhile(str -> counter.getAndIncrement() < 5).toList());
     }
 
     @Test
@@ -136,7 +138,7 @@ class PipeDropTest extends PipeTestFixture {
         List<String> sample = generateIntegerStrList();
         IntBox counter = IntBox.box();
         assertEquals(sample.stream().filter(ignored -> counter.getAndIncrement() >= 5).collect(toList()),
-            Pipe.list(sample).dropWhileOrderly((order, value) -> order < 5).toList());
+            list(sample).dropWhileOrderly((order, value) -> order < 5).toList());
     }
 
     @Test
@@ -144,7 +146,7 @@ class PipeDropTest extends PipeTestFixture {
     void should_drop_null_elements_rightly() {
         List<String> sample = generateOddIntegerStrWithNullsList();
         assertTrue(sample.stream().anyMatch(Objects::isNull));
-        assertTrue(Pipe.list(sample).dropNull().toList().stream().noneMatch(Objects::isNull));
+        assertTrue(list(sample).dropNull().toList().stream().noneMatch(Objects::isNull));
     }
 
     @Test
@@ -153,7 +155,7 @@ class PipeDropTest extends PipeTestFixture {
         List<Integer> sample = generateIntegerList();
         Function<Integer, String> mapper = value -> isOdd(value) ? null : "";
         assertEquals(sample.stream().filter(value -> mapper.apply(value) != null).collect(toList()),
-            Pipe.list(sample).dropNullBy(mapper).toList());
+            list(sample).dropNullBy(mapper).toList());
     }
 
     // exception test

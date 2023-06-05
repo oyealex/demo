@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
+import static com.oyealex.pipe.basis.Pipe.list;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,7 +33,7 @@ class PipeDistinctTest extends PipeTestFixture {
     @DisplayName("能够正确对元素去重")
     void should_distinct_elements_rightly() {
         List<String> duplicated = duplicateList(generateIntegerStrList());
-        assertEquals(duplicated.stream().distinct().collect(toList()), Pipe.list(duplicated).distinct().toList());
+        assertEquals(duplicated.stream().distinct().collect(toList()), list(duplicated).distinct().toList());
     }
 
     @Test
@@ -41,7 +42,7 @@ class PipeDistinctTest extends PipeTestFixture {
         List<String> duplicated = duplicateList(generateRandomStrList());
         Set<Integer> seen = new HashSet<>();
         assertEquals(duplicated.stream().filter(val -> seen.add(val.length())).collect(toList()),
-            Pipe.list(duplicated).distinctBy(String::length).toList());
+            list(duplicated).distinctBy(String::length).toList());
     }
 
     @Test
@@ -50,7 +51,7 @@ class PipeDistinctTest extends PipeTestFixture {
         List<String> duplicated = duplicateList(generateRandomStrList());
         Set<Integer> seen = new HashSet<>();
         assertEquals(duplicated.stream().filter(val -> seen.add(null)).collect(toList()),
-            Pipe.list(duplicated).distinctBy(ignored -> null).toList());
+            list(duplicated).distinctBy(ignored -> null).toList());
     }
 
     @Test
@@ -60,7 +61,7 @@ class PipeDistinctTest extends PipeTestFixture {
         IntBox counter = IntBox.box();
         Set<Integer> seen = new HashSet<>();
         assertEquals(duplicated.stream().filter(ignored -> seen.add(counter.getAndIncrement() % 5)).collect(toList()),
-            Pipe.list(duplicated).distinctByOrderly((order, val) -> order % 5).toList());
+            list(duplicated).distinctByOrderly((order, val) -> order % 5).toList());
     }
 
     @Test
@@ -69,7 +70,7 @@ class PipeDistinctTest extends PipeTestFixture {
         List<String> duplicated = duplicateList(generateRandomStrList());
         Set<Integer> seen = new HashSet<>();
         assertEquals(duplicated.stream().filter(ignored -> seen.add(null)).collect(toList()),
-            Pipe.list(duplicated).distinctByOrderly((order, val) -> null).toList());
+            list(duplicated).distinctByOrderly((order, val) -> null).toList());
     }
 
     // optimization test

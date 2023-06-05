@@ -13,6 +13,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import static com.oyealex.pipe.basis.Pipe.list;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,7 +42,7 @@ class PipeMapTest extends PipeTestFixture {
     void should_map_elements_rightly() {
         List<Integer> sample = generateIntegerList();
         assertEquals(sample.stream().map(String::valueOf).collect(toList()),
-            Pipe.list(sample).map(String::valueOf).toList());
+            list(sample).map(String::valueOf).toList());
     }
 
     @Test
@@ -56,7 +57,7 @@ class PipeMapTest extends PipeTestFixture {
         List<Integer> sample = generateIntegerList();
         IntBox counter = IntBox.box();
         assertEquals(sample.stream().map(value -> counter.getAndIncrement() + "," + value).collect(toList()),
-            Pipe.list(sample).mapOrderly((order, value) -> order + "," + value).toList());
+            list(sample).mapOrderly((order, value) -> order + "," + value).toList());
     }
 
     @Test
@@ -64,7 +65,7 @@ class PipeMapTest extends PipeTestFixture {
     void should_map_to_given_value_as_condition_rightly() {
         List<Integer> sample = generateIntegerList();
         assertEquals(sample.stream().map(value -> isOdd(value) ? 0 : value).collect(toList()),
-            Pipe.list(sample).mapIf(PipeTestFixture::isOdd, 0).toList());
+            list(sample).mapIf(PipeTestFixture::isOdd, 0).toList());
     }
 
     @Test
@@ -74,7 +75,7 @@ class PipeMapTest extends PipeTestFixture {
         IntBox seed = IntBox.box();
         IntBox seed2 = IntBox.box();
         assertEquals(sample.stream().map(value -> isOdd(value) ? seed.getAndIncrement() : value).collect(toList()),
-            Pipe.list(sample).mapIf(PipeTestFixture::isOdd, seed2::getAndIncrement).toList());
+            list(sample).mapIf(PipeTestFixture::isOdd, seed2::getAndIncrement).toList());
     }
 
     @Test
@@ -82,8 +83,9 @@ class PipeMapTest extends PipeTestFixture {
     void should_map_to_given_mapper_value_as_condition_rightly() {
         List<Integer> sample = generateIntegerList();
         assertEquals(sample.stream()
-            .map(value -> isOdd(value) ? Integer.numberOfLeadingZeros(value) : value)
-            .collect(toList()), Pipe.list(sample).mapIf(PipeTestFixture::isOdd, Integer::numberOfLeadingZeros).toList());
+                .map(value -> isOdd(value) ? Integer.numberOfLeadingZeros(value) : value)
+                .collect(toList()),
+            list(sample).mapIf(PipeTestFixture::isOdd, Integer::numberOfLeadingZeros).toList());
     }
 
     @Test
@@ -93,14 +95,15 @@ class PipeMapTest extends PipeTestFixture {
         Function<Integer, Optional<Integer>> mapper = value -> isOdd(value) ? Optional.of(-value) :
             Optional.empty();
         assertEquals(sample.stream().map(value -> mapper.apply(value).orElse(value)).collect(toList()),
-            Pipe.list(sample).mapIf(mapper).toList());
+            list(sample).mapIf(mapper).toList());
     }
 
     @Test
     @DisplayName("能够正确映射元素为字符串")
     void should_map_to_string_rightly() {
         List<String> sample = generateOddIntegerStrWithNullsList();
-        assertEquals(sample.stream().map(Objects::toString).collect(toList()), Pipe.list(sample).mapToString().toList());
+        assertEquals(sample.stream().map(Objects::toString).collect(toList()),
+            list(sample).mapToString().toList());
     }
 
     @Test
@@ -108,7 +111,7 @@ class PipeMapTest extends PipeTestFixture {
     void should_map_to_string_with_default_value_rightly() {
         List<String> sample = generateOddIntegerStrWithNullsList();
         assertEquals(sample.stream().map(val -> Objects.toString(val, SOME_STR)).collect(toList()),
-            Pipe.list(sample).mapToString(SOME_STR).toList());
+            list(sample).mapToString(SOME_STR).toList());
     }
 
     @Test
@@ -116,7 +119,7 @@ class PipeMapTest extends PipeTestFixture {
     void should_map_null_to_given_value_rightly() {
         List<String> sample = generateOddIntegerStrWithNullsList();
         assertEquals(sample.stream().map(value -> value == null ? SOME_STR : value).collect(toList()),
-            Pipe.list(sample).mapNull(SOME_STR).toList());
+            list(sample).mapNull(SOME_STR).toList());
     }
 
     @Test
@@ -124,7 +127,7 @@ class PipeMapTest extends PipeTestFixture {
     void should_map_null_to_given_supplier_result_value_rightly() {
         List<String> sample = generateOddIntegerStrWithNullsList();
         assertEquals(sample.stream().map(value -> value == null ? SOME_STR : value).collect(toList()),
-            Pipe.list(sample).mapNull(() -> SOME_STR).toList());
+            list(sample).mapNull(() -> SOME_STR).toList());
     }
 
     // exception test

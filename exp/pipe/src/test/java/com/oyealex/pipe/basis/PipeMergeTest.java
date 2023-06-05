@@ -34,27 +34,79 @@ class PipeMergeTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确交替合并两个流水线")
     void should_merge_alternately_rightly() {
-        List<String> res = infiniteEvenIntegerStrPipe().mergeAlternately(infiniteOddIntegerStrPipe()).limit(10).toList();
+        List<String> res = infiniteEvenIntegerStrPipe().mergeAlternately(infiniteOddIntegerStrPipe())
+            .limit(10)
+            .toList();
         assertEquals(infiniteIntegerStrPipe().limit(10).toList(), res);
     }
 
     @Test
     @DisplayName("当剩余数据合并策略为 MERGE_AS_NULL 时能够正确交替合并两个流水线，并将缺少的数据作为null参与合并")
     void should_merge_alternately_with_MERGE_AS_NULL_remaining_policy() {
-        System.out.println(prefixedIntegerStrPipe("A").limit(2).mergeAlternately(prefixedIntegerStrPipe("B").limit(4), MERGE_AS_NULL).mapNull("_").println().limit(1).toList());
-        System.out.println(prefixedIntegerStrPipe("A").limit(4).mergeAlternately(prefixedIntegerStrPipe("B").limit(2), MERGE_AS_NULL).mapNull("_").println().limit(1).toList());
+        System.out.println(prefixedIntegerStrPipe("A").limit(2)
+            .mergeAlternately(prefixedIntegerStrPipe("B").limit(4), MERGE_AS_NULL)
+            .mapNull("_")
+            .println()
+            .limit(1)
+            .toList());
+        System.out.println(prefixedIntegerStrPipe("A").limit(4)
+            .mergeAlternately(prefixedIntegerStrPipe("B").limit(2), MERGE_AS_NULL)
+            .mapNull("_")
+            .println()
+            .limit(1)
+            .toList());
         System.out.println();
-        System.out.println(prefixedIntegerStrPipe("A").limit(2).mergeAlternately(prefixedIntegerStrPipe("B").limit(4), TAKE_OURS).mapNull("_").println().limit(1).toList());
-        System.out.println(prefixedIntegerStrPipe("A").limit(4).mergeAlternately(prefixedIntegerStrPipe("B").limit(2), TAKE_OURS).mapNull("_").println().limit(1).toList());
+        System.out.println(prefixedIntegerStrPipe("A").limit(2)
+            .mergeAlternately(prefixedIntegerStrPipe("B").limit(4), TAKE_OURS)
+            .mapNull("_")
+            .println()
+            .limit(1)
+            .toList());
+        System.out.println(prefixedIntegerStrPipe("A").limit(4)
+            .mergeAlternately(prefixedIntegerStrPipe("B").limit(2), TAKE_OURS)
+            .mapNull("_")
+            .println()
+            .limit(1)
+            .toList());
         System.out.println();
-        System.out.println(prefixedIntegerStrPipe("A").limit(2).mergeAlternately(prefixedIntegerStrPipe("B").limit(4), TAKE_THEIRS).mapNull("_").println().limit(1).toList());
-        System.out.println(prefixedIntegerStrPipe("A").limit(4).mergeAlternately(prefixedIntegerStrPipe("B").limit(2), TAKE_THEIRS).mapNull("_").println().limit(1).toList());
+        System.out.println(prefixedIntegerStrPipe("A").limit(2)
+            .mergeAlternately(prefixedIntegerStrPipe("B").limit(4), TAKE_THEIRS)
+            .mapNull("_")
+            .println()
+            .limit(1)
+            .toList());
+        System.out.println(prefixedIntegerStrPipe("A").limit(4)
+            .mergeAlternately(prefixedIntegerStrPipe("B").limit(2), TAKE_THEIRS)
+            .mapNull("_")
+            .println()
+            .limit(1)
+            .toList());
         System.out.println();
-        System.out.println(prefixedIntegerStrPipe("A").limit(2).mergeAlternately(prefixedIntegerStrPipe("B").limit(4), TAKE_REMAINING).mapNull("_").println().limit(1).toList());
-        System.out.println(prefixedIntegerStrPipe("A").limit(4).mergeAlternately(prefixedIntegerStrPipe("B").limit(2), TAKE_REMAINING).mapNull("_").println().limit(1).toList());
+        System.out.println(prefixedIntegerStrPipe("A").limit(2)
+            .mergeAlternately(prefixedIntegerStrPipe("B").limit(4), TAKE_REMAINING)
+            .mapNull("_")
+            .println()
+            .limit(1)
+            .toList());
+        System.out.println(prefixedIntegerStrPipe("A").limit(4)
+            .mergeAlternately(prefixedIntegerStrPipe("B").limit(2), TAKE_REMAINING)
+            .mapNull("_")
+            .println()
+            .limit(1)
+            .toList());
         System.out.println();
-        System.out.println(prefixedIntegerStrPipe("A").limit(2).mergeAlternately(prefixedIntegerStrPipe("B").limit(4), DROP).mapNull("_").println().limit(1).toList());
-        System.out.println(prefixedIntegerStrPipe("A").limit(4).mergeAlternately(prefixedIntegerStrPipe("B").limit(2), DROP).mapNull("_").println().limit(1).toList());
+        System.out.println(prefixedIntegerStrPipe("A").limit(2)
+            .mergeAlternately(prefixedIntegerStrPipe("B").limit(4), DROP)
+            .mapNull("_")
+            .println()
+            .limit(1)
+            .toList());
+        System.out.println(prefixedIntegerStrPipe("A").limit(4)
+            .mergeAlternately(prefixedIntegerStrPipe("B").limit(2), DROP)
+            .mapNull("_")
+            .println()
+            .limit(1)
+            .toList());
     }
 
     @ParameterizedTest(name = "当剩余数据合并策略为" + ARGUMENTS_PLACEHOLDER + "时能够正确交替合并两个流水线")
@@ -67,7 +119,9 @@ class PipeMergeTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确交替合并两个流水线，另外的流水线优先")
     void should_merge_alternately_theirs_first_rightly() {
-        List<String> res = infiniteOddIntegerStrPipe().mergeAlternatelyTheirsFirst(infiniteEvenIntegerStrPipe()).limit(10).toList();
+        List<String> res = infiniteOddIntegerStrPipe().mergeAlternatelyTheirsFirst(infiniteEvenIntegerStrPipe())
+            .limit(10)
+            .toList();
         assertEquals(infiniteIntegerStrPipe().limit(10).toList(), res);
     }
 }

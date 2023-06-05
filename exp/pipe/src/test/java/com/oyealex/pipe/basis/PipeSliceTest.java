@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.function.Predicate;
 
+import static com.oyealex.pipe.basis.Pipe.list;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,8 +36,10 @@ class PipeSliceTest extends PipeTestFixture {
     @DisplayName("能够正确跳过和限制元素")
     void should_skip_and_limit_elements_rightly() {
         List<String> sample = generateRandomStrList();
-        assertAll(() -> assertEquals(sample.stream().skip(SKIP).collect(toList()), Pipe.list(sample).skip(SKIP).toList()),
-            () -> assertEquals(sample.stream().limit(LIMIT).collect(toList()), Pipe.list(sample).limit(LIMIT).toList()));
+        assertAll(
+            () -> assertEquals(sample.stream().skip(SKIP).collect(toList()), list(sample).skip(SKIP).toList()),
+            () -> assertEquals(sample.stream().limit(LIMIT).collect(toList()),
+                list(sample).limit(LIMIT).toList()));
     }
 
     @Test
@@ -47,9 +50,9 @@ class PipeSliceTest extends PipeTestFixture {
         IntBox limitCounter = IntBox.box();
         assertAll(
             () -> assertEquals(sample.stream().filter(value -> predicatedSkip(skipCounter, value)).collect(toList()),
-                Pipe.list(sample).skip(SKIP, PipeTestFixture::isOdd).toList()),
+                list(sample).skip(SKIP, PipeTestFixture::isOdd).toList()),
             () -> assertEquals(sample.stream().filter(value -> predicatedLimit(limitCounter, value)).collect(toList()),
-                Pipe.list(sample).limit(LIMIT, PipeTestFixture::isOdd).toList()));
+                list(sample).limit(LIMIT, PipeTestFixture::isOdd).toList()));
     }
 
     @Test
@@ -57,7 +60,7 @@ class PipeSliceTest extends PipeTestFixture {
     void should_slice_elements_rightly() {
         List<String> sample = generateRandomStrList();
         assertEquals(sample.stream().skip(SKIP).limit(LIMIT).collect(toList()),
-            Pipe.list(sample).slice(SKIP, SKIP + LIMIT).toList());
+            list(sample).slice(SKIP, SKIP + LIMIT).toList());
     }
 
     @Test
@@ -69,7 +72,7 @@ class PipeSliceTest extends PipeTestFixture {
         assertEquals(sample.stream()
             .filter(value -> predicatedSkip(skipCounter, value))
             .filter(value -> predicatedLimit(limitCounter, value))
-            .collect(toList()), Pipe.list(sample).slice(SKIP, SKIP + LIMIT, PipeTestFixture::isOdd).toList());
+            .collect(toList()), list(sample).slice(SKIP, SKIP + LIMIT, PipeTestFixture::isOdd).toList());
     }
 
     private static boolean predicatedSkip(IntBox skipCounter, Integer value) {
@@ -99,10 +102,10 @@ class PipeSliceTest extends PipeTestFixture {
     @DisplayName("如果跳过元素数量为0或保留元素数量为Long最大值，则得到原流水线")
     void should_get_source_pipe_when_skip_size_is_0_or_limit_size_is_max_value_of_long() {
         List<String> sample = generateRandomStrList();
-        assertAll(() -> assertEquals(sample, Pipe.list(sample).skip(0).toList()),
-            () -> assertEquals(sample, Pipe.list(sample).skip(0, String::isEmpty).toList()),
-            () -> assertEquals(sample, Pipe.list(sample).limit(Long.MAX_VALUE).toList()),
-            () -> assertEquals(sample, Pipe.list(sample).limit(Long.MAX_VALUE, String::isEmpty).toList()));
+        assertAll(() -> assertEquals(sample, list(sample).skip(0).toList()),
+            () -> assertEquals(sample, list(sample).skip(0, String::isEmpty).toList()),
+            () -> assertEquals(sample, list(sample).limit(Long.MAX_VALUE).toList()),
+            () -> assertEquals(sample, list(sample).limit(Long.MAX_VALUE, String::isEmpty).toList()));
     }
 
     @Test
@@ -125,8 +128,8 @@ class PipeSliceTest extends PipeTestFixture {
     @DisplayName("如果切片范围款对为最大，则得到原流水线")
     void should_get_source_pipe_when_slice_with_max_range_width() {
         List<String> sample = generateRandomStrList();
-        assertAll(() -> assertEquals(sample, Pipe.list(sample).slice(0, Long.MAX_VALUE).toList()),
-            () -> assertEquals(sample, Pipe.list(sample).slice(0, Long.MAX_VALUE, String::isEmpty).toList()));
+        assertAll(() -> assertEquals(sample, list(sample).slice(0, Long.MAX_VALUE).toList()),
+            () -> assertEquals(sample, list(sample).slice(0, Long.MAX_VALUE, String::isEmpty).toList()));
     }
 
     // exception test

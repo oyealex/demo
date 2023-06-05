@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static com.oyealex.pipe.basis.Pipe.list;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -40,9 +41,9 @@ class PipeFlatMapTest extends PipeTestFixture {
         List<Integer> sample = generateIntegerList();
         assertEquals(
             sample.stream().map(PipeTestFixture::generateIntegerStrList).flatMap(Collection::stream).collect(toList()),
-            Pipe.list(sample)
+            list(sample)
                 .map(PipeTestFixture::generateIntegerStrList)
-                .flatMap(list -> Pipe.list((List<? extends String>) list))
+                .flatMap(list -> list((List<? extends String>) list))
                 .toList());
     }
 
@@ -54,9 +55,9 @@ class PipeFlatMapTest extends PipeTestFixture {
         assertEquals(sample.stream()
             .map(ignored -> generateIntegerStrList(counter.getAndIncrement()))
             .flatMap(Collection::stream)
-            .collect(toList()), Pipe.list(sample).flatMapOrderly((order, value) -> {
+            .collect(toList()), list(sample).flatMapOrderly((order, value) -> {
             List<? extends String> list = generateIntegerStrList((int) order);
-            return Pipe.list(list);
+            return list(list);
         }).toList());
     }
 
@@ -66,7 +67,7 @@ class PipeFlatMapTest extends PipeTestFixture {
         List<Integer> sample = generateIntegerList();
         assertEquals(
             sample.stream().map(PipeTestFixture::generateIntegerStrList).flatMap(Collection::stream).collect(toList()),
-            Pipe.list(sample).flatMapCollection(PipeTestFixture::generateIntegerStrList).toList());
+            list(sample).flatMapCollection(PipeTestFixture::generateIntegerStrList).toList());
     }
 
     @Test
@@ -74,7 +75,7 @@ class PipeFlatMapTest extends PipeTestFixture {
     void should_flat_map_to_singleton_pipe_rightly() {
         List<String> sample = generateIntegerStrList();
         assertEquals(sample.stream().map(Stream::of).map(stream -> stream.collect(toList())).collect(toList()),
-            Pipe.list(sample).flatMapSingleton().map(Pipe::toList).toList());
+            list(sample).flatMapSingleton().map(Pipe::toList).toList());
     }
 
     @Test

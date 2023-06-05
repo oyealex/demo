@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -49,14 +48,12 @@ import java.util.stream.Stream;
 import static com.oyealex.pipe.basis.policy.MergePolicy.OURS_FIRST;
 import static com.oyealex.pipe.basis.policy.MergePolicy.THEIRS_FIRST;
 import static com.oyealex.pipe.basis.policy.MergeRemainingPolicy.TAKE_REMAINING;
-import static com.oyealex.pipe.flag.PipeFlag.EMPTY;
 import static com.oyealex.pipe.utils.MiscUtil.isStdIdentify;
 import static com.oyealex.pipe.utils.MiscUtil.naturalOrderIfNull;
 import static com.oyealex.pipe.utils.MiscUtil.optimizedReverseOrder;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Objects.requireNonNull;
-import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.function.Function.identity;
 
 /**
@@ -1329,16 +1326,6 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     Pipe<E> prepend(Spliterator<? extends E> spliterator);
 
     /**
-     * 在流水线头部插入给定的迭代器中的元素。
-     *
-     * @param iterator 包含需要插入到头部的元素的迭代器
-     * @return 新的流水线
-     */
-    default Pipe<E> prepend(Iterator<? extends E> iterator) {
-        return prepend(spliteratorUnknownSize(iterator, 0));
-    }
-
-    /**
      * 在流水线头部插入给定的流水线中的元素。
      *
      * @param pipe 包含需要插入到头部的元素的流水线
@@ -1388,6 +1375,17 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     }
 
     /**
+     * 在流水线头部插入给定的Map中的键。
+     *
+     * @param map 包含需要插入到头部的键的Map
+     * @param valuePredicate 值筛选方法。
+     * @return 新的流水线
+     */
+    default <V> Pipe<E> prependKeys(Map<? extends E, ? extends V> map, Predicate<? super V> valuePredicate) {
+        return prepend(keys(map, valuePredicate));
+    }
+
+    /**
      * 在流水线头部插入给定的Map中的值。
      *
      * @param map 包含需要插入到头部的值的Map
@@ -1398,22 +1396,23 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     }
 
     /**
+     * 在流水线头部插入给定的Map中的值。
+     *
+     * @param map 包含需要插入到头部的值的Map
+     * @param keyPredicate 值筛选方法。
+     * @return 新的流水线
+     */
+    default <K> Pipe<E> prependValues(Map<? extends K, ? extends E> map, Predicate<? super K> keyPredicate) {
+        return prepend(values(map, keyPredicate));
+    }
+
+    /**
      * 在流水线尾部插入给定的拆分器中的元素。
      *
      * @param spliterator 包含需要插入到尾部的元素的拆分器
      * @return 新的流水线
      */
     Pipe<E> append(Spliterator<? extends E> spliterator);
-
-    /**
-     * 在流水线尾部插入给定的迭代器中的元素。
-     *
-     * @param iterator 包含需要插入到尾部的元素的迭代器
-     * @return 新的流水线
-     */
-    default Pipe<E> append(Iterator<? extends E> iterator) {
-        return append(spliteratorUnknownSize(iterator, EMPTY));
-    }
 
     /**
      * 在流水线尾部插入给定的流水线中的元素。
@@ -1466,6 +1465,17 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     }
 
     /**
+     * 在流水线尾部插入给定的Map中的键。
+     *
+     * @param map 包含需要插入到尾部的键的Map
+     * @param valuePredicate 值筛选方法。
+     * @return 新的流水线
+     */
+    default <V> Pipe<E> appendKeys(Map<? extends E, ? extends V> map, Predicate<? super V> valuePredicate) {
+        return append(keys(map, valuePredicate));
+    }
+
+    /**
      * 在流水线尾部插入给定的Map中的值。
      *
      * @param map 包含需要插入到尾部的值的Map
@@ -1473,6 +1483,17 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      */
     default Pipe<E> appendValues(Map<?, ? extends E> map) {
         return append(map.values().spliterator());
+    }
+
+    /**
+     * 在流水线尾部插入给定的Map中的值。
+     *
+     * @param map 包含需要插入到尾部的值的Map
+     * @param keyPredicate 值筛选方法。
+     * @return 新的流水线
+     */
+    default <K> Pipe<E> appendValues(Map<? extends K, ? extends E> map, Predicate<? super K> keyPredicate) {
+        return append(values(map, keyPredicate));
     }
 
     Pipe<E> disperse(E delimiter); // OPT 2023-05-18 23:15 考虑更多类似的API
@@ -2063,7 +2084,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @see #empty()
      */
     static <T> Pipe<T> optional(T value) {
-        return value == null ? Pipe.empty() : Pipe.singleton(value);
+        return value == null ? empty() : singleton(value);
     }
 
     /**
@@ -2078,10 +2099,10 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     @SuppressWarnings("varargs")
     static <T> Pipe<T> of(T... values) {
         if (values.length == 0) {
-            return Pipe.empty();
+            return empty();
         }
         if (values.length == 1) {
-            return Pipe.singleton(values[0]);
+            return singleton(values[0]);
         }
         return spliterator(Arrays.spliterator(values));
     }
@@ -2101,10 +2122,10 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     @SuppressWarnings("varargs")
     static <T> Pipe<T> of(int extraFlag, T... values) { // MK 2023-06-05 23:54 考虑是否保留此API
         if (values.length == 0) {
-            return Pipe.empty();
+            return empty();
         }
         if (values.length == 1) {
-            return Pipe.singleton(values[0]);
+            return singleton(values[0]);
         }
         return spliterator(Arrays.spliterator(values));
     }
@@ -2125,10 +2146,10 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
             throw new IllegalArgumentException("Pipe length cannot be negative: " + count);
         }
         if (count == 0) {
-            return Pipe.empty();
+            return empty();
         }
         if (count == 1) {
-            return Pipe.singleton(constant);
+            return singleton(constant);
         }
         return spliterator(MoreSpliterators.constant(constant, count));
     }
@@ -2143,7 +2164,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @see #keys(Map, Predicate)
      * @see #values(Map)
      */
-    static <T> Pipe<T> keys(Map<T, ?> map) {
+    static <T> Pipe<T> keys(Map<? extends T, ?> map) {
         return spliterator(requireNonNull(map).keySet().spliterator());
     }
 
@@ -2159,7 +2180,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @see #keys(Map)
      * @see #values(Map, Predicate)
      */
-    static <T, V> Pipe<T> keys(Map<T, V> map, Predicate<? super V> valuePredicate) {
+    static <T, V> Pipe<T> keys(Map<? extends T, ? extends V> map, Predicate<? super V> valuePredicate) {
         // OPT 2023-06-05 23:23 使用BiPipe优化
         return spliterator(requireNonNull(map).entrySet().spliterator()).filter(
             entry -> valuePredicate.test(entry.getValue())).map(Map.Entry::getKey);
@@ -2175,7 +2196,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @see #values(Map, Predicate)
      * @see #keys(Map)
      */
-    static <T> Pipe<T> values(Map<?, T> map) {
+    static <T> Pipe<T> values(Map<?, ? extends T> map) {
         return spliterator(requireNonNull(map).values().spliterator());
     }
 
@@ -2191,7 +2212,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @see #values(Map)
      * @see #keys(Map, Predicate)
      */
-    static <T, K> Pipe<T> values(Map<K, T> map, Predicate<? super K> keyPredicate) {
+    static <T, K> Pipe<T> values(Map<? extends K, ? extends T> map, Predicate<? super K> keyPredicate) {
         // OPT 2023-06-05 23:23 使用BiPipe优化
         return spliterator(requireNonNull(map).entrySet().spliterator()).filter(
             entry -> keyPredicate.test(entry.getKey())).map(Map.Entry::getValue);
@@ -2223,9 +2244,9 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     @SuppressWarnings("varargs")
     static <T> Pipe<T> concat(Pipe<? extends T>... pipes) {
         if (pipes == null || pipes.length == 0) {
-            return Pipe.empty();
+            return empty();
         }
-        Pipe<T> resPipe = Pipe.empty();
+        Pipe<T> resPipe = empty();
         for (Pipe<? extends T> pipe : pipes) {
             resPipe = resPipe.append(pipe);
         }

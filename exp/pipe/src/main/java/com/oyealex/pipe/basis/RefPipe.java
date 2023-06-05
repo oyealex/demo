@@ -30,6 +30,8 @@ import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 import java.util.function.ToLongFunction;
 
+import static com.oyealex.pipe.basis.Pipe.empty;
+import static com.oyealex.pipe.basis.Pipe.spliterator;
 import static com.oyealex.pipe.basis.policy.MergeRemainingPolicy.TAKE_REMAINING;
 import static com.oyealex.pipe.flag.PipeFlag.DISTINCT;
 import static com.oyealex.pipe.flag.PipeFlag.EMPTY;
@@ -238,7 +240,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
             throw new IllegalArgumentException("The count to take last is at least 0: " + count);
         }
         if (count == 0) {
-            return Pipe.empty();
+            return empty();
         }
         return new TakeOrDropLastOp<>(this, true, count);
     }
@@ -385,7 +387,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<Pipe<OUT>> flatMapSingleton() {
-        return map(value -> Pipe.spliterator(MoreSpliterators.singleton(value)));
+        return map(value -> spliterator(MoreSpliterators.singleton(value)));
     }
 
     @Override
@@ -557,7 +559,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
             return this;
         }
         if (size == MAX_VALUE) {
-            return Pipe.empty();
+            return empty();
         }
         return null;
     }
@@ -580,7 +582,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
             throw new IllegalArgumentException("limit size cannot be negative, size: " + size);
         }
         if (size == 0) {
-            return Pipe.empty();
+            return empty();
         }
         if (size == MAX_VALUE) {
             return this;
@@ -608,7 +610,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
             throw new IllegalArgumentException("invalid slice bound: [" + startInclusive + ", " + endExclusive + ")");
         }
         if (startInclusive == endExclusive) {
-            return Pipe.empty();
+            return empty();
         }
         if (startInclusive == 0 && endExclusive == MAX_VALUE) {
             return this;
@@ -621,7 +623,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         requireNonNull(spliterator);
         @SuppressWarnings("unchecked") Spliterator<OUT> finalSpliterator = MoreSpliterators.concat(
             (Spliterator<OUT>) spliterator, toSpliterator());
-        Pipe<OUT> pipe = Pipe.spliterator(finalSpliterator);
+        Pipe<OUT> pipe = spliterator(finalSpliterator);
         return pipe.onClose(this::close);
     }
 
@@ -635,7 +637,7 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
         requireNonNull(spliterator);
         @SuppressWarnings("unchecked") Spliterator<OUT> finalSpliterator = MoreSpliterators.concat(toSpliterator(),
             (Spliterator<OUT>) spliterator);
-        Pipe<OUT> pipe = Pipe.spliterator(finalSpliterator);
+        Pipe<OUT> pipe = spliterator(finalSpliterator);
         return pipe.onClose(this::close);
     }
 

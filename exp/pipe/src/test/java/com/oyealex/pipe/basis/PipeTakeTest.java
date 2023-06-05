@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
+import static com.oyealex.pipe.basis.Pipe.empty;
+import static com.oyealex.pipe.basis.Pipe.list;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -38,7 +40,7 @@ class PipeTakeTest extends PipeTestFixture {
     void should_take_elements_as_predicate_rightly() {
         List<String> sample = generateIntegerStrList();
         Predicate<String> predicate = val -> val.length() > 5;
-        assertEquals(sample.stream().filter(predicate).collect(toList()), Pipe.list(sample).takeIf(predicate).toList());
+        assertEquals(sample.stream().filter(predicate).collect(toList()), list(sample).takeIf(predicate).toList());
     }
 
     @Test
@@ -46,7 +48,7 @@ class PipeTakeTest extends PipeTestFixture {
     void should_filter_elements_as_predicate_rightly() {
         List<String> sample = generateIntegerStrList();
         Predicate<String> predicate = val -> val.length() > 5;
-        assertEquals(sample.stream().filter(predicate).collect(toList()), Pipe.list(sample).filter(predicate).toList());
+        assertEquals(sample.stream().filter(predicate).collect(toList()), list(sample).filter(predicate).toList());
     }
 
     @Test
@@ -55,20 +57,20 @@ class PipeTakeTest extends PipeTestFixture {
         List<String> sample = generateIntegerStrList();
         IntBox counter = IntBox.box();
         assertEquals(sample.stream().filter(ignored -> isOdd(counter.getAndIncrement())).collect(toList()),
-            Pipe.list(sample).takeIfOrderly((order, value) -> isOdd(order)).toList());
+            list(sample).takeIfOrderly((order, value) -> isOdd(order)).toList());
     }
 
     @Test
     @DisplayName("在非空流水线中能正确获取第一个元素")
     void should_take_first_element_in_non_empty_pipe_rightly() {
         List<String> sample = generateIntegerStrList();
-        assertEquals(sample.subList(0, 1), Pipe.list(sample).takeFirst().toList());
+        assertEquals(sample.subList(0, 1), list(sample).takeFirst().toList());
     }
 
     @Test
     @DisplayName("在空流水线中尝试获取第一个元素得到空流水线")
     void should_get_empty_pipe_when_try_to_take_first_element_in_empty_pipe() {
-        assertEquals(emptyList(), Pipe.empty().takeFirst().toList());
+        assertEquals(emptyList(), empty().takeFirst().toList());
     }
 
     @Test
@@ -76,7 +78,7 @@ class PipeTakeTest extends PipeTestFixture {
     void should_circuit_after_taking_first_element() {
         List<String> sample = generateIntegerStrList();
         List<String> handled = new ArrayList<>();
-        List<String> first = Pipe.list(sample).peek(handled::add).takeFirst().toList();
+        List<String> first = list(sample).peek(handled::add).takeFirst().toList();
         assertEquals(first, handled);
         assertEquals(singletonList(sample.get(0)), first);
     }
@@ -85,15 +87,15 @@ class PipeTakeTest extends PipeTestFixture {
     @DisplayName("当尝试获取的前N个元素数量小于流水线元素数量时，能够正确获得前N个元素")
     void should_get_first_N_elements_when_try_take_first_N_elements_and_N_is_smaller_than_the_pipe_size() {
         List<String> sample = infiniteIntegerStrPipe().limit(10).toList();
-        assertEquals(sample.subList(0, 5), Pipe.list(sample).takeFirst(5).toList());
+        assertEquals(sample.subList(0, 5), list(sample).takeFirst(5).toList());
     }
 
     @Test
     @DisplayName("当尝试获取的前N个元素数量大于等于流水线元素数量时，能够正确获得全部元素")
     void should_get_first_N_elements_when_try_take_first_N_elements_and_N_is_equal_to_or_bigger_than_the_pipe_size() {
         List<String> sample = infiniteIntegerStrPipe().limit(10).toList();
-        assertEquals(sample, Pipe.list(sample).takeFirst(10).toList());
-        assertEquals(sample, Pipe.list(sample).takeFirst(20).toList());
+        assertEquals(sample, list(sample).takeFirst(10).toList());
+        assertEquals(sample, list(sample).takeFirst(20).toList());
     }
 
     @Test
@@ -114,28 +116,28 @@ class PipeTakeTest extends PipeTestFixture {
     @DisplayName("在非空流水线中能够正确获取最后一个元素")
     void should_take_last_element_in_non_empty_pipe_rightly() {
         List<String> sample = generateIntegerStrList();
-        assertEquals(sample.subList(sample.size() - 1, sample.size()), Pipe.list(sample).takeLast().toList());
+        assertEquals(sample.subList(sample.size() - 1, sample.size()), list(sample).takeLast().toList());
     }
 
     @Test
     @DisplayName("在空流水线中尝试获取最后一个元素得到空流水线")
     void should_get_empty_pipe_when_try_to_take_last_element_in_empty_pipe() {
-        assertEquals(emptyList(), Pipe.empty().takeLast().toList());
+        assertEquals(emptyList(), empty().takeLast().toList());
     }
 
     @Test
     @DisplayName("当尝试获取的最后N个元素数量小于流水线元素数量时，能够正确获得最后N个元素")
     void should_get_last_N_elements_when_try_take_last_N_elements_and_N_is_smaller_than_the_pipe_size() {
         List<String> sample = infiniteIntegerStrPipe().limit(10).toList();
-        assertEquals(sample.subList(5, 10), Pipe.list(sample).takeLast(5).toList());
+        assertEquals(sample.subList(5, 10), list(sample).takeLast(5).toList());
     }
 
     @Test
     @DisplayName("当尝试获取的最后N个元素数量大于等于流水线元素数量时，能够正确获得全部元素")
     void should_get_last_N_elements_when_try_take_last_N_elements_and_N_is_equal_to_or_bigger_than_the_pipe_size() {
         List<String> sample = infiniteIntegerStrPipe().limit(10).toList();
-        assertEquals(sample, Pipe.list(sample).takeLast(10).toList());
-        assertEquals(sample, Pipe.list(sample).takeLast(20).toList());
+        assertEquals(sample, list(sample).takeLast(10).toList());
+        assertEquals(sample, list(sample).takeLast(20).toList());
     }
 
     @Test
@@ -149,7 +151,7 @@ class PipeTakeTest extends PipeTestFixture {
     void should_take_elements_until_predicate_get_false_firstly_when_take_while() {
         IntBox counter = IntBox.box();
         List<String> sample = generateIntegerStrList();
-        assertEquals(sample.subList(0, 5), Pipe.list(sample).takeWhile(str -> counter.getAndIncrement() < 5).toList());
+        assertEquals(sample.subList(0, 5), list(sample).takeWhile(str -> counter.getAndIncrement() < 5).toList());
     }
 
     @Test
@@ -158,7 +160,7 @@ class PipeTakeTest extends PipeTestFixture {
         List<String> sample = generateIntegerStrList();
         IntBox counter = IntBox.box();
         assertEquals(sample.stream().filter(ignored -> counter.getAndIncrement() < 5).collect(toList()),
-            Pipe.list(sample).takeWhileOrderly((order, value) -> order < 5).toList());
+            list(sample).takeWhileOrderly((order, value) -> order < 5).toList());
     }
 
     // optimization test
@@ -169,7 +171,7 @@ class PipeTakeTest extends PipeTestFixture {
         IntBox counter = IntBox.box();
         List<String> sample = generateIntegerStrList();
         List<String> handled = new ArrayList<>();
-        Pipe.list(sample).peek(handled::add).takeWhile(str -> counter.getAndIncrement() < 5).run();
+        list(sample).peek(handled::add).takeWhile(str -> counter.getAndIncrement() < 5).run();
         assertEquals(sample.subList(0, 6), handled);
     }
 

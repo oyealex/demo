@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static com.oyealex.pipe.basis.Pipe.list;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,7 +31,7 @@ class PipeMiscTest extends PipeTestFixture {
     void should_peek_every_elements_rightly() {
         List<String> sample = generateRandomStrList();
         List<String> peeked = new ArrayList<>();
-        Pipe.list(sample).peek(peeked::add).run();
+        list(sample).peek(peeked::add).run();
         assertEquals(sample, peeked);
     }
 
@@ -39,7 +40,7 @@ class PipeMiscTest extends PipeTestFixture {
     void should_peek_every_elements_in_order_rightly() {
         List<String> sample = generateRandomStrList();
         List<Tuple<Long, String>> peeked = new ArrayList<>();
-        Pipe.list(sample).peekOrderly((order, value) -> peeked.add(Tuple.of(order, value))).run();
+        list(sample).peekOrderly((order, value) -> peeked.add(Tuple.of(order, value))).run();
         LongBox counter = LongBox.box();
         assertEquals(sample.stream().map(value -> Tuple.of(counter.getAndIncrement(), value)).collect(toList()),
             peeked);

@@ -1,15 +1,17 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.basis.policy.PartitionPolicy;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
+import com.oyealex.pipe.basis.policy.PartitionPolicy;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Spliterators;
 import java.util.function.Function;
 
+import static com.oyealex.pipe.basis.Pipe.list;
+import static com.oyealex.pipe.basis.Pipe.spliterator;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
 import static com.oyealex.pipe.flag.PipeFlag.toSpliteratorFlag;
-import static java.util.Spliterators.spliterator;
 
 /**
  * PartitionOp
@@ -67,7 +69,8 @@ abstract class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
                 @Override
                 public void end() {
                     if (index > 0) {
-                        nextOp.accept(Pipe.spliterator(spliterator(partition, 0, index, partitionSpliteratorFlag)));
+                        nextOp.accept(
+                            spliterator(Spliterators.spliterator(partition, 0, index, partitionSpliteratorFlag)));
                     }
                     partition = null;
                 }
@@ -75,7 +78,7 @@ abstract class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
                 private void consumerPartition() {
                     int length = index;
                     T[] elements = prepareNewPartition();
-                    nextOp.accept(Pipe.spliterator(spliterator(elements, 0, length, partitionSpliteratorFlag)));
+                    nextOp.accept(spliterator(Spliterators.spliterator(elements, 0, length, partitionSpliteratorFlag)));
                 }
 
                 private T[] prepareNewPartition() {
@@ -155,7 +158,7 @@ abstract class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
                 @Override
                 public void end() {
                     if (partition != null && !partition.isEmpty() && !shouldShortCircuit()) {
-                        nextOp.accept(Pipe.list(partition));
+                        nextOp.accept(list(partition));
                     }
                     partition = null;
                     nextOp.end();
@@ -171,7 +174,7 @@ abstract class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
                     List<T> endPartition = partition;
                     partition = null;
                     if (!shouldShortCircuit()) {
-                        nextOp.accept(Pipe.list(endPartition));
+                        nextOp.accept(list(endPartition));
                     }
                 }
             };

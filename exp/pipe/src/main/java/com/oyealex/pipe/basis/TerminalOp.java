@@ -1,7 +1,7 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.flag.PipeFlag;
 import com.oyealex.pipe.assist.Tuple;
+import com.oyealex.pipe.flag.PipeFlag;
 
 import java.util.Objects;
 import java.util.Optional;
