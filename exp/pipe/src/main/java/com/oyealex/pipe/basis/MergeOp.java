@@ -1,17 +1,17 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.basis.api.policy.MergePolicy;
-import com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy;
+import com.oyealex.pipe.basis.policy.MergePolicy;
+import com.oyealex.pipe.basis.policy.MergeRemainingPolicy;
 
 import java.util.Spliterator;
 import java.util.function.BiFunction;
 
-import static com.oyealex.pipe.basis.api.policy.MergePolicy.OURS_FIRST;
-import static com.oyealex.pipe.basis.api.policy.MergePolicy.PREFER_OURS;
-import static com.oyealex.pipe.basis.api.policy.MergePolicy.PREFER_THEIRS;
-import static com.oyealex.pipe.basis.api.policy.MergePolicy.TAKE_OURS;
-import static com.oyealex.pipe.basis.api.policy.MergePolicy.TAKE_THEIRS;
-import static com.oyealex.pipe.basis.api.policy.MergePolicy.THEIRS_FIRST;
+import static com.oyealex.pipe.basis.policy.MergePolicy.OURS_FIRST;
+import static com.oyealex.pipe.basis.policy.MergePolicy.PREFER_OURS;
+import static com.oyealex.pipe.basis.policy.MergePolicy.PREFER_THEIRS;
+import static com.oyealex.pipe.basis.policy.MergePolicy.TAKE_OURS;
+import static com.oyealex.pipe.basis.policy.MergePolicy.TAKE_THEIRS;
+import static com.oyealex.pipe.basis.policy.MergePolicy.THEIRS_FIRST;
 import static java.util.Objects.requireNonNull;
 
 /**

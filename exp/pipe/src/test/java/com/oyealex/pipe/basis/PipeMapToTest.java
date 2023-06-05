@@ -1,7 +1,6 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.PipeTestFixture;
-import com.oyealex.pipe.basis.api.Pipe;
 import org.junit.jupiter.api.Disabled;
 
 import java.util.function.ToDoubleFunction;

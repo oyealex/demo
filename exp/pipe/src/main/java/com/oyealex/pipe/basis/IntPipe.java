@@ -1,4 +1,4 @@
-package com.oyealex.pipe.basis.api;
+package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.base.BasePipe;
 import com.oyealex.pipe.basis.functional.LongIntPredicate;

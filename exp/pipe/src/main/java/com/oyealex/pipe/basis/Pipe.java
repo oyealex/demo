@@ -1,16 +1,17 @@
-package com.oyealex.pipe.basis.api;
+package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.annotations.Todo;
 import com.oyealex.pipe.assist.Tuple;
 import com.oyealex.pipe.base.BasePipe;
-import com.oyealex.pipe.basis.Pipes;
-import com.oyealex.pipe.basis.api.policy.MergePolicy;
-import com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy;
-import com.oyealex.pipe.basis.api.policy.PartitionPolicy;
 import com.oyealex.pipe.basis.functional.LongBiConsumer;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 import com.oyealex.pipe.basis.functional.LongBiPredicate;
+import com.oyealex.pipe.basis.policy.MergePolicy;
+import com.oyealex.pipe.basis.policy.MergeRemainingPolicy;
+import com.oyealex.pipe.basis.policy.PartitionPolicy;
 import com.oyealex.pipe.bi.BiPipe;
+import com.oyealex.pipe.flag.PipeFlag;
+import com.oyealex.pipe.spliterator.MoreSpliterators;
 import com.oyealex.pipe.tri.TriPipe;
 import com.oyealex.pipe.utils.MiscUtil;
 
@@ -42,11 +43,12 @@ import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 import java.util.function.ToLongFunction;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
-import static com.oyealex.pipe.basis.api.policy.MergePolicy.OURS_FIRST;
-import static com.oyealex.pipe.basis.api.policy.MergePolicy.THEIRS_FIRST;
-import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.TAKE_REMAINING;
+import static com.oyealex.pipe.basis.policy.MergePolicy.OURS_FIRST;
+import static com.oyealex.pipe.basis.policy.MergePolicy.THEIRS_FIRST;
+import static com.oyealex.pipe.basis.policy.MergeRemainingPolicy.TAKE_REMAINING;
 import static com.oyealex.pipe.flag.PipeFlag.EMPTY;
 import static com.oyealex.pipe.utils.MiscUtil.isStdIdentify;
 import static com.oyealex.pipe.utils.MiscUtil.naturalOrderIfNull;
@@ -54,6 +56,7 @@ import static com.oyealex.pipe.utils.MiscUtil.optimizedReverseOrder;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Objects.requireNonNull;
+import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.function.Function.identity;
 
 /**
@@ -339,7 +342,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     }
 
     /**
-     * 保留最后给定数量的元素。
+     * 丢弃最后给定数量的元素。
      *
      * @param count 需要保留的最后几个元素的数量。
      * @return 新的流水线。
@@ -744,13 +747,13 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param <R> 新流水线中的元素类型。
      * @return 映射并拼接后的流水线。
      * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
-     * @implNote 由于无法确定具体的 {@link Collection}类型，流水线无法进行更进一步的优化，如果有必要请使用{@link Pipes}工具类
-     * 中的方法显式构造流水线的方式映射并拼接流水线。
+     * @implNote 由于无法确定具体的 {@link Collection}类型，流水线无法进行更进一步的优化，如果有必要请使用其他显式构造流水线的
+     * 方法映射并拼接流水线。
      * @see #flatMap(Function)
      * @see #flatMapOrderly(LongBiFunction)
      */
     default <R> Pipe<R> flatMapCollection(Function<? super E, ? extends Collection<? extends R>> mapper) {
-        return map(mapper).flatMap(Pipes::collection);
+        return map(mapper).flatMap(Pipe::collection);
     }
 
     /**
@@ -1332,7 +1335,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @return 新的流水线
      */
     default Pipe<E> prepend(Iterator<? extends E> iterator) {
-        return prepend(Spliterators.spliteratorUnknownSize(iterator, 0));
+        return prepend(spliteratorUnknownSize(iterator, 0));
     }
 
     /**
@@ -1409,7 +1412,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @return 新的流水线
      */
     default Pipe<E> append(Iterator<? extends E> iterator) {
-        return append(Spliterators.spliteratorUnknownSize(iterator, EMPTY));
+        return append(spliteratorUnknownSize(iterator, EMPTY));
     }
 
     /**
@@ -1417,9 +1420,10 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param pipe 包含需要插入到尾部的元素的流水线
      * @return 新的流水线
+     * @throws NullPointerException 当流水线{@code pipe}为{@code null}时抛出。
      */
     default Pipe<E> append(Pipe<? extends E> pipe) {
-        return append(pipe.toSpliterator());
+        return append(requireNonNull(pipe).toSpliterator());
     }
 
     /**
@@ -1896,11 +1900,12 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     <K> BiPipe<K, Pipe<E>> groupAndExtend(Function<? super E, ? extends K> classifier);
 
     default <K> Pipe<List<E>> groupValues(Function<? super E, ? extends K> classifier) {
-        return Pipes.iterable(group(classifier).values());
+        Collection<List<E>> values = group(classifier).values();
+        return spliterator(Spliterators.spliterator(values.iterator(), values.size(), 0));
     }
 
     default <K> Pipe<Pipe<E>> groupFlatValues(Function<? super E, ? extends K> classifier) {
-        return groupValues(classifier).map(Pipes::iterable);
+        return groupValues(classifier).map(Pipe::list);
     }
 
     default <K> Map<K, List<E>> group(Function<? super E, ? extends K> classifier) {
@@ -1994,5 +1999,384 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
 
     default Pipe<E> print() { // DBG 2023-05-20 01:08 调试接口
         return peek(System.out::print);
+    }
+
+    /**
+     * 获取空的流水线实例，此流水线不包含任何数据。
+     *
+     * @param <T> 数据类型。
+     * @return 空的流水线。
+     */
+    static <T> Pipe<T> empty() {
+        return new PipeHead<>(Spliterators.emptySpliterator());
+    }
+
+    /**
+     * 从给定的拆分器中构建新的流水线。
+     *
+     * @param spliterator 拆分器。
+     * @param <T> 拆分器中的元素类型。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code spliterator}为{@code null}时抛出。
+     * @see #spliterator(Spliterator, int)
+     */
+    static <T> Pipe<T> spliterator(Spliterator<? extends T> spliterator) {
+        return new PipeHead<>(requireNonNull(spliterator));
+    }
+
+    /**
+     * 从给定的拆分器中构建新的流水线实例，支持额外的数据标记。
+     *
+     * @param spliterator 拆分器。
+     * @param extraFlag 额外的数据标记。
+     * @param <T> 拆分器中的元素类型。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code spliterator}为{@code null}时抛出。
+     * @apiNote 此方法仅限于充分了解给定拆分器中元素分布时使用，其{@code extraFlag}参数会用于指导流水线优化，如果给定的标记有误
+     * 可能误导流水线的优化操作，进而影响结果正确性，当不确定此标记是否设置正确时请优先使用{@link #spliterator(Spliterator)}。
+     * @see PipeFlag
+     * @see #spliterator(Spliterator)
+     */
+    static <T> Pipe<T> spliterator(Spliterator<? extends T> spliterator, int extraFlag) {
+        return new PipeHead<>(requireNonNull(spliterator), extraFlag);
+    }
+
+    /**
+     * 获取仅包含单个给定元素的流水线。
+     *
+     * @param singleton 数据。
+     * @param <T> 数据类型。
+     * @return 流水线。
+     * @see #optional(Object)
+     */
+    static <T> Pipe<T> singleton(T singleton) {
+        return spliterator(MoreSpliterators.singleton(singleton));
+    }
+
+    /**
+     * 从给定的单个数据生成流水线，如果给定的数据不为{@code null}，则生成单例流水线，否则生成空流水线。
+     *
+     * @param value 数据，可能为{@code null}。
+     * @param <T> 数据类型。
+     * @return 单例流水线或空流水线。
+     * @see #singleton(Object)
+     * @see #empty()
+     */
+    static <T> Pipe<T> optional(T value) {
+        return value == null ? Pipe.empty() : Pipe.singleton(value);
+    }
+
+    /**
+     * 根据给定的元素构造一个新的流水线。
+     *
+     * @param values 包含在流水线中的元素。
+     * @param <T> 元素类型。
+     * @return 新的流水线。
+     * @see #of(int, Object[])
+     */
+    @SafeVarargs
+    @SuppressWarnings("varargs")
+    static <T> Pipe<T> of(T... values) {
+        if (values.length == 0) {
+            return Pipe.empty();
+        }
+        if (values.length == 1) {
+            return Pipe.singleton(values[0]);
+        }
+        return spliterator(Arrays.spliterator(values));
+    }
+
+    /**
+     * 根据给定的元素构造一个新的流水线实例，支持额外的数据标记。
+     *
+     * @param values 包含在流水线中的元素。
+     * @param <T> 元素类型。
+     * @return 新的流水线。
+     * @apiNote 此方法仅限于充分了解给定元素分布时使用，其{@code extraFlag}参数会用于指导流水线优化，如果给定的标记有误
+     * 可能误导流水线的优化操作，进而影响结果正确性，当不确定此标记是否设置正确时请优先使用{@link #of(Object[])}。
+     * @see PipeFlag
+     * @see #of(Object[])
+     */
+    @SafeVarargs
+    @SuppressWarnings("varargs")
+    static <T> Pipe<T> of(int extraFlag, T... values) { // MK 2023-06-05 23:54 考虑是否保留此API
+        if (values.length == 0) {
+            return Pipe.empty();
+        }
+        if (values.length == 1) {
+            return Pipe.singleton(values[0]);
+        }
+        return spliterator(Arrays.spliterator(values));
+    }
+
+    /**
+     * 根据常量生成一个新的流水线实例，常量的数量由{@code count}指定。
+     * <p/>
+     * 即：将给定的常量数据{@code constant}重复{@code count}次组成流水线。
+     *
+     * @param constant 常量数据。
+     * @param count 数量。
+     * @param <T> 常量数据类型。
+     * @return 新的流水线。
+     * @throws IllegalArgumentException 当常量数量{@code count}为负数时抛出。
+     */
+    static <T> Pipe<T> constant(T constant, int count) {
+        if (count < 0) {
+            throw new IllegalArgumentException("Pipe length cannot be negative: " + count);
+        }
+        if (count == 0) {
+            return Pipe.empty();
+        }
+        if (count == 1) {
+            return Pipe.singleton(constant);
+        }
+        return spliterator(MoreSpliterators.constant(constant, count));
+    }
+
+    /**
+     * 从给定的映射的键中生成流水线。
+     *
+     * @param map 映射。
+     * @param <T> 映射的键的类型
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code map}为{@code null}时抛出。
+     * @see #keys(Map, Predicate)
+     * @see #values(Map)
+     */
+    static <T> Pipe<T> keys(Map<T, ?> map) {
+        return spliterator(requireNonNull(map).keySet().spliterator());
+    }
+
+    /**
+     * 从给定的映射的键中生成流水线，仅使用其中对应值满足给定断言的键。
+     *
+     * @param map 映射。
+     * @param valuePredicate 值筛选方法。
+     * @param <T> 映射的键的类型。
+     * @param <V> 映射的值的类型。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code map}或{@code valuePredicate}为{@code null}时抛出。
+     * @see #keys(Map)
+     * @see #values(Map, Predicate)
+     */
+    static <T, V> Pipe<T> keys(Map<T, V> map, Predicate<? super V> valuePredicate) {
+        // OPT 2023-06-05 23:23 使用BiPipe优化
+        return spliterator(requireNonNull(map).entrySet().spliterator()).filter(
+            entry -> valuePredicate.test(entry.getValue())).map(Map.Entry::getKey);
+    }
+
+    /**
+     * 从给定的映射的值中生成流水线。
+     *
+     * @param map 映射。
+     * @param <T> 映射的值的类型
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code map}为{@code null}时抛出。
+     * @see #values(Map, Predicate)
+     * @see #keys(Map)
+     */
+    static <T> Pipe<T> values(Map<?, T> map) {
+        return spliterator(requireNonNull(map).values().spliterator());
+    }
+
+    /**
+     * 从给定的映射的值中生成流水线，仅使用其中对应键满足给定断言的值。
+     *
+     * @param map 映射。
+     * @param keyPredicate 值筛选方法。
+     * @param <T> 映射的值的类型。
+     * @param <K> 映射的键的类型。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code map}或{@code keyPredicate}为{@code null}时抛出。
+     * @see #values(Map)
+     * @see #keys(Map, Predicate)
+     */
+    static <T, K> Pipe<T> values(Map<K, T> map, Predicate<? super K> keyPredicate) {
+        // OPT 2023-06-05 23:23 使用BiPipe优化
+        return spliterator(requireNonNull(map).entrySet().spliterator()).filter(
+            entry -> keyPredicate.test(entry.getKey())).map(Map.Entry::getValue);
+    }
+
+    /**
+     * 创建一个含有无限元素的流水线，元素由{@code supplier}持续提供。
+     *
+     * @param supplier 提供元素的生成器。
+     * @param <T> 元素类型。
+     * @return 无限长度的流水线。
+     * @throws NullPointerException 当{@code supplier}为{@code null}时抛出。
+     * @see Stream#generate(Supplier)
+     */
+    static <T> Pipe<T> generate(Supplier<? extends T> supplier) {
+        return spliterator(MoreSpliterators.generate(requireNonNull(supplier)));
+    }
+
+    /**
+     * 拼接给定的流水线，每个流水线中的元素按次序处理。
+     *
+     * @param pipes 需要拼接的流水线。
+     * @param <T> 元素类型。
+     * @return 拼接后的流水线。
+     * @throws NullPointerException 当流水线{@code pipes}存在{@code null}时抛出。
+     * @see #append(Pipe)
+     */
+    @SafeVarargs
+    @SuppressWarnings("varargs")
+    static <T> Pipe<T> concat(Pipe<? extends T>... pipes) {
+        if (pipes == null || pipes.length == 0) {
+            return Pipe.empty();
+        }
+        Pipe<T> resPipe = Pipe.empty();
+        for (Pipe<? extends T> pipe : pipes) {
+            resPipe = resPipe.append(pipe);
+        }
+        return resPipe;
+    }
+
+    /**
+     * 创建一个新的流水线，从给定的{@link Stream}实例中获取元素。
+     * <p/>
+     * 用于转换标准流。
+     *
+     * @param stream 需要获取元素的流。
+     * @param <T> 元素类型。
+     * @return 新的流水线。
+     * @throws NullPointerException 当流{@code stream}为{@code null}时抛出。
+     * @implNote 此方法通过调用 {@link Stream#iterator()}方法获取流元素的迭代器来组装流水线，此操作会终结给定的流。
+     * @see Stream#iterator()
+     */
+    static <T> Pipe<T> stream(Stream<? extends T> stream) {
+        return spliterator(requireNonNull(stream).spliterator());
+    }
+
+    /**
+     * 创建一个含有无限元素的流水线，元素的生成以给定的种子{@code seed}为基础，每个元素都是对上一个元素应用{@code generator}
+     * 生成，即使生成的结果为{@code null}也会被认为是有效元素。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * T element = seed;
+     * do {
+     *     doSomething(element);
+     *     element = generator.apply(element);
+     * } while (true)
+     * }</pre>
+     *
+     * @param seed 初始种子元素，第0个元素。
+     * @param generator 后续元素的生成器，以前一个元素为参数。
+     * @param <T> 元素类型。
+     * @return 无限长度的流水线。
+     * @throws NullPointerException 当迭代器{@code generator}为{@code null}时抛出。
+     * @see Stream#iterate(Object, UnaryOperator)
+     */
+    static <T> Pipe<T> iterate(final T seed, final UnaryOperator<T> generator) {
+        return spliterator(MoreSpliterators.iterate(seed, requireNonNull(generator)));
+    }
+
+    /**
+     * 从给定的列表中创建流水线。
+     * <p/>
+     * 如果给定列表为{@code null}则返回空流水线。
+     *
+     * @param list 列表。
+     * @param <T> 列表中的元素类型。
+     * @return 新的流水线。
+     * @see #list(List, int)
+     * @see #set(Set)
+     * @see #collection(Collection)
+     */
+    static <T> Pipe<T> list(List<? extends T> list) {
+        return list == null || list.isEmpty() ? empty() : spliterator(list.spliterator());
+    }
+
+    /**
+     * 从给定的列表中创建流水线，支持额外的数据标记。
+     * <p/>
+     * 如果给定列表为{@code null}则返回空流水线。
+     *
+     * @param list 列表。
+     * @param extraFlag 额外的数据标记。
+     * @param <T> 列表中的元素类型。
+     * @return 新的流水线。
+     * @apiNote 此方法仅限于充分了解给定列表中元素分布时使用，其{@code extraFlag}参数会用于指导流水线优化，如果给定的标记有误
+     * 可能误导流水线的优化操作，进而影响结果正确性，当不确定此标记是否设置正确时请优先使用{@link #list(List)}。
+     * @see PipeFlag
+     * @see #list(List)
+     * @see #set(Set)
+     * @see #collection(Collection)
+     */
+    static <T> Pipe<T> list(List<? extends T> list, int extraFlag) {
+        return list == null || list.isEmpty() ? empty() : spliterator(list.spliterator(), extraFlag);
+    }
+
+    /**
+     * 从给定的集合中创建流水线。
+     * <p/>
+     * 如果给定集合为{@code null}则返回空流水线。
+     *
+     * @param set 集合。
+     * @param <T> 集合中的元素类型。
+     * @return 新的流水线。
+     * @see #set(Set, int)
+     * @see #list(List)
+     * @see #collection(Collection)
+     */
+    static <T> Pipe<T> set(Set<? extends T> set) {
+        return set == null || set.isEmpty() ? empty() : spliterator(set.spliterator());
+    }
+
+    /**
+     * 从给定的集合中创建流水线，支持额外的数据标记。
+     * <p/>
+     * 如果给定集合为{@code null}则返回空流水线。
+     *
+     * @param set 集合。
+     * @param extraFlag 额外的数据标记。
+     * @param <T> 集合中的元素类型。
+     * @return 新的流水线。
+     * @apiNote 此方法仅限于充分了解给定集合中元素分布时使用，其{@code extraFlag}参数会用于指导流水线优化，如果给定的标记有误
+     * 可能误导流水线的优化操作，进而影响结果正确性，当不确定此标记是否设置正确时请优先使用{@link #set(Set)}。
+     * @see PipeFlag
+     * @see #set(Set)
+     * @see #list(List)
+     * @see #collection(Collection)
+     */
+    static <T> Pipe<T> set(Set<? extends T> set, int extraFlag) {
+        return set == null || set.isEmpty() ? empty() : spliterator(set.spliterator(), extraFlag);
+    }
+
+    /**
+     * 从给定的容器中创建流水线。
+     * <p/>
+     * 如果给定容器为{@code null}则返回空流水线。
+     *
+     * @param collection 容器。
+     * @param <T> 容器中的元素类型。
+     * @return 新的流水线。
+     * @see #collection(Collection, int)
+     * @see #list(List)
+     * @see #set(Set)
+     */
+    static <T> Pipe<T> collection(Collection<? extends T> collection) {
+        return collection == null || collection.isEmpty() ? empty() : spliterator(collection.spliterator());
+    }
+
+    /**
+     * 从给定的容器中创建流水线，支持额外的数据标记。
+     * <p/>
+     * 如果给定容器为{@code null}则返回空流水线。
+     *
+     * @param collection 容器。
+     * @param extraFlag 额外的数据标记。
+     * @param <T> 容器中的元素类型。
+     * @return 新的流水线。
+     * @apiNote 此方法仅限于充分了解给定容器中元素分布时使用，其{@code extraFlag}参数会用于指导流水线优化，如果给定的标记有误
+     * 可能误导流水线的优化操作，进而影响结果正确性，当不确定此标记是否设置正确时请优先使用{@link #collection(Collection)}。
+     * @see PipeFlag
+     * @see #collection(Collection)
+     * @see #list(List)
+     * @see #set(Set)
+     */
+    static <T> Pipe<T> collection(Collection<? extends T> collection, int extraFlag) {
+        return collection == null || collection.isEmpty() ? empty() : spliterator(collection.spliterator(), extraFlag);
     }
 }

@@ -1,8 +1,7 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.PipeTestFixture;
-import com.oyealex.pipe.basis.api.Pipe;
-import com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy;
+import com.oyealex.pipe.basis.policy.MergeRemainingPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,11 +10,11 @@ import org.junit.jupiter.params.provider.EnumSource;
 import java.util.List;
 import java.util.function.BiFunction;
 
-import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.DROP;
-import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.MERGE_AS_NULL;
-import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.TAKE_OURS;
-import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.TAKE_REMAINING;
-import static com.oyealex.pipe.basis.api.policy.MergeRemainingPolicy.TAKE_THEIRS;
+import static com.oyealex.pipe.basis.policy.MergeRemainingPolicy.DROP;
+import static com.oyealex.pipe.basis.policy.MergeRemainingPolicy.MERGE_AS_NULL;
+import static com.oyealex.pipe.basis.policy.MergeRemainingPolicy.TAKE_OURS;
+import static com.oyealex.pipe.basis.policy.MergeRemainingPolicy.TAKE_REMAINING;
+import static com.oyealex.pipe.basis.policy.MergeRemainingPolicy.TAKE_THEIRS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.ParameterizedTest.ARGUMENTS_PLACEHOLDER;
 

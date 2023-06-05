@@ -11,6 +11,5 @@ import org.junit.jupiter.api.Test;
 class SmokeTest extends PipeTestFixture {
     @Test
     void smoke() {
-        System.out.println(infiniteIntegerPipe().limit(100).groupAndCount(value -> value % 3));
     }
 }

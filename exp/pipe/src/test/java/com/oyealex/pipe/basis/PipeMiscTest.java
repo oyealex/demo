@@ -3,7 +3,6 @@ package com.oyealex.pipe.basis;
 import com.oyealex.pipe.PipeTestFixture;
 import com.oyealex.pipe.assist.LongBox;
 import com.oyealex.pipe.assist.Tuple;
-import com.oyealex.pipe.basis.api.Pipe;
 import com.oyealex.pipe.basis.functional.LongBiConsumer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.oyealex.pipe.basis.Pipes.list;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,7 +30,7 @@ class PipeMiscTest extends PipeTestFixture {
     void should_peek_every_elements_rightly() {
         List<String> sample = generateRandomStrList();
         List<String> peeked = new ArrayList<>();
-        list(sample).peek(peeked::add).run();
+        Pipe.list(sample).peek(peeked::add).run();
         assertEquals(sample, peeked);
     }
 
@@ -41,7 +39,7 @@ class PipeMiscTest extends PipeTestFixture {
     void should_peek_every_elements_in_order_rightly() {
         List<String> sample = generateRandomStrList();
         List<Tuple<Long, String>> peeked = new ArrayList<>();
-        list(sample).peekOrderly((order, value) -> peeked.add(Tuple.of(order, value))).run();
+        Pipe.list(sample).peekOrderly((order, value) -> peeked.add(Tuple.of(order, value))).run();
         LongBox counter = LongBox.box();
         assertEquals(sample.stream().map(value -> Tuple.of(counter.getAndIncrement(), value)).collect(toList()),
             peeked);

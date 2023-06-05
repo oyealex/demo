@@ -1,6 +1,6 @@
-package com.oyealex.pipe.basis.api.policy;
+package com.oyealex.pipe.basis.policy;
 
-import com.oyealex.pipe.basis.api.Pipe;
+import com.oyealex.pipe.basis.Pipe;
 
 import java.util.function.BiFunction;
 

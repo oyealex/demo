@@ -1,7 +1,6 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.basis.api.Pipe;
-import com.oyealex.pipe.basis.api.policy.PartitionPolicy;
+import com.oyealex.pipe.basis.policy.PartitionPolicy;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 
 import java.util.ArrayList;
@@ -68,7 +67,7 @@ abstract class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
                 @Override
                 public void end() {
                     if (index > 0) {
-                        nextOp.accept(Pipes.spliterator(spliterator(partition, 0, index, partitionSpliteratorFlag)));
+                        nextOp.accept(Pipe.spliterator(spliterator(partition, 0, index, partitionSpliteratorFlag)));
                     }
                     partition = null;
                 }
@@ -76,7 +75,7 @@ abstract class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
                 private void consumerPartition() {
                     int length = index;
                     T[] elements = prepareNewPartition();
-                    nextOp.accept(Pipes.spliterator(spliterator(elements, 0, length, partitionSpliteratorFlag)));
+                    nextOp.accept(Pipe.spliterator(spliterator(elements, 0, length, partitionSpliteratorFlag)));
                 }
 
                 private T[] prepareNewPartition() {
@@ -156,7 +155,7 @@ abstract class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
                 @Override
                 public void end() {
                     if (partition != null && !partition.isEmpty() && !shouldShortCircuit()) {
-                        nextOp.accept(Pipes.list(partition));
+                        nextOp.accept(Pipe.list(partition));
                     }
                     partition = null;
                     nextOp.end();
@@ -172,7 +171,7 @@ abstract class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
                     List<T> endPartition = partition;
                     partition = null;
                     if (!shouldShortCircuit()) {
-                        nextOp.accept(Pipes.list(endPartition));
+                        nextOp.accept(Pipe.list(endPartition));
                     }
                 }
             };

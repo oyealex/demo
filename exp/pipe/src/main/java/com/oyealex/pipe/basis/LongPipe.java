@@ -1,4 +1,4 @@
-package com.oyealex.pipe.basis.api;
+package com.oyealex.pipe.basis;
 
 /**
  * LongPipe

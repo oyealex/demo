@@ -1,6 +1,5 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.basis.api.Pipe;
 import com.oyealex.pipe.basis.functional.LongBiFunction;
 
 import java.util.Spliterator;

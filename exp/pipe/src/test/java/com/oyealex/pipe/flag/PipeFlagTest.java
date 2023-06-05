@@ -24,9 +24,10 @@ import static com.oyealex.pipe.flag.PipeFlag.toReadableSplitCharacteristics;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * PipeFlagTest
+ * 针对流水线标记的测试。
  *
  * @author oyealex
+ * @see PipeFlag
  * @since 2023-05-05
  */
 class PipeFlagTest extends PipeTestFixture {

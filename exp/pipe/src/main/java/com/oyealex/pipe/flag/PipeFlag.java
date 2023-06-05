@@ -61,14 +61,6 @@ public enum PipeFlag { // TODO 2023-05-20 01:02 重新审视所有标记使用�
      * @see #SORTED
      */
     REVERSED_SORTED(13),
-
-    /**
-     * 标记流水线是否为无限数量流水线，优先级比{@link #SIZED}低：如果{@link #IS_SIZED}则必定{@link #NOT_INFINITE}；
-     * 但是如果{@link #NOT_SIZED}并无法确定{@code INFINITE}。
-     *
-     * @see #SIZED
-     */
-    INFINITE(14),
     ;
 
     /** 空的标记，不改变标记现状 */
@@ -102,10 +94,6 @@ public enum PipeFlag { // TODO 2023-05-20 01:02 重新审视所有标记使用�
     public static final int IS_REVERSED_SORTED = REVERSED_SORTED.setBit;
 
     public static final int NOT_REVERSED_SORTED = REVERSED_SORTED.clearBit;
-
-    public static final int IS_INFINITE = INFINITE.setBit;
-
-    public static final int NOT_INFINITE = INFINITE.clearBit;
 
     public static final int SPLIT_MASK = Spliterator.DISTINCT | Spliterator.SORTED | Spliterator.SIZED |
         Spliterator.NONNULL;
