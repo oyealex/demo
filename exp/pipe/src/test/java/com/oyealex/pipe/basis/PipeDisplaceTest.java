@@ -55,8 +55,7 @@ class PipeDisplaceTest extends PipeTestFixture {
     @DisplayName("能够正确将流水线中null移动到流水线头部或尾部")
     void should_move_nulls_to_the_head_or_tail_of_pipe_rightly() {
         List<String> sample = generateOddIntegerStrWithNullsList();
-        assertAll(
-            () -> assertEquals(moveSelected(sample, Objects::isNull, true), list(sample).nullsFirst().toList()),
+        assertAll(() -> assertEquals(moveSelected(sample, Objects::isNull, true), list(sample).nullsFirst().toList()),
             () -> assertEquals(moveSelected(sample, Objects::isNull, false), list(sample).nullsLast().toList()));
     }
 
@@ -75,17 +74,13 @@ class PipeDisplaceTest extends PipeTestFixture {
     void should_move_elements_by_mapped_result_in_the_same_way_of_move_nulls_when_mapper_is_identify() {
         List<String> sample = generateOddIntegerStrWithNullsList();
         assertAll(
-            () -> assertEquals(list(sample).nullsFirstBy(identity()).toList(),
-                list(sample).nullsFirst().toList()),
-            () -> assertEquals(list(sample).nullsLastBy(identity()).toList(),
-                list(sample).nullsLast().toList()));
+            () -> assertEquals(list(sample).nullsFirstBy(identity()).toList(), list(sample).nullsFirst().toList()),
+            () -> assertEquals(list(sample).nullsLastBy(identity()).toList(), list(sample).nullsLast().toList()));
     }
 
     private <T> List<T> moveSelected(List<T> sample, Predicate<T> select, boolean selectedFirst) {
         Map<Boolean, List<T>> map = sample.stream().collect(partitioningBy(select));
-        List<T> result = new ArrayList<>(map.get(selectedFirst));
-        result.addAll(map.get(!selectedFirst));
-        return result;
+        return addAll(map.get(selectedFirst), map.get(!selectedFirst));
     }
 
     @Test
@@ -101,8 +96,7 @@ class PipeDisplaceTest extends PipeTestFixture {
     @DisplayName("逆序一个已经自然有序的流水线等同于将流水线逆序排序")
     void should_sort_in_reversed_natural_order_when_reverse_a_naturally_sorted_pipe() {
         List<String> sample = generateRandomStrList();
-        assertEquals(sample.stream().sorted(reverseOrder()).collect(toList()),
-            list(sample).sort().reverse().toList());
+        assertEquals(sample.stream().sorted(reverseOrder()).collect(toList()), list(sample).sort().reverse().toList());
     }
 
     @Test

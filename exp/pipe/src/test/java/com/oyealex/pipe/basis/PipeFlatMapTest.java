@@ -86,8 +86,8 @@ class PipeFlatMapTest extends PipeTestFixture {
     // exception test
 
     @Test
-    @DisplayName("当给定的映射方法为null时应当抛出异常")
-    void should_throw_exception_when_mapper_is_null() {
+    @DisplayName("当不能为null的参数为null时抛出异常")
+    void should_throw_exception_when_required_non_null_param_is_null() {
         assertAll(() -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().flatMap(null)),
             () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().flatMapOrderly(null)),
             () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().flatMapCollection(null)));

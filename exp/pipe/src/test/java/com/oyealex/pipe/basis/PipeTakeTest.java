@@ -178,8 +178,8 @@ class PipeTakeTest extends PipeTestFixture {
     // exception test
 
     @Test
-    @DisplayName("当给定的断言方法为空时抛出异常")
-    void should_throw_exception_when_predicate_is_null() {
+    @DisplayName("当不能为null的参数为null时抛出异常")
+    void should_throw_exception_when_required_non_null_param_is_null() {
         assertAll(() -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().takeIf(null)),
             () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().filter(null)),
             () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().takeIfOrderly(null)),

@@ -1320,105 +1320,132 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 在流水线头部插入给定的拆分器中的元素。
      *
-     * @param spliterator 包含需要插入到头部的元素的拆分器
-     * @return 新的流水线
+     * @param spliterator 包含需要插入到头部的元素的拆分器。
+     * @return 新的流水线。
+     * @throws NullPointerException 当拆分器{@code spliterator}为{@code null}时抛出。
      */
     Pipe<E> prepend(Spliterator<? extends E> spliterator);
 
     /**
      * 在流水线头部插入给定的流水线中的元素。
+     * <p/>
+     * 此方法会对{@code pipe}执行终结操作。
      *
-     * @param pipe 包含需要插入到头部的元素的流水线
-     * @return 新的流水线
+     * @param pipe 包含需要插入到头部的元素的流水线。
+     * @return 新的流水线。
+     * @throws NullPointerException 当流水线{@code pipe}为{@code null}时抛出。
      */
     default Pipe<E> prepend(Pipe<? extends E> pipe) {
-        return prepend(pipe.toSpliterator());
+        return prepend(requireNonNull(pipe).toSpliterator());
     }
 
     /**
      * 在流水线头部插入给定的流中的元素。
+     * <p/>
+     * 此方法会对{@code stream}执行终结操作。
      *
-     * @param stream 包含需要插入到头部的元素的流
-     * @return 新的流水线
+     * @param stream 包含需要插入到头部的元素的流。
+     * @return 新的流水线。
+     * @throws NullPointerException 当流{@code stream}为{@code null}时抛出。
      */
     default Pipe<E> prepend(Stream<? extends E> stream) {
-        return prepend(stream.spliterator());
+        return prepend(requireNonNull(stream).spliterator());
+    }
+
+    /**
+     * 在流水线头部插入给定的数组中的元素。
+     *
+     * @param values 需要插入到头部的元素。
+     * @return 新的流水线。
+     * @throws NullPointerException 当数组{@code values}为{@code null}时抛出。
+     */
+    @SuppressWarnings({"unchecked", "varargs"})
+    default Pipe<E> prepend(E... values) {
+        return prepend(Arrays.spliterator(requireNonNull(values)));
     }
 
     /**
      * 在流水线头部插入给定的元素。
      *
-     * @param value 需要插入到头部的元素
-     * @return 新的流水线
+     * @param value 需要插入到头部的元素。
+     * @return 新的流水线。
      */
     Pipe<E> prepend(E value);
 
     /**
-     * 在流水线头部插入给定的数组中的元素。
-     *
-     * @param values 需要插入到头部的元素
-     * @return 新的流水线
-     */
-    @SuppressWarnings({"unchecked", "varargs"})
-    default Pipe<E> prepend(E... values) {
-        return prepend(Arrays.spliterator(values));
-    }
-
-    /**
      * 在流水线头部插入给定的Map中的键。
      *
-     * @param map 包含需要插入到头部的键的Map
-     * @return 新的流水线
+     * @param map 包含需要插入到头部的键的Map。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code map}为{@code null}时抛出。
+     * @see #prependKeys(Map, Predicate)
+     * @see #appendKeys(Map)
      */
     default Pipe<E> prependKeys(Map<? extends E, ?> map) {
-        return prepend(map.keySet().spliterator());
+        return prepend(requireNonNull(map).keySet().spliterator());
     }
 
     /**
      * 在流水线头部插入给定的Map中的键。
+     * <p/>
+     * 只有符合要求的值的键才会插入流水线。
      *
-     * @param map 包含需要插入到头部的键的Map
+     * @param map 包含需要插入到头部的键的Map。
      * @param valuePredicate 值筛选方法。
-     * @return 新的流水线
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code map}或筛选方法{@code valuePredicate}为{@code null}时抛出。
+     * @see #prependKeys(Map)
+     * @see #appendKeys(Map, Predicate)
      */
     default <V> Pipe<E> prependKeys(Map<? extends E, ? extends V> map, Predicate<? super V> valuePredicate) {
-        return prepend(keys(map, valuePredicate));
+        return prepend(keys(requireNonNull(map), requireNonNull(valuePredicate)));
     }
 
     /**
      * 在流水线头部插入给定的Map中的值。
      *
-     * @param map 包含需要插入到头部的值的Map
-     * @return 新的流水线
+     * @param map 包含需要插入到头部的值的Map。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code map}为{@code null}时抛出。
+     * @see #prependValues(Map, Predicate)
+     * @see #appendValues(Map)
      */
     default Pipe<E> prependValues(Map<?, ? extends E> map) {
-        return prepend(map.values().spliterator());
+        return prepend(requireNonNull(map).values().spliterator());
     }
 
     /**
      * 在流水线头部插入给定的Map中的值。
+     * <p/>
+     * 只有符合要求的键的值才会插入流水线。
      *
-     * @param map 包含需要插入到头部的值的Map
-     * @param keyPredicate 值筛选方法。
-     * @return 新的流水线
+     * @param map 包含需要插入到头部的值的Map。
+     * @param keyPredicate 键筛选方法。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code map}或筛选方法{@code keyPredicate}为{@code null}时抛出。
+     * @see #prependValues(Map)
+     * @see #appendValues(Map, Predicate)
      */
     default <K> Pipe<E> prependValues(Map<? extends K, ? extends E> map, Predicate<? super K> keyPredicate) {
-        return prepend(values(map, keyPredicate));
+        return prepend(values(requireNonNull(map), requireNonNull(keyPredicate)));
     }
 
     /**
      * 在流水线尾部插入给定的拆分器中的元素。
      *
-     * @param spliterator 包含需要插入到尾部的元素的拆分器
-     * @return 新的流水线
+     * @param spliterator 包含需要插入到尾部的元素的拆分器。
+     * @return 新的流水线。
+     * @throws NullPointerException 当拆分器{@code spliterator}为{@code null}时抛出。
      */
     Pipe<E> append(Spliterator<? extends E> spliterator);
 
     /**
      * 在流水线尾部插入给定的流水线中的元素。
+     * <p/>
+     * 此方法会对{@code pipe}执行终结操作。
      *
-     * @param pipe 包含需要插入到尾部的元素的流水线
-     * @return 新的流水线
+     * @param pipe 包含需要插入到尾部的元素的流水线。
+     * @return 新的流水线。
      * @throws NullPointerException 当流水线{@code pipe}为{@code null}时抛出。
      */
     default Pipe<E> append(Pipe<? extends E> pipe) {
@@ -1427,73 +1454,93 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
 
     /**
      * 在流水线尾部插入给定的流中的元素。
+     * <p/>
+     * 此方法会对{@code stream}执行终结操作。
      *
-     * @param stream 包含需要插入到尾部的元素的流
-     * @return 新的流水线
+     * @param stream 包含需要插入到尾部的元素的流。
+     * @return 新的流水线。
+     * @throws NullPointerException 当流{@code stream}为{@code null}时抛出。
      */
     default Pipe<E> append(Stream<? extends E> stream) {
-        return append(stream.spliterator());
+        return append(requireNonNull(stream).spliterator());
+    }
+
+    /**
+     * 在流水线尾部插入给定的数组中的元素。
+     *
+     * @param values 需要插入到尾部的元素。
+     * @return 新的流水线。
+     * @throws NullPointerException 当数组{@code values}为{@code null}时抛出。
+     */
+    @SuppressWarnings({"unchecked", "varargs"})
+    default Pipe<E> append(E... values) {
+        return append(Arrays.spliterator(requireNonNull(values)));
     }
 
     /**
      * 在流水线尾部插入给定的元素。
      *
-     * @param value 需要插入到尾部的元素
-     * @return 新的流水线
+     * @param value 需要插入到尾部的元素。
+     * @return 新的流水线。
      */
     Pipe<E> append(E value);
 
     /**
-     * 在流水线尾部插入给定的数组中的元素。
-     *
-     * @param values 需要插入到尾部的元素
-     * @return 新的流水线
-     */
-    @SuppressWarnings({"unchecked", "varargs"})
-    default Pipe<E> append(E... values) {
-        return append(Arrays.spliterator(values));
-    }
-
-    /**
      * 在流水线尾部插入给定的Map中的键。
      *
-     * @param map 包含需要插入到尾部的键的Map
-     * @return 新的流水线
+     * @param map 包含需要插入到尾部的键的Map。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code map}为{@code null}时抛出。
+     * @see #appendKeys(Map, Predicate)
+     * @see #prependKeys(Map)
      */
     default Pipe<E> appendKeys(Map<? extends E, ?> map) {
-        return append(map.keySet().spliterator());
+        return append(requireNonNull(map).keySet().spliterator());
     }
 
     /**
      * 在流水线尾部插入给定的Map中的键。
+     * <p/>
+     * 只有符合要求的值的键才会插入流水线。
      *
-     * @param map 包含需要插入到尾部的键的Map
+     * @param map 包含需要插入到尾部的键的Map。
      * @param valuePredicate 值筛选方法。
-     * @return 新的流水线
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code map}或筛选方法{@code valuePredicate}为{@code null}时抛出。
+     * @see #appendKeys(Map)
+     * @see #prependKeys(Map, Predicate)
      */
     default <V> Pipe<E> appendKeys(Map<? extends E, ? extends V> map, Predicate<? super V> valuePredicate) {
-        return append(keys(map, valuePredicate));
+        return append(keys(requireNonNull(map), requireNonNull(valuePredicate)));
     }
 
     /**
      * 在流水线尾部插入给定的Map中的值。
      *
-     * @param map 包含需要插入到尾部的值的Map
-     * @return 新的流水线
+     * @param map 包含需要插入到尾部的值的Map。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code map}为{@code null}时抛出。
+     * @see #appendValues(Map, Predicate)
+     * @see #prependValues(Map)
      */
     default Pipe<E> appendValues(Map<?, ? extends E> map) {
-        return append(map.values().spliterator());
+        return append(requireNonNull(map).values().spliterator());
     }
 
     /**
      * 在流水线尾部插入给定的Map中的值。
+     * <p/>
+     * 只有符合要求的键的值才会插入流水线。
      *
-     * @param map 包含需要插入到尾部的值的Map
-     * @param keyPredicate 值筛选方法。
-     * @return 新的流水线
+     * @param map 包含需要插入到尾部的值的Map。
+     * @param keyPredicate 键筛选方法。
+     * @return 新的流水线。
+     * @throws NullPointerException 当{@code map}或筛选方法{@code keyPredicate}为{@code null}时抛出。
+     * @see #appendValues(Map)
+     * @see #prependValues(Map, Predicate)
      */
     default <K> Pipe<E> appendValues(Map<? extends K, ? extends E> map, Predicate<? super K> keyPredicate) {
-        return append(values(map, keyPredicate));
+        return append(values(requireNonNull(map), requireNonNull(keyPredicate)));
     }
 
     Pipe<E> disperse(E delimiter); // OPT 2023-05-18 23:15 考虑更多类似的API
@@ -1904,18 +1951,51 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
         return reduceIdentity(supplier.get(), Collection::add);
     }
 
-    default <K> Map<K, E> toMap(Function<? super E, ? extends K> keyMapper) {
-        return toMap(HashMap::new, keyMapper);
+    default <K> Map<K, E> toMapKeyed(Function<? super E, ? extends K> keyMapper) {
+        return toMapKeyed(HashMap::new, keyMapper);
     }
 
-    default <K, M extends Map<K, E>> M toMap(Supplier<M> supplier, Function<? super E, ? extends K> keyMapper) {
+    default <V> Map<E, V> toMapValued(Function<? super E, ? extends V> valueMapper) {
+        return toMapValued(HashMap::new, valueMapper);
+    }
+
+    default <K, V> Map<K, V> toMap(Function<? super E, ? extends K> keyMapper,
+        Function<? super E, ? extends V> valueMapper) {
+        return toMap(HashMap::new, keyMapper, valueMapper);
+    }
+
+    default <K, M extends Map<K, E>> M toMapKeyed(Supplier<M> supplier, Function<? super E, ? extends K> keyMapper) {
         requireNonNull(supplier);
         requireNonNull(keyMapper);
         return reduceIdentity(supplier.get(), (map, value) -> map.put(keyMapper.apply(value), value));
     }
 
-    default <K> Map<K, E> toUnmodifiableMap(Function<? super E, ? extends K> keyMapper) {
-        return Collections.unmodifiableMap(toMap(keyMapper));
+    default <V, M extends Map<E, V>> M toMapValued(Supplier<M> supplier, Function<? super E, ? extends V> valueMapper) {
+        requireNonNull(supplier);
+        requireNonNull(valueMapper);
+        return reduceIdentity(supplier.get(), (map, value) -> map.put(value, valueMapper.apply(value)));
+    }
+
+    default <K, V, M extends Map<K, V>> M toMap(Supplier<M> supplier, Function<? super E, ? extends K> keyMapper,
+        Function<? super E, ? extends V> valueMapper) {
+        requireNonNull(supplier);
+        requireNonNull(keyMapper);
+        requireNonNull(valueMapper);
+        return reduceIdentity(supplier.get(),
+            (map, value) -> map.put(keyMapper.apply(value), valueMapper.apply(value)));
+    }
+
+    default <K> Map<K, E> toUnmodifiableMapKeyed(Function<? super E, ? extends K> keyMapper) {
+        return Collections.unmodifiableMap(toMapKeyed(keyMapper));
+    }
+
+    default <V> Map<E, V> toUnmodifiableMapValued(Function<? super E, ? extends V> valueMapper) {
+        return Collections.unmodifiableMap(toMapValued(valueMapper));
+    }
+
+    default <K, V> Map<K, V> toUnmodifiableMap(Function<? super E, ? extends K> keyMapper,
+        Function<? super E, ? extends V> valueMapper) {
+        return Collections.unmodifiableMap(toMap(keyMapper, valueMapper));
     }
 
     <K> BiPipe<K, Pipe<E>> groupAndExtend(Function<? super E, ? extends K> classifier);

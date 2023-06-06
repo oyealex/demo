@@ -160,7 +160,7 @@ class PipeSliceTest extends PipeTestFixture {
 
     @Test
     @DisplayName("当不能为null的参数为null时抛出异常")
-    void should_throw_exception_when_non_null_param_is_null() {
+    void should_throw_exception_when_required_non_null_param_is_null() {
         assertAll(() -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().skip(SKIP, null)),
             () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().limit(SKIP, null)),
             () -> assertThrowsExactly(NullPointerException.class,

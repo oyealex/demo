@@ -171,8 +171,8 @@ class PipeSortTest extends PipeTestFixture {
     }
 
     @Test
-    @DisplayName("如果给定的映射方法为null，则会抛出异常")
-    void should_throw_exception_when_the_given_mapper_is_null() {
+    @DisplayName("当不能为null的参数为null时抛出异常")
+    void should_throw_exception_when_required_non_null_param_is_null() {
         assertAll(() -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().sortBy(null)),
             () -> assertThrowsExactly(NullPointerException.class,
                 () -> infiniteIntegerPipe().sortBy(null, naturalOrder())),

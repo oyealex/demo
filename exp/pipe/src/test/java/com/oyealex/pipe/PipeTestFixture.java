@@ -3,6 +3,8 @@ package com.oyealex.pipe;
 import com.oyealex.pipe.basis.Pipe;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -183,5 +185,14 @@ public abstract class PipeTestFixture {
         public int hashCode() {
             return Objects.hash(value);
         }
+    }
+
+    @SafeVarargs
+    protected static <T> List<T> addAll(Collection<? extends T>... lists) {
+        List<T> all = new ArrayList<>();
+        for (Collection<? extends T> list : lists) {
+            all.addAll(list);
+        }
+        return all;
     }
 }

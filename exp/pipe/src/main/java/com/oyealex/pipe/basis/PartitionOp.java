@@ -73,6 +73,7 @@ abstract class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
                             spliterator(Spliterators.spliterator(partition, 0, index, partitionSpliteratorFlag)));
                     }
                     partition = null;
+                    nextOp.end();
                 }
 
                 private void consumerPartition() {

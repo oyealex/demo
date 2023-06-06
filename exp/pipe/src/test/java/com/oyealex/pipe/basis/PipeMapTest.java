@@ -82,9 +82,8 @@ class PipeMapTest extends PipeTestFixture {
     @DisplayName("能够正确根据条件映射元素为给定方法的映射值")
     void should_map_to_given_mapper_value_as_condition_rightly() {
         List<Integer> sample = generateIntegerList();
-        assertEquals(sample.stream()
-                .map(value -> isOdd(value) ? Integer.numberOfLeadingZeros(value) : value)
-                .collect(toList()),
+        assertEquals(
+            sample.stream().map(value -> isOdd(value) ? Integer.numberOfLeadingZeros(value) : value).collect(toList()),
             list(sample).mapIf(PipeTestFixture::isOdd, Integer::numberOfLeadingZeros).toList());
     }
 
@@ -92,8 +91,7 @@ class PipeMapTest extends PipeTestFixture {
     @DisplayName("能够根据给定方法映射结果的Optional情况映射对应的元素")
     void should_map_to_given_mapper_value_as_optional_result_rightly() {
         List<Integer> sample = generateIntegerList();
-        Function<Integer, Optional<Integer>> mapper = value -> isOdd(value) ? Optional.of(-value) :
-            Optional.empty();
+        Function<Integer, Optional<Integer>> mapper = value -> isOdd(value) ? Optional.of(-value) : Optional.empty();
         assertEquals(sample.stream().map(value -> mapper.apply(value).orElse(value)).collect(toList()),
             list(sample).mapIf(mapper).toList());
     }
@@ -102,8 +100,7 @@ class PipeMapTest extends PipeTestFixture {
     @DisplayName("能够正确映射元素为字符串")
     void should_map_to_string_rightly() {
         List<String> sample = generateOddIntegerStrWithNullsList();
-        assertEquals(sample.stream().map(Objects::toString).collect(toList()),
-            list(sample).mapToString().toList());
+        assertEquals(sample.stream().map(Objects::toString).collect(toList()), list(sample).mapToString().toList());
     }
 
     @Test
@@ -133,8 +130,8 @@ class PipeMapTest extends PipeTestFixture {
     // exception test
 
     @Test
-    @DisplayName("当给定的函数式方法参数为空时抛出异常")
-    void should_throw_exception_when_functional_param_is_null() {
+    @DisplayName("当不能为null的参数为null时抛出异常")
+    void should_throw_exception_when_required_non_null_param_is_null() {
         assertAll(() -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().map(null)),
             () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().mapOrderly(null)),
             () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().mapIf(null, "")),
@@ -147,13 +144,9 @@ class PipeMapTest extends PipeTestFixture {
                 () -> infiniteIntegerStrPipe().mapIf(ignored -> true, (Function<? super String, String>) null)),
             () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().mapIf(null)),
             () -> assertThrowsExactly(NullPointerException.class,
-                () -> infiniteIntegerStrPipe().mapNull((Supplier<String>) null)));
-    }
-
-    @Test
-    @DisplayName("当不可为null的参数为null时抛出异常")
-    void should_throw_exception_when_non_null_param_is_null() {
-        assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().mapNull((String) null));
+                () -> infiniteIntegerStrPipe().mapNull((Supplier<String>) null)),
+            () -> assertThrowsExactly(NullPointerException.class,
+                () -> infiniteIntegerStrPipe().mapNull((String) null)));
     }
 
     @Test
