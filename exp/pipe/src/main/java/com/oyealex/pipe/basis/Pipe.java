@@ -1297,7 +1297,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * <p/>
      * {@code pipe.slice(0, Long.MAX_VALUE, predicate)}不会产生任何效果，等同于{@code pipe}自身。
      * <p/>
-     * 一个实际的例子：
+     * 一个示意：
      * <pre><code>
      * predicate select: A B C D E
      * ┌─────────────────────────┐  slice(1, 4, select)  ┌───────────┐
@@ -1543,6 +1543,19 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
         return append(values(requireNonNull(map), requireNonNull(keyPredicate)));
     }
 
+    /**
+     * 使用给定的数据分隔流水线中的元素。
+     * <p/>
+     * 一个示意：
+     * <pre><code>
+     * ┌─────────────────────┐  disperse("X")  ┌─────────────────────────────────┐
+     * │ 1 2 3 4 ... 5 6 7 8 │ ==============> │ 1 X 2 X 3 X 4 ... 5 X 6 X 7 X 8 │
+     * └─────────────────────┘                 └─────────────────────────────────┘
+     * </code></pre>
+     *
+     * @param delimiter 分隔数据。
+     * @return 新的流水线。
+     */
     Pipe<E> disperse(E delimiter); // OPT 2023-05-18 23:15 考虑更多类似的API
 
     /**

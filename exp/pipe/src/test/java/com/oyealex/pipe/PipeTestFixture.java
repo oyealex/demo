@@ -20,7 +20,7 @@ import static com.oyealex.pipe.basis.Pipe.list;
  * @author oyealex
  * @since 2023-04-28
  */
-public abstract class PipeTestFixture {
+public abstract class PipeTestFixture { // TODO 2023-06-07 01:24 全面增加对flag优化内容的测试
     protected static final String SOME_STR = "SOME_STR";
 
     protected static final int NORMAL_SIZE = 20;
