@@ -660,12 +660,12 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public Pipe<Pipe<OUT>> partition(Function<? super OUT, PartitionPolicy> function) {
-        return new PartitionOp.Policy<>(this, function);
+        return new PartitionOp.Policy<>(this, requireNonNull(function));
     }
 
     @Override
     public Pipe<Pipe<OUT>> partitionOrderly(LongBiFunction<? super OUT, PartitionPolicy> function) {
-        return new PartitionOp.PolicyOrderly<>(this, function);
+        return new PartitionOp.PolicyOrderly<>(this, requireNonNull(function));
     }
 
     @Override

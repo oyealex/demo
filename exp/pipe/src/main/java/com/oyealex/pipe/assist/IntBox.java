@@ -1,6 +1,7 @@
 package com.oyealex.pipe.assist;
 
 import java.util.function.IntSupplier;
+import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
 
 /**
@@ -38,6 +39,47 @@ public final class IntBox implements IntSupplier, Supplier<Integer> {
 
     public int getAndDecrement() {
         return value--;
+    }
+
+    public int getAndMap(IntUnaryOperator operator) {
+        int oldValue = value;
+        value = operator.applyAsInt(oldValue);
+        return oldValue;
+    }
+
+    public int mapAndGet(IntUnaryOperator operator) {
+        value = operator.applyAsInt(value);
+        return value;
+    }
+
+    public int incrementRoundAndGet(int bound) {
+        if (++value >= bound) {
+            value = 0;
+        }
+        return value;
+    }
+
+    public int getAndIncrementRound(int bound) {
+        int oldValue = value;
+        if (++value >= bound) {
+            value = 0;
+        }
+        return oldValue;
+    }
+
+    public int decrementRoundAndGet(int bound) {
+        if (--value < 0) {
+            value = bound - 1;
+        }
+        return value;
+    }
+
+    public int getAndDecrementRound(int bound) {
+        int oldValue = value;
+        if (--value < 0) {
+            value = bound - 1;
+        }
+        return oldValue;
     }
 
     @Override

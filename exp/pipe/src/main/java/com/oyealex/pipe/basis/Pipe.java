@@ -1551,7 +1551,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出。
      * @see #partition(Function)
      */
-    Pipe<Pipe<E>> partition(int size);
+    Pipe<Pipe<E>> partition(int size); // OPT 2023-06-07 22:14 添加支持Supplier<Integer>类型参数的API
 
     /**
      * 根据{@link PartitionPolicy}策略对元素进行分区，并将分区结果封装为新的流水线。
@@ -1566,6 +1566,17 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      */
     Pipe<Pipe<E>> partition(Function<? super E, PartitionPolicy> function);
 
+    /**
+     * 根据{@link PartitionPolicy}策略对元素进行分区，并将分区结果封装为新的流水线，支持访问元素的次序。
+     *
+     * @param function 分区策略方法，返回的分区策略不能为{@code null}，第一个参数为元素的次序，第二个参数为访问的元素。
+     * @return 新的包含分区元素的流水线。
+     * @throws NullPointerException 当分区策略方法{@code function}为{@code null}时抛出。
+     * @implNote 如果给定的分区策略方法 {@code function}返回{@code null}，会导致流水线运行期间抛出
+     * {@link NullPointerException}异常。
+     * @see #partition(int)
+     * @see #partition(Function)
+     */
     Pipe<Pipe<E>> partitionOrderly(LongBiFunction<? super E, PartitionPolicy> function);
 
     /**
@@ -1573,24 +1584,44 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * <p/>
      * 根据实际情况，最后一个分区包含的元素数量可能不足给定大小，但不会为空分区。
      *
-     * @param size 需要分区的元素数量
-     * @return 新的包含已分区元素列表的流水线
-     * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出
-     * @apiNote 封装的列表不保证可变性，如果明确需要分区列表可修改，请使用{@link #partitionToList(int, Supplier)}。
+     * @param size 需要分区的元素数量。
+     * @return 新的包含已分区元素列表的流水线。
+     * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出。
+     * @implNote 封装的列表不保证可变性，如果明确需要分区列表可修改，请使用{@link #partitionToList(int, Supplier)}。
+     * @see #partitionToList(int, Supplier)
+     * @see #partitionToList(Function)
      */
     default Pipe<List<E>> partitionToList(int size) {
         return partition(size).map(Pipe::toList);
     }
 
     /**
-     * 按照给定数量，对元素进行分区，并将分区结果封装为列表，列表实例由给定的{@link Supplier}提供。
+     * 根据{@link PartitionPolicy}策略对元素进行分区，并将分区结果封装为列表。
+     *
+     * @param function 分区策略方法，返回的分区策略不能为{@code null}。
+     * @return 新的包含已分区元素列表的流水线。
+     * @throws NullPointerException 当分区策略方法{@code function}为{@code null}时抛出。
+     * @implNote 封装的列表不保证可变性，如果明确需要分区列表可修改，请使用{@link #partitionToList(Function, Supplier)}。
+     * 如果给定的分区策略方法{@code function}返回{@code null}，会导致流水线运行期间抛出{@link NullPointerException}异常。
+     * @see #partitionToList(Function, Supplier)
+     * @see #partitionToList(int)
+     */
+    default Pipe<List<E>> partitionToList(Function<? super E, PartitionPolicy> function) {
+        return partition(function).map(Pipe::toList);
+    }
+
+    /**
+     * 按照给定数量，对元素进行分区，并将分区结果封装为列表，列表由给定的{@link Supplier}提供。
      * <p/>
      * 根据实际情况，最后一个分区包含的元素数量可能不足给定大小，但不会为空分区。
      *
-     * @param size 需要分区的元素数量
-     * @param listSupplier 用于存储分区元素的列表的构造方法
-     * @return 新的包含已分区元素列表的流水线
-     * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出
+     * @param size 需要分区的元素数量。
+     * @param listSupplier 用于存储分区元素的列表的构造方法。
+     * @return 新的包含已分区元素列表的流水线。
+     * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出。
+     * @throws NullPointerException 当列表构建方法{@code listSupplier}为{@code null}时抛出。
+     * @see #partitionToList(int)
+     * @see #partitionToList(Function, Supplier)
      */
     default <L extends List<E>> Pipe<List<E>> partitionToList(int size, Supplier<L> listSupplier) {
         requireNonNull(listSupplier);
@@ -1598,47 +1629,123 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     }
 
     /**
+     * 根据{@link PartitionPolicy}策略对元素进行分区，并将分区结果封装为列表，列表由给定的{@link Supplier}提供。
+     *
+     * @param function 分区策略方法，返回的分区策略不能为{@code null}。
+     * @param listSupplier 用于存储分区元素的列表的构造方法。
+     * @return 新的包含已分区元素列表的流水线。
+     * @throws NullPointerException 当分区策略方法{@code function}或列表构建方法{@code listSupplier}为{@code null}时抛出。
+     * @implNote 如果给定的分区策略方法{@code function}返回{@code null}，会导致流水线运行期间抛出
+     * {@link NullPointerException}异常。
+     * @see #partitionToList(Function)
+     * @see #partitionToList(int, Supplier)
+     */
+    default <L extends List<E>> Pipe<List<E>> partitionToList(Function<? super E, PartitionPolicy> function,
+        Supplier<L> listSupplier) {
+        requireNonNull(listSupplier);
+        return partition(function).map(pipe -> pipe.toList(listSupplier));
+    }
+
+    /**
      * 按照给定数量，对元素进行分区，并将分区结果封装为集合。
      * <p/>
      * 根据实际情况，最后一个分区包含的元素数量可能不足给定大小，但不会为空分区。
      *
-     * @param size 需要分区的元素数量
-     * @return 新的包含已分区元素集合的流水线
-     * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出
-     * @apiNote 封装的集合不保证可变性，如果明确需要分区集合可修改，请使用{@link #partitionToSet(int, Supplier)}。
+     * @param size 需要分区的元素数量。
+     * @return 新的包含已分区元素集合的流水线。
+     * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出。
+     * @implNote 封装的集合不保证可变性，如果明确需要分区集合可修改，请使用{@link #partitionToSet(int, Supplier)}。
+     * @see #partitionToSet(int, Supplier)
+     * @see #partitionToSet(Function)
      */
     default Pipe<Set<E>> partitionToSet(int size) {
         return partition(size).map(Pipe::toSet);
     }
 
     /**
-     * 按照给定数量，对元素进行分区，并将分区结果封装为集合，集合实例由给定的{@link Supplier}提供。
-     * <p/>
-     * 根据实际情况，最后一个分区包含的元素数量可能不足给定大小，但不会为空分区。
+     * 根据{@link PartitionPolicy}策略对元素进行分区，并将分区结果封装为集合。
      *
-     * @param size 需要分区的元素数量
-     * @param listSupplier 用于存储分区元素的集合的构造方法
-     * @return 新的包含已分区元素集合的流水线
-     * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出
+     * @param function 分区策略方法，返回的分区策略不能为{@code null}。
+     * @return 新的包含已分区元素集合的流水线。
+     * @throws NullPointerException 当分区策略方法{@code function}为{@code null}时抛出。
+     * @implNote 封装的集合不保证可变性，如果明确需要分区列表可修改，请使用{@link #partitionToSet(Function, Supplier)}。
+     * 如果给定的分区策略方法{@code function}返回{@code null}，会导致流水线运行期间抛出{@link NullPointerException}异常。
+     * @see #partitionToSet(Function, Supplier)
+     * @see #partitionToSet(int)
      */
-    default <S extends Set<E>> Pipe<Set<E>> partitionToSet(int size, Supplier<S> listSupplier) {
-        requireNonNull(listSupplier);
-        return partition(size).map(pipe -> pipe.toSet(listSupplier));
+    default Pipe<Set<E>> partitionToSet(Function<? super E, PartitionPolicy> function) {
+        return partition(function).map(Pipe::toSet);
     }
 
     /**
-     * 按照给定数量，对元素进行分区，并将分区结果封装为容器，容器实例由给定的{@link Supplier}提供。
+     * 按照给定数量，对元素进行分区，并将分区结果封装为集合，集合由给定的{@link Supplier}提供。
      * <p/>
      * 根据实际情况，最后一个分区包含的元素数量可能不足给定大小，但不会为空分区。
      *
-     * @param size 需要分区的元素数量
-     * @param listSupplier 用于存储分区元素的容器的构造方法
-     * @return 新的包含已分区元素容器的流水线
-     * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出
+     * @param size 需要分区的元素数量。
+     * @param setSupplier 用于存储分区元素的集合的构造方法。
+     * @return 新的包含已分区元素集合的流水线。
+     * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出。
+     * @throws NullPointerException 当集合构建方法{@code setSupplier}为{@code null}时抛出。
+     * @see #partitionToSet(int)
+     * @see #partitionToSet(Function, Supplier)
      */
-    default <S extends Collection<E>> Pipe<Collection<E>> partitionToCollection(int size, Supplier<S> listSupplier) {
-        requireNonNull(listSupplier);
-        return partition(size).map(pipe -> pipe.toCollection(listSupplier));
+    default <S extends Set<E>> Pipe<Set<E>> partitionToSet(int size, Supplier<S> setSupplier) {
+        requireNonNull(setSupplier);
+        return partition(size).map(pipe -> pipe.toSet(setSupplier));
+    }
+
+    /**
+     * 根据{@link PartitionPolicy}策略对元素进行分区，并将分区结果封装为集合，集合由给定的{@link Supplier}提供。
+     *
+     * @param function 分区策略方法，返回的分区策略不能为{@code null}。
+     * @param setSupplier 用于存储分区元素的集合的构造方法。
+     * @return 新的包含已分区元素集合的流水线。
+     * @throws NullPointerException 当分区策略方法{@code function}或集合构建方法{@code setSupplier}为{@code null}时抛出。
+     * @implNote 如果给定的分区策略方法{@code function}返回{@code null}，会导致流水线运行期间抛出
+     * {@link NullPointerException}异常。
+     * @see #partitionToSet(int, Supplier)
+     * @see #partitionToSet(Function)
+     */
+    default <S extends Set<E>> Pipe<Set<E>> partitionToSet(Function<? super E, PartitionPolicy> function,
+        Supplier<S> setSupplier) {
+        requireNonNull(setSupplier);
+        return partition(function).map(pipe -> pipe.toSet(setSupplier));
+    }
+
+    /**
+     * 按照给定数量，对元素进行分区，并将分区结果封装为容器，容器由给定的{@link Supplier}提供。
+     * <p/>
+     * 根据实际情况，最后一个分区包含的元素数量可能不足给定大小，但不会为空分区。
+     *
+     * @param size 需要分区的元素数量。
+     * @param collectionSupplier 用于存储分区元素的容器的构造方法。
+     * @return 新的包含已分区元素容器的流水线。
+     * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出。
+     * @throws NullPointerException 当容器构建方法{@code collectionSupplier}为{@code null}时抛出。
+     * @see #partitionToCollection(Function, Supplier)
+     */
+    default <S extends Collection<E>> Pipe<Collection<E>> partitionToCollection(int size,
+        Supplier<S> collectionSupplier) {
+        requireNonNull(collectionSupplier);
+        return partition(size).map(pipe -> pipe.toCollection(collectionSupplier));
+    }
+
+    /**
+     * 根据{@link PartitionPolicy}策略对元素进行分区，并将分区结果封装为容器，容器由给定的{@link Supplier}提供。
+     *
+     * @param function 分区策略方法，返回的分区策略不能为{@code null}。
+     * @param collectionSupplier 用于存储分区元素的容器的构造方法。
+     * @return 新的包含已分区元素容器的流水线。
+     * @throws NullPointerException 当分区策略方法{@code function}或容器构建方法{@code setSupplier}为{@code null}时抛出。
+     * @implNote 如果给定的分区策略方法{@code function}返回{@code null}，会导致流水线运行期间抛出
+     * {@link NullPointerException}异常。
+     * @see #partitionToCollection(int, Supplier)
+     */
+    default <S extends Collection<E>> Pipe<Collection<E>> partitionToCollection(
+        Function<? super E, PartitionPolicy> function, Supplier<S> collectionSupplier) {
+        requireNonNull(collectionSupplier);
+        return partition(function).map(pipe -> pipe.toCollection(collectionSupplier));
     }
 
     /**
@@ -1649,6 +1756,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @return 新的两元组流水线
      * @apiNote 当任意流水线耗尽时，新的双元组流水线即耗尽，哪怕还有剩余元素。
      */
+    @Todo
     <S> BiPipe<E, S> combine(Pipe<S> secondPipe);
 
     default Pipe<E> merge(Pipe<? extends E> pipe, BiFunction<? super E, ? super E, MergePolicy> mergeHandle,

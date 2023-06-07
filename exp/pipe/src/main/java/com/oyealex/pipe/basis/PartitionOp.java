@@ -135,12 +135,6 @@ abstract class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
                 private List<T> partition;
 
                 @Override
-                public void begin(long size) {
-                    partition = new ArrayList<>();
-                    nextOp.begin(size);
-                }
-
-                @Override
                 public void accept(T value) {
                     switch (getPolicy(value)) {
                         case BEGIN: // 当前分区结束
@@ -173,10 +167,10 @@ abstract class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
                 }
 
                 private void completeCurrentPartition() {
-                    List<T> endPartition = partition;
+                    List<T> current = partition;
                     partition = null;
-                    if (!shouldShortCircuit()) {
-                        nextOp.accept(list(endPartition));
+                    if (current != null && !shouldShortCircuit()) {
+                        nextOp.accept(list(current));
                     }
                 }
             };
