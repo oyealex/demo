@@ -5,7 +5,7 @@ import com.oyealex.pipe.basis.Pipe;
 import java.util.function.BiFunction;
 
 /**
- * MergeRemainingPolicy
+ * 合并流水线时
  *
  * @author oyealex
  * @see Pipe#merge(Pipe, BiFunction, MergeRemainingPolicy)
