@@ -1,6 +1,6 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.basis.functional.LongBiPredicate;
+import com.oyealex.pipe.functional.LongBiPredicate;
 
 import java.util.function.Predicate;
 

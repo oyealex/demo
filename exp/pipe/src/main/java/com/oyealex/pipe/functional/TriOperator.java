@@ -1,4 +1,4 @@
-package com.oyealex.pipe.bi.functional;
+package com.oyealex.pipe.functional;
 
 import java.util.Comparator;
 import java.util.Objects;

@@ -13,8 +13,8 @@ import java.util.stream.Stream;
 
 import static com.oyealex.pipe.basis.Pipe.list;
 import static com.oyealex.pipe.basis.Pipe.set;
-import static com.oyealex.pipe.basis.policy.PartitionPolicy.BEGIN;
-import static com.oyealex.pipe.basis.policy.PartitionPolicy.IN;
+import static com.oyealex.pipe.policy.PartitionPolicy.BEGIN;
+import static com.oyealex.pipe.policy.PartitionPolicy.IN;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.function.Function.identity;

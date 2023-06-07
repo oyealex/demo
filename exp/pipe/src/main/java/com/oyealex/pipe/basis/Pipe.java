@@ -1,18 +1,17 @@
 package com.oyealex.pipe.basis;
 
+import com.oyealex.pipe.BasePipe;
 import com.oyealex.pipe.annotations.Todo;
 import com.oyealex.pipe.assist.Tuple;
-import com.oyealex.pipe.base.BasePipe;
-import com.oyealex.pipe.basis.functional.LongBiConsumer;
-import com.oyealex.pipe.basis.functional.LongBiFunction;
-import com.oyealex.pipe.basis.functional.LongBiPredicate;
-import com.oyealex.pipe.basis.policy.MergePolicy;
-import com.oyealex.pipe.basis.policy.MergeRemainingPolicy;
-import com.oyealex.pipe.basis.policy.PartitionPolicy;
 import com.oyealex.pipe.bi.BiPipe;
 import com.oyealex.pipe.flag.PipeFlag;
+import com.oyealex.pipe.functional.LongBiConsumer;
+import com.oyealex.pipe.functional.LongBiFunction;
+import com.oyealex.pipe.functional.LongBiPredicate;
+import com.oyealex.pipe.policy.MergePolicy;
+import com.oyealex.pipe.policy.MergeRemainingPolicy;
+import com.oyealex.pipe.policy.PartitionPolicy;
 import com.oyealex.pipe.spliterator.MoreSpliterators;
-import com.oyealex.pipe.tri.TriPipe;
 import com.oyealex.pipe.utils.MiscUtil;
 
 import java.util.ArrayList;
@@ -45,9 +44,9 @@ import java.util.function.ToLongFunction;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
-import static com.oyealex.pipe.basis.policy.MergePolicy.OURS_FIRST;
-import static com.oyealex.pipe.basis.policy.MergePolicy.THEIRS_FIRST;
-import static com.oyealex.pipe.basis.policy.MergeRemainingPolicy.TAKE_REMAINING;
+import static com.oyealex.pipe.policy.MergePolicy.OURS_FIRST;
+import static com.oyealex.pipe.policy.MergePolicy.THEIRS_FIRST;
+import static com.oyealex.pipe.policy.MergeRemainingPolicy.TAKE_REMAINING;
 import static com.oyealex.pipe.utils.MiscUtil.isStdIdentify;
 import static com.oyealex.pipe.utils.MiscUtil.naturalOrderIfNull;
 import static com.oyealex.pipe.utils.MiscUtil.optimizedReverseOrder;
@@ -864,22 +863,6 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     BiPipe<E, E> pairExtend(boolean keepLastIncompletePair);
 
     /**
-     * 使用给定的映射方法，将此流水线扩展为三元组的流水线。
-     *
-     * @param firstMapper 三元组第一个元素的映射方法
-     * @param secondMapper 三元组第二个元素的映射方法
-     * @param thirdMapper 三元组第三个元素的映射方法
-     * @param <F> 三元组第一个元素的类型
-     * @param <S> 三元组第二个元素的类型
-     * @param <T> 三元组第三个元素的类型
-     * @return 映射后的三元组流水线
-     * @throws NullPointerException 当任意映射方法为{@code null}时抛出
-     */
-    @Todo
-    <F, S, T> TriPipe<F, S, T> extendToTriple(Function<? super E, ? extends F> firstMapper,
-        Function<? super E, ? extends S> secondMapper, Function<? super E, ? extends T> thirdMapper);
-
-    /**
      * 对流水线中的元素去重，以{@link Object#equals(Object)}为依据。
      *
      * @return 元素去重之后的流水线。
@@ -1559,16 +1542,28 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     Pipe<E> disperse(E delimiter); // OPT 2023-05-18 23:15 考虑更多类似的API
 
     /**
-     * 按照给定数量，对元素进行分区，并将分区结果封装为新的流水线。
+     * 根据固定数量对元素进行分区，并将分区结果封装为新的流水线。
      * <p/>
      * 根据实际情况，最后一个分区包含的元素数量可能不足给定大小，但不会为空分区。
      *
-     * @param size 需要分区的元素数量
-     * @return 新的包含已分区元素的流水线
-     * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出
+     * @param size 需要分区的元素数量。
+     * @return 新的包含已分区元素的流水线。
+     * @throws IllegalArgumentException 当给定的分区元素数量小于1时抛出。
+     * @see #partition(Function)
      */
     Pipe<Pipe<E>> partition(int size);
 
+    /**
+     * 根据{@link PartitionPolicy}策略对元素进行分区，并将分区结果封装为新的流水线。
+     *
+     * @param function 分区策略方法，返回的分区策略不能为{@code null}。
+     * @return 新的包含分区元素的流水线。
+     * @throws NullPointerException 当分区策略方法{@code function}为{@code null}时抛出。
+     * @implNote 如果给定的分区策略方法 {@code function}返回{@code null}，会导致流水线运行期间抛出
+     * {@link NullPointerException}异常。
+     * @see #partition(int)
+     * @see #partitionOrderly(LongBiFunction)
+     */
     Pipe<Pipe<E>> partition(Function<? super E, PartitionPolicy> function);
 
     Pipe<Pipe<E>> partitionOrderly(LongBiFunction<? super E, PartitionPolicy> function);

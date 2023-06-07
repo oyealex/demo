@@ -1,4 +1,4 @@
-package com.oyealex.pipe.base;
+package com.oyealex.pipe;
 
 import java.util.Iterator;
 import java.util.Spliterator;

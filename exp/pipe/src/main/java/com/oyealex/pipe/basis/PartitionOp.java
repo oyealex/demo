@@ -1,7 +1,7 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.basis.functional.LongBiFunction;
-import com.oyealex.pipe.basis.policy.PartitionPolicy;
+import com.oyealex.pipe.functional.LongBiFunction;
+import com.oyealex.pipe.policy.PartitionPolicy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +12,7 @@ import static com.oyealex.pipe.basis.Pipe.list;
 import static com.oyealex.pipe.basis.Pipe.spliterator;
 import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
 import static com.oyealex.pipe.flag.PipeFlag.toSpliteratorFlag;
+import static java.util.Objects.requireNonNull;
 
 /**
  * PartitionOp
@@ -103,7 +104,7 @@ abstract class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
 
         @Override
         protected PartitionPolicy getPolicy(T value) {
-            return function.apply(value);
+            return requireNonNull(function.apply(value));
         }
     }
 
@@ -119,7 +120,7 @@ abstract class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
 
         @Override
         protected PartitionPolicy getPolicy(T value) {
-            return function.apply(index++, value);
+            return requireNonNull(function.apply(index++, value));
         }
     }
 

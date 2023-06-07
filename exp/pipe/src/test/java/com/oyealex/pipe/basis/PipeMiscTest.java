@@ -3,7 +3,7 @@ package com.oyealex.pipe.basis;
 import com.oyealex.pipe.PipeTestFixture;
 import com.oyealex.pipe.assist.LongBox;
 import com.oyealex.pipe.assist.Tuple;
-import com.oyealex.pipe.basis.functional.LongBiConsumer;
+import com.oyealex.pipe.functional.LongBiConsumer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

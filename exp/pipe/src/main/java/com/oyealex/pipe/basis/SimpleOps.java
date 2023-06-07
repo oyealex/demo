@@ -1,9 +1,9 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.assist.Tuple;
-import com.oyealex.pipe.basis.functional.LongBiConsumer;
-import com.oyealex.pipe.basis.functional.LongBiFunction;
-import com.oyealex.pipe.basis.functional.LongBiPredicate;
+import com.oyealex.pipe.functional.LongBiConsumer;
+import com.oyealex.pipe.functional.LongBiFunction;
+import com.oyealex.pipe.functional.LongBiPredicate;
 import com.oyealex.pipe.utils.NoInstance;
 
 import java.util.Comparator;

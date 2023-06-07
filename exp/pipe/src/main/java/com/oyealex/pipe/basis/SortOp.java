@@ -1,7 +1,7 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.assist.Tuple;
-import com.oyealex.pipe.basis.functional.LongBiFunction;
+import com.oyealex.pipe.functional.LongBiFunction;
 
 import java.util.ArrayList;
 import java.util.Comparator;

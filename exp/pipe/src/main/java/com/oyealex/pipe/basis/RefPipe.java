@@ -1,16 +1,15 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.assist.Tuple;
-import com.oyealex.pipe.basis.functional.LongBiConsumer;
-import com.oyealex.pipe.basis.functional.LongBiFunction;
-import com.oyealex.pipe.basis.functional.LongBiPredicate;
-import com.oyealex.pipe.basis.policy.MergePolicy;
-import com.oyealex.pipe.basis.policy.MergeRemainingPolicy;
-import com.oyealex.pipe.basis.policy.PartitionPolicy;
 import com.oyealex.pipe.bi.BiPipe;
 import com.oyealex.pipe.flag.PipeFlag;
+import com.oyealex.pipe.functional.LongBiConsumer;
+import com.oyealex.pipe.functional.LongBiFunction;
+import com.oyealex.pipe.functional.LongBiPredicate;
+import com.oyealex.pipe.policy.MergePolicy;
+import com.oyealex.pipe.policy.MergeRemainingPolicy;
+import com.oyealex.pipe.policy.PartitionPolicy;
 import com.oyealex.pipe.spliterator.MoreSpliterators;
-import com.oyealex.pipe.tri.TriPipe;
 
 import java.util.Comparator;
 import java.util.Iterator;
@@ -32,7 +31,6 @@ import java.util.function.ToLongFunction;
 
 import static com.oyealex.pipe.basis.Pipe.empty;
 import static com.oyealex.pipe.basis.Pipe.spliterator;
-import static com.oyealex.pipe.basis.policy.MergeRemainingPolicy.TAKE_REMAINING;
 import static com.oyealex.pipe.flag.PipeFlag.DISTINCT;
 import static com.oyealex.pipe.flag.PipeFlag.EMPTY;
 import static com.oyealex.pipe.flag.PipeFlag.IS_NONNULL;
@@ -45,6 +43,7 @@ import static com.oyealex.pipe.flag.PipeFlag.NOT_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.REVERSED_SORTED;
 import static com.oyealex.pipe.flag.PipeFlag.SHORT_CIRCUIT;
 import static com.oyealex.pipe.flag.PipeFlag.SORTED;
+import static com.oyealex.pipe.policy.MergeRemainingPolicy.TAKE_REMAINING;
 import static com.oyealex.pipe.utils.MiscUtil.isStdNaturalOrder;
 import static com.oyealex.pipe.utils.MiscUtil.isStdReverseOrder;
 import static com.oyealex.pipe.utils.MiscUtil.naturalOrderIfNull;
@@ -428,12 +427,6 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
 
     @Override
     public BiPipe<OUT, OUT> pairExtend(boolean keepLastIncompletePair) {
-        throw new IllegalStateException();
-    }
-
-    @Override
-    public <F, S, T> TriPipe<F, S, T> extendToTriple(Function<? super OUT, ? extends F> firstMapper,
-        Function<? super OUT, ? extends S> secondMapper, Function<? super OUT, ? extends T> thirdMapper) {
         throw new IllegalStateException();
     }
 

@@ -1,4 +1,4 @@
-package com.oyealex.pipe.basis.functional;
+package com.oyealex.pipe.functional;
 
 /**
  * LongIntPredicate

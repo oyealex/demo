@@ -3,9 +3,8 @@ package com.oyealex.pipe;
 import com.oyealex.pipe.basis.Pipe;
 import org.junit.jupiter.api.Test;
 
-import static com.oyealex.pipe.basis.policy.PartitionPolicy.BEGIN;
-import static com.oyealex.pipe.basis.policy.PartitionPolicy.END;
-import static com.oyealex.pipe.basis.policy.PartitionPolicy.IN;
+import static com.oyealex.pipe.policy.PartitionPolicy.END;
+import static com.oyealex.pipe.policy.PartitionPolicy.IN;
 
 /**
  * Smoke

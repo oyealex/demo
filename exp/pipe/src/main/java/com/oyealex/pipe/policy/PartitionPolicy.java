@@ -1,4 +1,4 @@
-package com.oyealex.pipe.basis.policy;
+package com.oyealex.pipe.policy;
 
 /**
  * PartitionPolicy

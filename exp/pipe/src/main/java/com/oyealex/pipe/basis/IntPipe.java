@@ -1,7 +1,7 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.base.BasePipe;
-import com.oyealex.pipe.basis.functional.LongIntPredicate;
+import com.oyealex.pipe.BasePipe;
+import com.oyealex.pipe.functional.LongIntPredicate;
 
 import java.util.function.IntPredicate;
 

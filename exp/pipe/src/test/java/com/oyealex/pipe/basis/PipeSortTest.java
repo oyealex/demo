@@ -2,7 +2,7 @@ package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.PipeTestFixture;
 import com.oyealex.pipe.assist.IntBox;
-import com.oyealex.pipe.basis.functional.LongBiFunction;
+import com.oyealex.pipe.functional.LongBiFunction;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
