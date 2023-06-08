@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
@@ -88,15 +87,6 @@ class PipePartitionTest extends PipeTestFixture {
                 list(sample).partitionToCollection(size, Vector::new).toList()),
             () -> assertEqualsWithType(partition(sample, getPolicyRoundly(), Vector::new),
                 list(sample).partitionToCollection(getPolicyRoundly(), Vector::new).toList()));
-    }
-
-    private <T> void assertEqualsWithType(Collection<T> expected, Collection<T> actual) {
-        assertEquals(expected, actual);
-        Iterator<T> expectedIterator = expected.iterator();
-        Iterator<T> actualIterator = actual.iterator();
-        while (expectedIterator.hasNext() && actualIterator.hasNext()) {
-            assertEquals(expectedIterator.next().getClass(), actualIterator.next().getClass());
-        }
     }
 
     private Function<String, PartitionPolicy> getPolicyRoundly() {

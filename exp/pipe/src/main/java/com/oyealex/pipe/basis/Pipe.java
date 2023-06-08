@@ -2038,6 +2038,14 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
 
     E[] toArray(IntFunction<E[]> generator);
 
+    /**
+     * 将流水线元素收集到列表中。
+     * <p/>
+     * 列表结果不保证可变性，如果需要明确可变性，请使用{@link #toList(Supplier)}。
+     *
+     * @return 包含流水线元素的列表。
+     * @see #toList(Supplier)
+     */
     default List<E> toList() { // OPT 2023-05-14 00:02 默认可变 or 默认不可变，通过全局配置控制
         return toList(ArrayList::new);
     }
@@ -2068,32 +2076,32 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     }
 
     default <K> Map<K, E> toMapKeyed(Function<? super E, ? extends K> keyMapper) {
-        return toMapKeyed(HashMap::new, keyMapper);
+        return toMapKeyed(keyMapper, HashMap::new);
     }
 
-    default <V> Map<E, V> toMapValued(Function<? super E, ? extends V> valueMapper) {
-        return toMapValued(HashMap::new, valueMapper);
-    }
-
-    default <K, V> Map<K, V> toMap(Function<? super E, ? extends K> keyMapper,
-        Function<? super E, ? extends V> valueMapper) {
-        return toMap(HashMap::new, keyMapper, valueMapper);
-    }
-
-    default <K, M extends Map<K, E>> M toMapKeyed(Supplier<M> supplier, Function<? super E, ? extends K> keyMapper) {
+    default <K, M extends Map<K, E>> M toMapKeyed(Function<? super E, ? extends K> keyMapper, Supplier<M> supplier) {
         requireNonNull(supplier);
         requireNonNull(keyMapper);
         return reduceIdentity(supplier.get(), (map, value) -> map.put(keyMapper.apply(value), value));
     }
 
-    default <V, M extends Map<E, V>> M toMapValued(Supplier<M> supplier, Function<? super E, ? extends V> valueMapper) {
+    default <V> Map<E, V> toMapValued(Function<? super E, ? extends V> valueMapper) {
+        return toMapValued(valueMapper, HashMap::new);
+    }
+
+    default <V, M extends Map<E, V>> M toMapValued(Function<? super E, ? extends V> valueMapper, Supplier<M> supplier) {
         requireNonNull(supplier);
         requireNonNull(valueMapper);
         return reduceIdentity(supplier.get(), (map, value) -> map.put(value, valueMapper.apply(value)));
     }
 
-    default <K, V, M extends Map<K, V>> M toMap(Supplier<M> supplier, Function<? super E, ? extends K> keyMapper,
+    default <K, V> Map<K, V> toMap(Function<? super E, ? extends K> keyMapper,
         Function<? super E, ? extends V> valueMapper) {
+        return toMap(keyMapper, valueMapper, HashMap::new);
+    }
+
+    default <K, V, M extends Map<K, V>> M toMap(Function<? super E, ? extends K> keyMapper,
+        Function<? super E, ? extends V> valueMapper, Supplier<M> supplier) {
         requireNonNull(supplier);
         requireNonNull(keyMapper);
         requireNonNull(valueMapper);

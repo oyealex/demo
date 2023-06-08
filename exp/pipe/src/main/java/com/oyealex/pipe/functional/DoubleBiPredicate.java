@@ -1,6 +1,7 @@
 package com.oyealex.pipe.functional;
 
 import java.util.Objects;
+import java.util.function.BiPredicate;
 
 /**
  * 接收两个参数的返回布尔值的函数接口，其中第一个参数为基本类型double
@@ -9,8 +10,13 @@ import java.util.Objects;
  * @since 2023-03-05
  */
 @FunctionalInterface
-public interface DoubleBiPredicate<T> {
+public interface DoubleBiPredicate<T> extends BiPredicate<Double, T> {
     boolean test(double doubleValue, T value);
+
+    @Override
+    default boolean test(Double doubleValue, T value) {
+        return test(doubleValue.doubleValue(), value);
+    }
 
     default DoubleBiPredicate<T> and(DoubleBiPredicate<? super T> other) {
         Objects.requireNonNull(other);

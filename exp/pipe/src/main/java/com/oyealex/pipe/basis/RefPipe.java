@@ -802,6 +802,13 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public Spliterator<OUT> toSpliterator() {
+        return this == headPipe ? (Spliterator<OUT>) headPipe.takeDataSource() :
+            new PipeSpliterator<>(this, (Spliterator<Object>) headPipe.takeDataSource());
+    }
+
+    @Override
     public Iterator<OUT> toIterator() {
         return Spliterators.iterator(toSpliterator());
     }
@@ -809,13 +816,6 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public OUT[] toArray(IntFunction<OUT[]> generator) {
         return evaluate(new ToArrayTerminalOp<>(generator));
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public Spliterator<OUT> toSpliterator() {
-        return this == headPipe ? (Spliterator<OUT>) headPipe.takeDataSource() :
-            new PipeSpliterator<>(this, (Spliterator<Object>) headPipe.takeDataSource());
     }
 
     @Override
