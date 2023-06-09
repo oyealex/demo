@@ -13,16 +13,16 @@ import static com.oyealex.pipe.flag.PipeFlag.NOT_SIZED;
  * @author oyealex
  * @since 2023-05-31
  */
-abstract class SelectedFirstOrLastOp<T> extends RefPipe<T, T> {
+abstract class SelectToFirstOrLastOp<T> extends RefPipe<T, T> {
     protected final Predicate<? super T> select;
 
-    protected SelectedFirstOrLastOp(RefPipe<?, ? extends T> prePipe, Predicate<? super T> select) {
+    protected SelectToFirstOrLastOp(RefPipe<?, ? extends T> prePipe, Predicate<? super T> select) {
         super(prePipe, NOT_SIZED | NOT_REVERSED_SORTED);
         this.select = select;
     }
 
-    static class First<T> extends SelectedFirstOrLastOp<T> {
-        First(RefPipe<?, ? extends T> prePipe, Predicate<? super T> select) {
+    static class ToFirst<T> extends SelectToFirstOrLastOp<T> {
+        ToFirst(RefPipe<?, ? extends T> prePipe, Predicate<? super T> select) {
             super(prePipe, select);
         }
 
@@ -74,8 +74,8 @@ abstract class SelectedFirstOrLastOp<T> extends RefPipe<T, T> {
         }
     }
 
-    static class Last<T> extends SelectedFirstOrLastOp<T> {
-        Last(RefPipe<?, ? extends T> prePipe, Predicate<? super T> select) {
+    static class ToLast<T> extends SelectToFirstOrLastOp<T> {
+        ToLast(RefPipe<?, ? extends T> prePipe, Predicate<? super T> select) {
             super(prePipe, select);
         }
 

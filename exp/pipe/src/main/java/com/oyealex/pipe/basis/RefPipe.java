@@ -234,25 +234,25 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Pipe<OUT> takeLast(int count) {
-        if (count < 0) {
-            throw new IllegalArgumentException("The count to take last is at least 0: " + count);
+    public Pipe<OUT> takeLast(int size) {
+        if (size < 0) {
+            throw new IllegalArgumentException("The count to take last is at least 0: " + size);
         }
-        if (count == 0) {
+        if (size == 0) {
             return empty();
         }
-        return new TakeOrDropLastOp<>(this, true, count);
+        return new TakeOrDropLastOp<>(this, true, size);
     }
 
     @Override
-    public Pipe<OUT> dropLast(int count) {
-        if (count < 0) {
-            throw new IllegalArgumentException("The count to drop last is at least 0: " + count);
+    public Pipe<OUT> dropLast(int size) {
+        if (size < 0) {
+            throw new IllegalArgumentException("The count to drop last is at least 0: " + size);
         }
-        if (count == 0) {
+        if (size == 0) {
             return this;
         }
-        return new TakeOrDropLastOp<>(this, false, count);
+        return new TakeOrDropLastOp<>(this, false, size);
     }
 
     @Override
@@ -312,23 +312,23 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public <R extends Optional<? extends OUT>> Pipe<OUT> mapIf(Function<? super OUT, R> mapper) {
-        requireNonNull(mapper);
+    public <R extends Optional<? extends OUT>> Pipe<OUT> mapIf(Function<? super OUT, R> optionalMapper) {
+        requireNonNull(optionalMapper);
         return new RefPipe<OUT, OUT>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return SimpleOps.mapIfOp(nextOp, mapper);
+                return SimpleOps.mapIfOp(nextOp, optionalMapper);
             }
         };
     }
 
     @Override
-    public Pipe<OUT> mapNull(Supplier<? extends OUT> supplier) {
-        requireNonNull(supplier);
+    public Pipe<OUT> mapNull(Supplier<? extends OUT> replacementSupplier) {
+        requireNonNull(replacementSupplier);
         return new RefPipe<OUT, OUT>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT | IS_NONNULL) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return SimpleOps.mapNullOp(nextOp, supplier);
+                return SimpleOps.mapNullOp(nextOp, replacementSupplier);
             }
         };
     }
@@ -345,43 +345,43 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public IntPipe mapToInt(ToIntFunction<? super OUT> mapper) {
+    public IntPipe mapToInt(ToIntFunction<? super OUT> intMapper) {
         throw new IllegalStateException();
     }
 
     @Override
-    public IntPipe mapToIntOrderly(ToIntFunction<? super OUT> mapper) {
+    public IntPipe mapToIntOrderly(ToIntFunction<? super OUT> intMapper) {
         throw new IllegalStateException();
     }
 
     @Override
-    public LongPipe mapToLong(ToLongFunction<? super OUT> mapper) {
+    public LongPipe mapToLong(ToLongFunction<? super OUT> longMapper) {
         throw new IllegalStateException();
     }
 
     @Override
-    public LongPipe mapToLongOrderly(ToLongFunction<? super OUT> mapper) {
+    public LongPipe mapToLongOrderly(ToLongFunction<? super OUT> longMapper) {
         throw new IllegalStateException();
     }
 
     @Override
-    public DoublePipe mapToDouble(ToDoubleFunction<? super OUT> mapper) {
+    public DoublePipe mapToDouble(ToDoubleFunction<? super OUT> doubleMapper) {
         throw new IllegalStateException();
     }
 
     @Override
-    public DoublePipe mapToDoubleOrderly(ToDoubleFunction<? super OUT> mapper) {
+    public DoublePipe mapToDoubleOrderly(ToDoubleFunction<? super OUT> longMapper) {
         throw new IllegalStateException();
     }
 
     @Override
-    public <R> Pipe<R> flatMap(Function<? super OUT, ? extends Pipe<? extends R>> mapper) {
-        return new FlatMapOp.Normal<>(this, requireNonNull(mapper));
+    public <R> Pipe<R> flatMap(Function<? super OUT, ? extends Pipe<? extends R>> pipeMapper) {
+        return new FlatMapOp.Normal<>(this, requireNonNull(pipeMapper));
     }
 
     @Override
-    public <R> Pipe<R> flatMapOrderly(LongBiFunction<? super OUT, ? extends Pipe<? extends R>> mapper) {
-        return new FlatMapOp.Orderly<>(this, requireNonNull(mapper));
+    public <R> Pipe<R> flatMapOrderly(LongBiFunction<? super OUT, ? extends Pipe<? extends R>> pipeMapper) {
+        return new FlatMapOp.Orderly<>(this, requireNonNull(pipeMapper));
     }
 
     @Override
@@ -390,32 +390,32 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public IntPipe flatMapToInt(Function<? super OUT, ? extends IntPipe> mapper) {
+    public IntPipe flatMapToInt(Function<? super OUT, ? extends IntPipe> intPipeMapper) {
         throw new IllegalStateException();
     }
 
     @Override
-    public IntPipe flatMapToIntOrderly(LongBiFunction<? super OUT, ? extends IntPipe> mapper) {
+    public IntPipe flatMapToIntOrderly(LongBiFunction<? super OUT, ? extends IntPipe> intPipeMapper) {
         throw new IllegalStateException();
     }
 
     @Override
-    public LongPipe flatMapToLong(Function<? super OUT, ? extends LongPipe> mapper) {
+    public LongPipe flatMapToLong(Function<? super OUT, ? extends LongPipe> longPipeMapper) {
         throw new IllegalStateException();
     }
 
     @Override
-    public LongPipe flatMapToLongOrderly(LongBiFunction<? super OUT, ? extends LongPipe> mapper) {
+    public LongPipe flatMapToLongOrderly(LongBiFunction<? super OUT, ? extends LongPipe> longPipeMapper) {
         throw new IllegalStateException();
     }
 
     @Override
-    public DoublePipe flatMapToDouble(Function<? super OUT, ? extends DoublePipe> mapper) {
+    public DoublePipe flatMapToDouble(Function<? super OUT, ? extends DoublePipe> doublePipeMapper) {
         throw new IllegalStateException();
     }
 
     @Override
-    public DoublePipe flatMapToDoubleOrderly(LongBiFunction<? super OUT, ? extends DoublePipe> mapper) {
+    public DoublePipe flatMapToDoubleOrderly(LongBiFunction<? super OUT, ? extends DoublePipe> doublePipeMapper) {
         throw new IllegalStateException();
     }
 
@@ -470,31 +470,31 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Pipe<OUT> selectedFirst(Predicate<? super OUT> select) {
-        return new SelectedFirstOrLastOp.First<>(this, requireNonNull(select));
+    public Pipe<OUT> selectToFirst(Predicate<? super OUT> select) {
+        return new SelectToFirstOrLastOp.ToFirst<>(this, requireNonNull(select));
     }
 
     @Override
-    public Pipe<OUT> selectedLast(Predicate<? super OUT> select) {
-        return new SelectedFirstOrLastOp.Last<>(this, requireNonNull(select));
+    public Pipe<OUT> selectToLast(Predicate<? super OUT> select) {
+        return new SelectToFirstOrLastOp.ToLast<>(this, requireNonNull(select));
     }
 
     @Override
-    public Pipe<OUT> nullsFirst() {
+    public Pipe<OUT> selectNullsToFirst() {
         return new RefPipe<OUT, OUT>(this, NOT_SORTED | NOT_REVERSED_SORTED) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return SimpleOps.nullsFirstOp(nextOp);
+                return SimpleOps.selectNullsToFirstOp(nextOp);
             }
         };
     }
 
     @Override
-    public Pipe<OUT> nullsLast() {
+    public Pipe<OUT> selectNullsToLast() {
         return new RefPipe<OUT, OUT>(this, NOT_SORTED | NOT_REVERSED_SORTED) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return SimpleOps.nullsLastOp(nextOp);
+                return SimpleOps.selectNullsToLastOp(nextOp);
             }
         };
     }
@@ -659,13 +659,13 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Pipe<Pipe<OUT>> partition(Function<? super OUT, PartitionPolicy> function) {
-        return new PartitionOp.Policy<>(this, requireNonNull(function));
+    public Pipe<Pipe<OUT>> partition(Function<? super OUT, PartitionPolicy> policyFunction) {
+        return new PartitionOp.Policy<>(this, requireNonNull(policyFunction));
     }
 
     @Override
-    public Pipe<Pipe<OUT>> partitionOrderly(LongBiFunction<? super OUT, PartitionPolicy> function) {
-        return new PartitionOp.PolicyOrderly<>(this, requireNonNull(function));
+    public Pipe<Pipe<OUT>> partitionOrderly(LongBiFunction<? super OUT, PartitionPolicy> policyFunction) {
+        return new PartitionOp.PolicyOrderly<>(this, requireNonNull(policyFunction));
     }
 
     @Override
@@ -690,15 +690,15 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public void forEach(Consumer<? super OUT> action) {
-        requireNonNull(action);
-        evaluate(SimpleOps.forEachOp(action));
+    public void forEach(Consumer<? super OUT> consumer) {
+        requireNonNull(consumer);
+        evaluate(SimpleOps.forEachOp(consumer));
     }
 
     @Override
-    public void forEachOrderly(LongBiConsumer<? super OUT> action) {
-        requireNonNull(action);
-        evaluate(SimpleOps.forEachOrderlyOp(action));
+    public void forEachOrderly(LongBiConsumer<? super OUT> consumer) {
+        requireNonNull(consumer);
+        evaluate(SimpleOps.forEachOrderlyOp(consumer));
     }
 
     @Override
@@ -814,8 +814,8 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public OUT[] toArray(IntFunction<OUT[]> generator) {
-        return evaluate(new ToArrayTerminalOp<>(generator));
+    public OUT[] toArray(IntFunction<OUT[]> arrayFactory) {
+        return evaluate(new ToArrayTerminalOp<>(arrayFactory));
     }
 
     @Override

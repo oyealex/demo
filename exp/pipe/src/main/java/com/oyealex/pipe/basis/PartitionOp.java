@@ -95,32 +95,32 @@ abstract class PartitionOp<T> extends RefPipe<T, Pipe<T>> {
     }
 
     static class Policy<T> extends Conditional<T> {
-        private final Function<? super T, PartitionPolicy> function;
+        private final Function<? super T, PartitionPolicy> policyFunction;
 
-        Policy(RefPipe<?, ? extends T> prePipe, Function<? super T, PartitionPolicy> function) {
+        Policy(RefPipe<?, ? extends T> prePipe, Function<? super T, PartitionPolicy> policyFunction) {
             super(prePipe);
-            this.function = function;
+            this.policyFunction = policyFunction;
         }
 
         @Override
         protected PartitionPolicy getPolicy(T value) {
-            return requireNonNull(function.apply(value));
+            return requireNonNull(policyFunction.apply(value));
         }
     }
 
     static class PolicyOrderly<T> extends Conditional<T> {
-        private final LongBiFunction<? super T, PartitionPolicy> function;
+        private final LongBiFunction<? super T, PartitionPolicy> policyFunction;
 
         private long index = 0L;
 
-        PolicyOrderly(RefPipe<?, ? extends T> prePipe, LongBiFunction<? super T, PartitionPolicy> function) {
+        PolicyOrderly(RefPipe<?, ? extends T> prePipe, LongBiFunction<? super T, PartitionPolicy> policyFunction) {
             super(prePipe);
-            this.function = function;
+            this.policyFunction = policyFunction;
         }
 
         @Override
         protected PartitionPolicy getPolicy(T value) {
-            return requireNonNull(function.apply(index++, value));
+            return requireNonNull(policyFunction.apply(index++, value));
         }
     }
 

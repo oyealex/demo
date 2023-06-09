@@ -177,17 +177,17 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     }
 
     /**
-     * 保留前{@code count}个元素，丢弃其他所有元素。
+     * 保留前{@code size}个元素，丢弃其他所有元素。
      *
-     * @return 最多包含前 {@code count}个元素的新的流水线。
+     * @return 最多包含前 {@code size}个元素的新的流水线。
      * @throws IllegalArgumentException 当需要保留的元素数量小于0时抛出。
-     * @apiNote 此方法等价于 {@code limit(count)}，作为更接近自然语言表达方式的版本而存在。
+     * @apiNote 此方法等价于 {@code limit(size)}，作为更接近自然语言表达方式的版本而存在。
      * @see #takeFirst()
      * @see #takeLast(int)
      * @see #limit(long)
      */
-    default Pipe<E> takeFirst(int count) {
-        return limit(count);
+    default Pipe<E> takeFirst(int size) {
+        return limit(size);
     }
 
     /**
@@ -205,13 +205,13 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 保留最后给定数量的元素。
      *
-     * @param count 需要保留的最后几个元素的数量。
-     * @return 最多包含后 {@code count}个元素的新的流水线。
-     * @throws IllegalArgumentException 当{@code count}为负值时抛出。
+     * @param size 需要保留的最后几个元素的数量。
+     * @return 最多包含后 {@code size}个元素的新的流水线。
+     * @throws IllegalArgumentException 当{@code size}为负值时抛出。
      * @see #takeLast()
      * @see #takeFirst(int)
      */
-    Pipe<E> takeLast(int count);
+    Pipe<E> takeLast(int size);
 
     /**
      * 保留元素直到给定的断言首次为{@code False}，丢弃之后的元素。
@@ -314,17 +314,17 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     }
 
     /**
-     * 丢弃前{@code count}个元素，保留其他所有元素。
+     * 丢弃前{@code size}个元素，保留其他所有元素。
      *
-     * @return 丢弃了前 {@code count}个元素的新的流水线。
+     * @return 丢弃了前 {@code size}个元素的新的流水线。
      * @throws IllegalArgumentException 当需要丢弃的元素数量小于0时抛出。
-     * @apiNote 此方法等价于 {@code skip(count)}，作为更接近自然语言表达方式的版本而存在。
+     * @apiNote 此方法等价于 {@code skip(size)}，作为更接近自然语言表达方式的版本而存在。
      * @see #dropFirst()
      * @see #dropLast(int)
      * @see #skip(long)
      */
-    default Pipe<E> dropFirst(int count) {
-        return skip(count);
+    default Pipe<E> dropFirst(int size) {
+        return skip(size);
     }
 
     /**
@@ -341,13 +341,13 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 丢弃最后给定数量的元素。
      *
-     * @param count 需要保留的最后几个元素的数量。
+     * @param size 需要保留的最后几个元素的数量。
      * @return 新的流水线。
-     * @throws IllegalArgumentException 当{@code count}为负值时抛出。
+     * @throws IllegalArgumentException 当{@code size}为负值时抛出。
      * @see #dropLast()
      * @see #dropFirst(int)
      */
-    Pipe<E> dropLast(int count);
+    Pipe<E> dropLast(int size);
 
     /**
      * 丢弃元素直到给定的断言首次为{@code False}，保留之后的元素。
@@ -521,24 +521,24 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     Pipe<E> mapIf(Predicate<? super E> condition, Function<? super E, ? extends E> mapper);
 
     /**
-     * 将元素通过{@code mapper}映射，如果结果值{@link Optional}不为空，则将对应元素映射为其值，否则维持原始值。
+     * 将元素通过{@code optionalMapper}映射，如果结果值{@link Optional}不为空，则将对应元素映射为其值，否则维持原始值。
      * <p/>
      * 大致等同于：
      * <pre>{@code
      * for (E element : getPipeElements()) {
-     *     doSomething(mapper.apply(element).orElse(element));
+     *     doSomething(optionalMapper.apply(element).orElse(element));
      * }
      * }</pre>
      *
-     * @param mapper 满足条件的元素需要映射为的对象。
+     * @param optionalMapper 元素映射方法。
      * @param <R> 一个{@link Optional}类型，值类型为{@code E}或其子类
      * @return 新的流水线。
-     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @throws NullPointerException 当{@code optionalMapper}为{@code null}时抛出。
      * @see #mapIf(Predicate, Object)
      * @see #mapIf(Predicate, Function)
      * @see #mapIf(Predicate, Supplier)
      */
-    <R extends Optional<? extends E>> Pipe<E> mapIf(Function<? super E, R> mapper);
+    <R extends Optional<? extends E>> Pipe<E> mapIf(Function<? super E, R> optionalMapper);
 
     /**
      * 使用{@link Objects#toString(Object)}将流水线中的数据映射为字符串。
@@ -574,28 +574,28 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * 大致等同于：
      * <pre>{@code
      * for (E element : getPipeElements()) {
-     *     doSomething(element == null ? value : element);
+     *     doSomething(element == null ? nullReplacement : element);
      * }
      * }</pre>
      *
-     * @param value {@code null}需要映射为的对象，不可为{@code null}。
+     * @param nullReplacement {@code null}需要映射为的对象，不可为{@code null}。
      * @return 不包含任何 {@code null}的新的流水线。
-     * @throws NullPointerException 当{@code value}为{@code null}时抛出。
+     * @throws NullPointerException 当{@code nullReplacement}为{@code null}时抛出。
      * @see #mapNull(Supplier)
      */
-    default Pipe<E> mapNull(E value) {
-        requireNonNull(value);
-        return mapNull(() -> value);
+    default Pipe<E> mapNull(E nullReplacement) {
+        requireNonNull(nullReplacement);
+        return mapNull(() -> nullReplacement);
     }
 
     /**
-     * 将空值{@code null}映射为给定{@code supplier}提供的值。
+     * 将空值{@code null}映射为给定{@code replacementSupplier}提供的值。
      * <p/>
      * 大致等同于：
      * <pre>{@code
      * for (E element : getPipeElements()) {
      *     if (element == null) {
-     *         E newValue = supplier.get();
+     *         E newValue = replacementSupplier.get();
      *         if (newValue == null) {
      *             throw new NullPointerException();
      *         } else {
@@ -607,82 +607,82 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * }
      * }</pre>
      *
-     * @param supplier 映射对象的获取方法，获取的对象不可为{@code null}。
+     * @param replacementSupplier 映射对象的获取方法，获取的对象不可为{@code null}。
      * @return 不包含任何 {@code null}的新的流水线。
-     * @throws NullPointerException 当{@code supplier}为{@code null}时抛出。
-     * @implNote 在流水线运行期间 {@code supplier}产生的任何空值，均会导致抛出{@link NullPointerException}。
+     * @throws NullPointerException 当{@code replacementSupplier}为{@code null}时抛出。
+     * @implNote 在流水线运行期间 {@code replacementSupplier}产生的任何空值，均会导致抛出{@link NullPointerException}。
      * @see #mapNull(Object)
      */
-    Pipe<E> mapNull(Supplier<? extends E> supplier);
+    Pipe<E> mapNull(Supplier<? extends E> replacementSupplier);
 
     /**
      * 将流水线中的元素映射为int类型。
      *
-     * @param mapper 映射方法
+     * @param intMapper 映射方法
      * @return int流水线
-     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
+     * @throws NullPointerException 当{@code intMapper}为{@code null}时抛出
      * @see Stream#mapToInt(ToIntFunction)
      */
     @Todo
-    IntPipe mapToInt(ToIntFunction<? super E> mapper);
+    IntPipe mapToInt(ToIntFunction<? super E> intMapper);
 
     /**
      * 将流水线中的元素映射为int类型，支持访问元素的次序。
      *
-     * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
+     * @param intMapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @return int流水线
-     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
+     * @throws NullPointerException 当{@code intMapper}为{@code null}时抛出
      * @see Stream#mapToInt(ToIntFunction)
      */
     // OPT 2023-05-10 01:39 添加对应的基于次序的函数式接口
     @Todo
-    IntPipe mapToIntOrderly(ToIntFunction<? super E> mapper);
+    IntPipe mapToIntOrderly(ToIntFunction<? super E> intMapper);
 
     /**
      * 将流水线中的元素映射为long类型。
      *
-     * @param mapper 映射方法
+     * @param longMapper 映射方法
      * @return long流水线
-     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
+     * @throws NullPointerException 当{@code longMapper}为{@code null}时抛出
      * @see Stream#mapToLong(ToLongFunction)
      */
     @Todo
-    LongPipe mapToLong(ToLongFunction<? super E> mapper);
+    LongPipe mapToLong(ToLongFunction<? super E> longMapper);
 
     /**
      * 将流水线中的元素映射为long类型，支持访问元素的次序。
      *
-     * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
+     * @param longMapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @return long流水线
-     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
+     * @throws NullPointerException 当{@code longMapper}为{@code null}时抛出
      * @see Stream#mapToLong(ToLongFunction)
      */
     // OPT 2023-05-10 01:39 添加对应的基于次序的函数式接口
     @Todo
-    LongPipe mapToLongOrderly(ToLongFunction<? super E> mapper);
+    LongPipe mapToLongOrderly(ToLongFunction<? super E> longMapper);
 
     /**
      * 将流水线中的元素映射为double类型。
      *
-     * @param mapper 映射方法
+     * @param doubleMapper 映射方法
      * @return double流水线
-     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
+     * @throws NullPointerException 当{@code doubleMapper}为{@code null}时抛出
      * @see Stream#mapToDouble(ToDoubleFunction)
      */
     @Todo
-    DoublePipe mapToDouble(ToDoubleFunction<? super E> mapper);
+    DoublePipe mapToDouble(ToDoubleFunction<? super E> doubleMapper);
 
     /**
      * 将流水线中的元素映射为double类型，支持访问元素的次序。
      *
-     * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
+     * @param longMapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @return double流水线
-     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
+     * @throws NullPointerException 当{@code longMapper}为{@code null}时抛出
      * @see Stream#mapToDouble(ToDoubleFunction)
      */
     // OPT 2023-05-10 01:39 添加对应的基于次序的函数式接口
     @Todo
-    DoublePipe mapToDoubleOrderly(ToDoubleFunction<? super E> mapper);
+    DoublePipe mapToDoubleOrderly(ToDoubleFunction<? super E> longMapper);
 
     /**
      * 将流水线中的元素映射为新的流水线，并按照次序拼接为一条流水线。
@@ -690,21 +690,21 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * 大致等同于：
      * <pre>{@code
      * for (E element : getPipeElements()) {
-     *     for (R newElement : getPipeElements(mapper.apply(element))) {
+     *     for (R newElement : getPipeElements(pipeMapper.apply(element))) {
      *         doSomething(newElement);
      *     }
      * }
      * }</pre>
      *
-     * @param mapper 映射方法。
+     * @param pipeMapper 新流水线的映射方法。
      * @param <R> 新流水线中的元素类型。
      * @return 映射并拼接后的流水线。
-     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @throws NullPointerException 当{@code pipeMapper}为{@code null}时抛出。
      * @see Stream#flatMap(Function)
      * @see #flatMapOrderly(LongBiFunction)
      * @see #flatMapCollection(Function)
      */
-    <R> Pipe<R> flatMap(Function<? super E, ? extends Pipe<? extends R>> mapper);
+    <R> Pipe<R> flatMap(Function<? super E, ? extends Pipe<? extends R>> pipeMapper);
 
     /**
      * 将流水线中的元素映射为新的流水线，并按照次序拼接为一条流水线，支持访问元素的次序。
@@ -713,20 +713,20 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * <pre>{@code
      * long index = 0L;
      * for (E element : getPipeElements()) {
-     *     for (R newElement : getPipeElements(mapper.apply(index++, element))) {
+     *     for (R newElement : getPipeElements(pipeMapper.apply(index++, element))) {
      *         doSomething(newElement);
      *     }
      * }
      * }</pre>
      *
-     * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
+     * @param pipeMapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @param <R> 新流水线中的元素类型。
      * @return 映射并拼接后的流水线。
-     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @throws NullPointerException 当{@code pipeMapper}为{@code null}时抛出。
      * @see #flatMap(Function)
      * @see #flatMapCollection(Function)
      */
-    <R> Pipe<R> flatMapOrderly(LongBiFunction<? super E, ? extends Pipe<? extends R>> mapper);
+    <R> Pipe<R> flatMapOrderly(LongBiFunction<? super E, ? extends Pipe<? extends R>> pipeMapper);
 
     /**
      * 将流水线中的元素映射为容器，并将容器中的元素按照次序拼接为一条流水线。
@@ -734,23 +734,23 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * 大致等同于：
      * <pre>{@code
      * for (E element : getPipeElements()) {
-     *     for (R newElement : mapper.apply(element)) {
+     *     for (R newElement : collectionMapper.apply(element)) {
      *         doSomething(newElement);
      *     }
      * }
      * }</pre>
      *
-     * @param mapper 映射方法。
+     * @param collectionMapper 容器映射方法。
      * @param <R> 新流水线中的元素类型。
      * @return 映射并拼接后的流水线。
-     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @throws NullPointerException 当{@code collectionMapper}为{@code null}时抛出。
      * @implNote 由于无法确定具体的 {@link Collection}类型，流水线无法进行更进一步的优化，如果有必要请使用其他显式构造流水线的
      * 方法映射并拼接流水线。
      * @see #flatMap(Function)
      * @see #flatMapOrderly(LongBiFunction)
      */
-    default <R> Pipe<R> flatMapCollection(Function<? super E, ? extends Collection<? extends R>> mapper) {
-        return map(mapper).flatMap(Pipe::collection);
+    default <R> Pipe<R> flatMapCollection(Function<? super E, ? extends Collection<? extends R>> collectionMapper) {
+        return map(collectionMapper).flatMap(Pipe::collection);
     }
 
     /**
@@ -764,68 +764,68 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 将流水线中的元素映射为新的int流水线，并按照次序拼接为一条int流水线。
      *
-     * @param mapper 映射方法
+     * @param intPipeMapper 映射方法
      * @return 映射并拼接后的int流水线
-     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
+     * @throws NullPointerException 当{@code intPipeMapper}为{@code null}时抛出
      * @see Stream#flatMapToInt(Function)
      */
     @Todo
-    IntPipe flatMapToInt(Function<? super E, ? extends IntPipe> mapper);
+    IntPipe flatMapToInt(Function<? super E, ? extends IntPipe> intPipeMapper);
 
     /**
      * 将流水线中的元素映射为新的int流水线，并按照次序拼接为一条int流水线，支持访问元素的次序。
      *
-     * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
+     * @param intPipeMapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @return 映射并拼接后的int流水线
-     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
+     * @throws NullPointerException 当{@code intPipeMapper}为{@code null}时抛出
      * @see Stream#flatMapToInt(Function)
      */
     @Todo
-    IntPipe flatMapToIntOrderly(LongBiFunction<? super E, ? extends IntPipe> mapper);
+    IntPipe flatMapToIntOrderly(LongBiFunction<? super E, ? extends IntPipe> intPipeMapper);
 
     /**
      * 将流水线中的元素映射为新的long流水线，并按照次序拼接为一条long流水线。
      *
-     * @param mapper 映射方法
+     * @param longPipeMapper 映射方法
      * @return 映射并拼接后的long流水线
-     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
+     * @throws NullPointerException 当{@code longPipeMapper}为{@code null}时抛出
      * @see Stream#flatMapToLong(Function)
      */
     @Todo
-    LongPipe flatMapToLong(Function<? super E, ? extends LongPipe> mapper);
+    LongPipe flatMapToLong(Function<? super E, ? extends LongPipe> longPipeMapper);
 
     /**
      * 将流水线中的元素映射为新的long流水线，并按照次序拼接为一条long流水线，支持访问元素的次序。
      *
-     * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
+     * @param longPipeMapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @return 映射并拼接后的long流水线
-     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
+     * @throws NullPointerException 当{@code longPipeMapper}为{@code null}时抛出
      * @see Stream#flatMapToLong(Function)
      */
     @Todo
-    LongPipe flatMapToLongOrderly(LongBiFunction<? super E, ? extends LongPipe> mapper);
+    LongPipe flatMapToLongOrderly(LongBiFunction<? super E, ? extends LongPipe> longPipeMapper);
 
     /**
      * 将流水线中的元素映射为新的double流水线，并按照次序拼接为一条double流水线。
      *
-     * @param mapper 映射方法
+     * @param doublePipeMapper 映射方法
      * @return 映射并拼接后的double流水线
-     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
+     * @throws NullPointerException 当{@code doublePipeMapper}为{@code null}时抛出
      * @see Stream#flatMapToDouble(Function)
      */
     @Todo
-    DoublePipe flatMapToDouble(Function<? super E, ? extends DoublePipe> mapper);
+    DoublePipe flatMapToDouble(Function<? super E, ? extends DoublePipe> doublePipeMapper);
 
     /**
      * 将流水线中的元素映射为新的double流水线，并按照次序拼接为一条double流水线，支持访问元素的次序。
      *
-     * @param mapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
+     * @param doublePipeMapper 映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @return 映射并拼接后的double流水线
-     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出
+     * @throws NullPointerException 当{@code doublePipeMapper}为{@code null}时抛出
      * @see Stream#flatMapToDouble(Function)
      */
     @Todo
-    DoublePipe flatMapToDoubleOrderly(LongBiFunction<? super E, ? extends DoublePipe> mapper);
+    DoublePipe flatMapToDoubleOrderly(LongBiFunction<? super E, ? extends DoublePipe> doublePipeMapper);
 
     /**
      * 使用给定的映射方法，将此流水线扩展为两元组的流水线，其中两元组的第一个元素仍然为当前流水线中的元素。
@@ -1055,9 +1055,9 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param select 需要置于流水线头部的元素的选择方法。
      * @return 新的流水线。
      * @throws NullPointerException 当{@code select}为{@code null}时抛出。
-     * @see #selectedLast(Predicate)
+     * @see #selectToLast(Predicate)
      */
-    Pipe<E> selectedFirst(Predicate<? super E> select);
+    Pipe<E> selectToFirst(Predicate<? super E> select);
 
     /**
      * 将被选中的元素置于流水线的尾部，选中的元素和未选中的元素各自相对位置保持不变。
@@ -1074,18 +1074,18 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param select 需要置于流水线尾部的元素的选择方法。
      * @return 新的流水线。
      * @throws NullPointerException 当{@code select}为{@code null}时抛出。
-     * @see #selectedFirst(Predicate)
+     * @see #selectToFirst(Predicate)
      */
-    Pipe<E> selectedLast(Predicate<? super E> select);
+    Pipe<E> selectToLast(Predicate<? super E> select);
 
     /**
      * 将流水线中的{@code null}置于流水线头部，其他元素之间的相对位置保持不变。
      *
      * @return 新的流水线。
-     * @see #nullsLast()
-     * @see #nullsFirstBy(Function)
+     * @see #selectNullsToLast()
+     * @see #selectNullsToFirstBy(Function)
      */
-    Pipe<E> nullsFirst();
+    Pipe<E> selectNullsToFirst();
 
     /**
      * 将流水线中根据给定方法映射后结果为{@code null}的元素置于流水线头部，需要移动的元素和不需要移动的元素相对位置保持不变。
@@ -1094,22 +1094,22 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @return 新的流水线。
      * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
      * @implNote 如果 {@code mapper}为{@link Function#identity()}则此方法等同于{@code nullsFirst()}。
-     * @see #nullsFirst()
-     * @see #nullsLastBy(Function)
+     * @see #selectNullsToFirst()
+     * @see #selectNullsToLastBy(Function)
      */
-    default Pipe<E> nullsFirstBy(Function<? super E, ?> mapper) {
+    default Pipe<E> selectNullsToFirstBy(Function<? super E, ?> mapper) {
         requireNonNull(mapper);
-        return isStdIdentify(mapper) ? nullsFirst() : selectedFirst(value -> mapper.apply(value) == null);
+        return isStdIdentify(mapper) ? selectNullsToFirst() : selectToFirst(value -> mapper.apply(value) == null);
     }
 
     /**
      * 将流水线中的{@code null}置于流水线末尾，其他元素之间的相对位置保持不变。
      *
      * @return 新的流水线。
-     * @see #nullsFirst()
-     * @see #nullsLastBy(Function)
+     * @see #selectNullsToFirst()
+     * @see #selectNullsToLastBy(Function)
      */
-    Pipe<E> nullsLast();
+    Pipe<E> selectNullsToLast();
 
     /**
      * 将流水线中根据给定方法映射后结果为{@code null}的元素置于流水线尾部，需要移动的元素和不需要移动的元素相对位置保持不变。
@@ -1118,12 +1118,12 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @return 新的流水线。
      * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
      * @implNote 如果 {@code mapper}为{@link Function#identity()}则此方法等同于{@code nullsLast()}。
-     * @see #nullsLast()
-     * @see #nullsFirstBy(Function)
+     * @see #selectNullsToLast()
+     * @see #selectNullsToFirstBy(Function)
      */
-    default Pipe<E> nullsLastBy(Function<? super E, ?> mapper) {
+    default Pipe<E> selectNullsToLastBy(Function<? super E, ?> mapper) {
         requireNonNull(mapper);
-        return isStdIdentify(mapper) ? nullsLast() : selectedLast(value -> mapper.apply(value) == null);
+        return isStdIdentify(mapper) ? selectNullsToLast() : selectToLast(value -> mapper.apply(value) == null);
     }
 
     /**
@@ -1557,28 +1557,28 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 根据{@link PartitionPolicy}策略对元素进行分区，并将分区结果封装为新的流水线。
      *
-     * @param function 分区策略方法，返回的分区策略不能为{@code null}。
+     * @param policyFunction 分区策略方法，返回的分区策略不能为{@code null}。
      * @return 新的包含分区元素的流水线。
-     * @throws NullPointerException 当分区策略方法{@code function}为{@code null}时抛出。
-     * @implNote 如果给定的分区策略方法 {@code function}返回{@code null}，会导致流水线运行期间抛出
+     * @throws NullPointerException 当分区策略方法{@code policyFunction}为{@code null}时抛出。
+     * @implNote 如果给定的分区策略方法 {@code policyFunction}返回{@code null}，会导致流水线运行期间抛出
      * {@link NullPointerException}异常。
      * @see #partition(int)
      * @see #partitionOrderly(LongBiFunction)
      */
-    Pipe<Pipe<E>> partition(Function<? super E, PartitionPolicy> function);
+    Pipe<Pipe<E>> partition(Function<? super E, PartitionPolicy> policyFunction);
 
     /**
      * 根据{@link PartitionPolicy}策略对元素进行分区，并将分区结果封装为新的流水线，支持访问元素的次序。
      *
-     * @param function 分区策略方法，返回的分区策略不能为{@code null}，第一个参数为元素的次序，第二个参数为访问的元素。
+     * @param policyFunction 分区策略方法，返回的分区策略不能为{@code null}，第一个参数为元素的次序，第二个参数为访问的元素。
      * @return 新的包含分区元素的流水线。
-     * @throws NullPointerException 当分区策略方法{@code function}为{@code null}时抛出。
-     * @implNote 如果给定的分区策略方法 {@code function}返回{@code null}，会导致流水线运行期间抛出
+     * @throws NullPointerException 当分区策略方法{@code policyFunction}为{@code null}时抛出。
+     * @implNote 如果给定的分区策略方法 {@code policyFunction}返回{@code null}，会导致流水线运行期间抛出
      * {@link NullPointerException}异常。
      * @see #partition(int)
      * @see #partition(Function)
      */
-    Pipe<Pipe<E>> partitionOrderly(LongBiFunction<? super E, PartitionPolicy> function);
+    Pipe<Pipe<E>> partitionOrderly(LongBiFunction<? super E, PartitionPolicy> policyFunction);
 
     /**
      * 按照给定数量，对元素进行分区，并将分区结果封装为列表。
@@ -1599,16 +1599,16 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 根据{@link PartitionPolicy}策略对元素进行分区，并将分区结果封装为列表。
      *
-     * @param function 分区策略方法，返回的分区策略不能为{@code null}。
+     * @param policyFunction 分区策略方法，返回的分区策略不能为{@code null}。
      * @return 新的包含已分区元素列表的流水线。
-     * @throws NullPointerException 当分区策略方法{@code function}为{@code null}时抛出。
+     * @throws NullPointerException 当分区策略方法{@code policyFunction}为{@code null}时抛出。
      * @implNote 封装的列表不保证可变性，如果明确需要分区列表可修改，请使用{@link #partitionToList(Function, Supplier)}。
-     * 如果给定的分区策略方法{@code function}返回{@code null}，会导致流水线运行期间抛出{@link NullPointerException}异常。
+     * 如果给定的分区策略方法{@code policyFunction}返回{@code null}，会导致流水线运行期间抛出{@link NullPointerException}异常。
      * @see #partitionToList(Function, Supplier)
      * @see #partitionToList(int)
      */
-    default Pipe<List<E>> partitionToList(Function<? super E, PartitionPolicy> function) {
-        return partition(function).map(Pipe::toList);
+    default Pipe<List<E>> partitionToList(Function<? super E, PartitionPolicy> policyFunction) {
+        return partition(policyFunction).map(Pipe::toList);
     }
 
     /**
@@ -1632,19 +1632,19 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 根据{@link PartitionPolicy}策略对元素进行分区，并将分区结果封装为列表，列表由给定的{@link Supplier}提供。
      *
-     * @param function 分区策略方法，返回的分区策略不能为{@code null}。
+     * @param policyFunction 分区策略方法，返回的分区策略不能为{@code null}。
      * @param listSupplier 用于存储分区元素的列表的构造方法。
      * @return 新的包含已分区元素列表的流水线。
-     * @throws NullPointerException 当分区策略方法{@code function}或列表构建方法{@code listSupplier}为{@code null}时抛出。
-     * @implNote 如果给定的分区策略方法{@code function}返回{@code null}，会导致流水线运行期间抛出
+     * @throws NullPointerException 当分区策略方法{@code policyFunction}或列表构建方法{@code listSupplier}为{@code null}时抛出。
+     * @implNote 如果给定的分区策略方法{@code policyFunction}返回{@code null}，会导致流水线运行期间抛出
      * {@link NullPointerException}异常。
      * @see #partitionToList(Function)
      * @see #partitionToList(int, Supplier)
      */
-    default <L extends List<E>> Pipe<List<E>> partitionToList(Function<? super E, PartitionPolicy> function,
+    default <L extends List<E>> Pipe<List<E>> partitionToList(Function<? super E, PartitionPolicy> policyFunction,
         Supplier<L> listSupplier) {
         requireNonNull(listSupplier);
-        return partition(function).map(pipe -> pipe.toList(listSupplier));
+        return partition(policyFunction).map(pipe -> pipe.toList(listSupplier));
     }
 
     /**
@@ -1666,16 +1666,16 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 根据{@link PartitionPolicy}策略对元素进行分区，并将分区结果封装为集合。
      *
-     * @param function 分区策略方法，返回的分区策略不能为{@code null}。
+     * @param policyFunction 分区策略方法，返回的分区策略不能为{@code null}。
      * @return 新的包含已分区元素集合的流水线。
-     * @throws NullPointerException 当分区策略方法{@code function}为{@code null}时抛出。
+     * @throws NullPointerException 当分区策略方法{@code policyFunction}为{@code null}时抛出。
      * @implNote 封装的集合不保证可变性，如果明确需要分区列表可修改，请使用{@link #partitionToSet(Function, Supplier)}。
-     * 如果给定的分区策略方法{@code function}返回{@code null}，会导致流水线运行期间抛出{@link NullPointerException}异常。
+     * 如果给定的分区策略方法{@code policyFunction}返回{@code null}，会导致流水线运行期间抛出{@link NullPointerException}异常。
      * @see #partitionToSet(Function, Supplier)
      * @see #partitionToSet(int)
      */
-    default Pipe<Set<E>> partitionToSet(Function<? super E, PartitionPolicy> function) {
-        return partition(function).map(Pipe::toSet);
+    default Pipe<Set<E>> partitionToSet(Function<? super E, PartitionPolicy> policyFunction) {
+        return partition(policyFunction).map(Pipe::toSet);
     }
 
     /**
@@ -1699,19 +1699,19 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 根据{@link PartitionPolicy}策略对元素进行分区，并将分区结果封装为集合，集合由给定的{@link Supplier}提供。
      *
-     * @param function 分区策略方法，返回的分区策略不能为{@code null}。
+     * @param policyFunction 分区策略方法，返回的分区策略不能为{@code null}。
      * @param setSupplier 用于存储分区元素的集合的构造方法。
      * @return 新的包含已分区元素集合的流水线。
-     * @throws NullPointerException 当分区策略方法{@code function}或集合构建方法{@code setSupplier}为{@code null}时抛出。
-     * @implNote 如果给定的分区策略方法{@code function}返回{@code null}，会导致流水线运行期间抛出
+     * @throws NullPointerException 当分区策略方法{@code policyFunction}或集合构建方法{@code setSupplier}为{@code null}时抛出。
+     * @implNote 如果给定的分区策略方法{@code policyFunction}返回{@code null}，会导致流水线运行期间抛出
      * {@link NullPointerException}异常。
      * @see #partitionToSet(int, Supplier)
      * @see #partitionToSet(Function)
      */
-    default <S extends Set<E>> Pipe<Set<E>> partitionToSet(Function<? super E, PartitionPolicy> function,
+    default <S extends Set<E>> Pipe<Set<E>> partitionToSet(Function<? super E, PartitionPolicy> policyFunction,
         Supplier<S> setSupplier) {
         requireNonNull(setSupplier);
-        return partition(function).map(pipe -> pipe.toSet(setSupplier));
+        return partition(policyFunction).map(pipe -> pipe.toSet(setSupplier));
     }
 
     /**
@@ -1735,18 +1735,18 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 根据{@link PartitionPolicy}策略对元素进行分区，并将分区结果封装为容器，容器由给定的{@link Supplier}提供。
      *
-     * @param function 分区策略方法，返回的分区策略不能为{@code null}。
+     * @param policyFunction 分区策略方法，返回的分区策略不能为{@code null}。
      * @param collectionSupplier 用于存储分区元素的容器的构造方法。
      * @return 新的包含已分区元素容器的流水线。
-     * @throws NullPointerException 当分区策略方法{@code function}或容器构建方法{@code setSupplier}为{@code null}时抛出。
-     * @implNote 如果给定的分区策略方法{@code function}返回{@code null}，会导致流水线运行期间抛出
+     * @throws NullPointerException 当分区策略方法{@code policyFunction}或容器构建方法{@code setSupplier}为{@code null}时抛出。
+     * @implNote 如果给定的分区策略方法{@code policyFunction}返回{@code null}，会导致流水线运行期间抛出
      * {@link NullPointerException}异常。
      * @see #partitionToCollection(int, Supplier)
      */
     default <S extends Collection<E>> Pipe<Collection<E>> partitionToCollection(
-        Function<? super E, PartitionPolicy> function, Supplier<S> collectionSupplier) {
+        Function<? super E, PartitionPolicy> policyFunction, Supplier<S> collectionSupplier) {
         requireNonNull(collectionSupplier);
-        return partition(function).map(pipe -> pipe.toCollection(collectionSupplier));
+        return partition(policyFunction).map(pipe -> pipe.toCollection(collectionSupplier));
     }
 
     /**
@@ -1821,10 +1821,10 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 访问流水线中的每个元素。
      *
-     * @param action 访问元素的方法
+     * @param consumer 访问元素的方法
      * @see Stream#forEach(Consumer)
      */
-    void forEach(Consumer<? super E> action);
+    void forEach(Consumer<? super E> consumer);
 
     default void run() {
         forEach(ignored -> {});
@@ -1833,9 +1833,9 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 访问流水线中的每个元素，支持访问元素的次序。
      *
-     * @param action 访问元素的方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为访问的元素。
+     * @param consumer 访问元素的方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为访问的元素。
      */
-    void forEachOrderly(LongBiConsumer<? super E> action);
+    void forEachOrderly(LongBiConsumer<? super E> consumer);
 
     Optional<E> reduce(BinaryOperator<E> operator);
 
@@ -2040,12 +2040,12 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 将流水线中的元素收集到数组中，数组由给定的构造方法提供。
      *
-     * @param generator 数组构造方法。
+     * @param arrayFactory 数组构造方法。
      * @return 包含所有流水线元素的数组。
      * @throws IllegalArgumentException 当流水线元素数量超过数组能容纳的最大值时抛出。
-     * @throws NullPointerException 当数组构造方法{@code generator}为{@code null}时抛出。
+     * @throws NullPointerException 当数组构造方法{@code arrayFactory}为{@code null}时抛出。
      */
-    E[] toArray(IntFunction<E[]> generator);
+    E[] toArray(IntFunction<E[]> arrayFactory);
 
     /**
      * 将流水线元素收集到列表中。
@@ -2331,6 +2331,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
         return Collections.unmodifiableMap(toMap(keyMapper, valueMapper));
     }
 
+    @Todo
     <K> BiPipe<K, Pipe<E>> groupAndExtend(Function<? super E, ? extends K> classifier);
 
     default <K> Pipe<List<E>> groupValues(Function<? super E, ? extends K> classifier) {
@@ -2373,9 +2374,9 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     }
 
     default <K> Map<K, List<E>> groupAndExecute(Function<? super E, ? extends K> classifier,
-        BiConsumer<K, List<E>> action) {
+        BiConsumer<K, List<E>> consumer) {
         HashMap<K, List<E>> map = group(classifier, HashMap::new);
-        map.forEach(action);
+        map.forEach(consumer);
         return map;
     }
 
@@ -2411,7 +2412,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     }
 
     /**
-     * 使用英文逗号分隔符将流水线拼接为一个字符串。
+     * 将流水线拼接为一个字符串，没有分隔符。
      * <p/>
      * 使用{@link Objects#toString(Object)}作为流水线转换为字符串的方法。
      *
@@ -2420,7 +2421,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @see #join(CharSequence)
      */
     default String join() {
-        return join(",", "", "");
+        return join("", "", "");
     }
 
     default <U> U chain(Function<? super Pipe<E>, U> function) {
@@ -2434,6 +2435,12 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     default Pipe<E> print() { // DBG 2023-05-20 01:08 调试接口
         return peek(System.out::print);
     }
+
+    /* ╔════════════════════════════════════════════════════════════════════════════════════════════════════════╗ */
+    /* ║ ╔════════════════════════════════════════════════════════════════════════════════════════════════════╗ ║ */
+    /* ║ ║                                      Static Construct Methods                                      ║ ║ */
+    /* ║ ╚════════════════════════════════════════════════════════════════════════════════════════════════════╝ ║ */
+    /* ╚════════════════════════════════════════════════════════════════════════════════════════════════════════╝ */
 
     /**
      * 获取空的流水线实例，此流水线不包含任何数据。

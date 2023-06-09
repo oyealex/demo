@@ -71,11 +71,11 @@ final class SimpleOps extends NoInstance {
         };
     }
 
-    public static <T> TerminalOp<T, Void> forEachOp(Consumer<? super T> action) {
+    public static <T> TerminalOp<T, Void> forEachOp(Consumer<? super T> consumer) {
         return new TerminalOp<T, Void>() {
             @Override
             public void accept(T value) {
-                action.accept(value);
+                consumer.accept(value);
             }
 
             @Override
@@ -103,13 +103,13 @@ final class SimpleOps extends NoInstance {
         };
     }
 
-    public static <T> TerminalOp<T, Void> forEachOrderlyOp(LongBiConsumer<? super T> action) {
+    public static <T> TerminalOp<T, Void> forEachOrderlyOp(LongBiConsumer<? super T> consumer) {
         return new TerminalOp<T, Void>() {
             private long index = 0L;
 
             @Override
             public void accept(T value) {
-                action.accept(index++, value);
+                consumer.accept(index++, value);
             }
 
             @Override
@@ -372,7 +372,7 @@ final class SimpleOps extends NoInstance {
         };
     }
 
-    public static <T> Op<T> nullsLastOp(Op<T> nextOp) {
+    public static <T> Op<T> selectNullsToLastOp(Op<T> nextOp) {
         return new ChainedOp<T, T>(nextOp) {
             private int nullCount = 0;
 
@@ -396,7 +396,7 @@ final class SimpleOps extends NoInstance {
         };
     }
 
-    public static <T> Op<T> nullsFirstOp(Op<T> nextOp) {
+    public static <T> Op<T> selectNullsToFirstOp(Op<T> nextOp) {
         return new ChainedOp.ToList<T, T>(nextOp) {
             private int nullCount = 0;
 

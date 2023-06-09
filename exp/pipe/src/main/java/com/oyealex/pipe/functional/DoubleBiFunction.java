@@ -10,7 +10,7 @@ import java.util.function.BiFunction;
  * @since 2023-03-05
  */
 @FunctionalInterface
-public interface DoubleBiFunction<T, R> extends BiFunction<Double, T,R> {
+public interface DoubleBiFunction<T, R> extends BiFunction<Double, T, R> {
     R apply(double doubleValue, T value);
 
     @Override
