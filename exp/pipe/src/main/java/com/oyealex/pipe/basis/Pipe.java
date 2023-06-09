@@ -42,6 +42,7 @@ import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 import java.util.function.ToLongFunction;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.oyealex.pipe.policy.MergePolicy.OURS_FIRST;
@@ -2036,87 +2037,295 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
         return findFirst();
     }
 
+    /**
+     * 将流水线中的元素收集到数组中，数组由给定的构造方法提供。
+     *
+     * @param generator 数组构造方法。
+     * @return 包含所有流水线元素的数组。
+     * @throws IllegalArgumentException 当流水线元素数量超过数组能容纳的最大值时抛出。
+     * @throws NullPointerException 当数组构造方法{@code generator}为{@code null}时抛出。
+     */
     E[] toArray(IntFunction<E[]> generator);
 
     /**
      * 将流水线元素收集到列表中。
      * <p/>
-     * 列表结果不保证可变性，如果需要明确可变性，请使用{@link #toList(Supplier)}。
+     * 列表结果不保证可变性，如果明确要求可变性，请使用{@link #toList(Supplier)}。
      *
      * @return 包含流水线元素的列表。
      * @see #toList(Supplier)
+     * @see #toUnmodifiableList()
      */
     default List<E> toList() { // OPT 2023-05-14 00:02 默认可变 or 默认不可变，通过全局配置控制
         return toList(ArrayList::new);
     }
 
-    default <L extends List<E>> List<E> toList(Supplier<L> supplier) {
-        return toCollection(supplier);
+    /**
+     * 将流水线元素收集到列表中，使用给定方法构造列表对象。
+     *
+     * @param listSupplier 构造列表对象的方法。
+     * @param <L> 列表类型。
+     * @return 包含流水线元素的列表。
+     * @throws NullPointerException 当列表构造方法{@code listSupplier}为{@code null}时抛出。
+     * @see #toList()
+     * @see #toUnmodifiableList()
+     */
+    default <L extends List<E>> List<E> toList(Supplier<L> listSupplier) {
+        return toCollection(listSupplier);
     }
 
+    /**
+     * 将流水线元素收集到不可变列表中。
+     *
+     * @return 包含流水线元素的不可变列表。
+     * @see #toList()
+     * @see #toList(Supplier)
+     */
     default List<E> toUnmodifiableList() {
         return Collections.unmodifiableList(toList());
     }
 
+    /**
+     * 将流水线元素收集到集合中。
+     * <p/>
+     * 集合结果不保证可变性，如果明确要求可变性，请使用{@link #toSet(Supplier)}。
+     *
+     * @return 包含流水线元素的集合。
+     * @see #toSet(Supplier)
+     * @see #toUnmodifiableSet()
+     */
     default Set<E> toSet() {
         return toSet(HashSet::new);
     }
 
-    default <S extends Set<E>> Set<E> toSet(Supplier<S> supplier) {
-        return toCollection(supplier);
+    /**
+     * 将流水线元素收集到集合中，使用给定方法构造集合对象。
+     *
+     * @param setSupplier 构造集合对象的方法。
+     * @param <S> 集合类型。
+     * @return 包含流水线元素的集合。
+     * @throws NullPointerException 当集合构造方法{@code setSupplier}为{@code null}时抛出。
+     * @see #toSet()
+     * @see #toUnmodifiableSet()
+     */
+    default <S extends Set<E>> Set<E> toSet(Supplier<S> setSupplier) {
+        return toCollection(setSupplier);
     }
 
+    /**
+     * 将流水线元素收集到不可变集合中。
+     *
+     * @return 包含流水线元素的不可变集合。
+     * @see #toSet()
+     * @see #toSet(Supplier)
+     */
     default Set<E> toUnmodifiableSet() {
         return Collections.unmodifiableSet(toSet());
     }
 
-    default <C extends Collection<E>> C toCollection(Supplier<C> supplier) {
-        requireNonNull(supplier);
-        return reduceIdentity(supplier.get(), Collection::add);
+    /**
+     * 将流水线元素收集到容器中，使用给定方法构造容器对象。
+     *
+     * @param collectionSupplier 构造容器对象的方法。
+     * @param <C> 容器类型。
+     * @return 包含流水线元素的容器。
+     * @throws NullPointerException 当容器构造方法{@code collectionSupplier}为{@code null}时抛出。
+     * @see #toList(Supplier)
+     * @see #toSet(Supplier)
+     */
+    default <C extends Collection<E>> C toCollection(Supplier<C> collectionSupplier) {
+        requireNonNull(collectionSupplier);
+        return reduceIdentity(collectionSupplier.get(), Collection::add);
     }
 
+    /**
+     * 将流水线元素收集到map中，键由给定的方法获取，值为元素自身。
+     * <p/>
+     * 不同于{@link Collectors#toMap(Function, Function)}系列API，如果映射得到的键存在相同值，则会按照元素在流水线中的次序
+     * 依次装入结果map中，所以对于映射键相同的元素，在最终的结果map中仅会保留次序较后者。
+     * <p/>
+     * 结果map不保证可变性，如果明确要求可变性，请使用{@link #toMapKeyed(Function, Supplier)}。
+     *
+     * @param keyMapper 键映射方法。
+     * @param <K> 键的类型。
+     * @return 结果map。
+     * @throws NullPointerException 当键映射方法{@code keyMapper}为{@code null}时抛出。
+     * @see #toMapKeyed(Function, Supplier)
+     * @see #toMapValued(Function)
+     * @see #toMap(Function, Function)
+     */
     default <K> Map<K, E> toMapKeyed(Function<? super E, ? extends K> keyMapper) {
         return toMapKeyed(keyMapper, HashMap::new);
     }
 
-    default <K, M extends Map<K, E>> M toMapKeyed(Function<? super E, ? extends K> keyMapper, Supplier<M> supplier) {
-        requireNonNull(supplier);
+    /**
+     * 将流水线元素收集到map中，键由给定的方法获取，值为元素自身，使用给定的方法构造map对象。
+     * <p/>
+     * 不同于{@link Collectors#toMap(Function, Function)}系列API，如果映射得到的键存在相同值，则会按照元素在流水线中的次序
+     * 依次装入结果map中，所以对于映射键相同的元素，在最终的结果map中仅会保留次序较后者。
+     *
+     * @param keyMapper 键映射方法。
+     * @param mapSupplier 结果map构造方法。
+     * @param <K> 键类型。
+     * @param <M> 结果map类型。
+     * @return 结果map。
+     * @throws NullPointerException 当键映射方法{@code keyMapper}或结果map构造方法{@code mapSupplier}为{@code null}时抛出。
+     * @see #toMapKeyed(Function)
+     * @see #toMapValued(Function)
+     * @see #toMap(Function, Function, Supplier)
+     */
+    default <K, M extends Map<K, E>> M toMapKeyed(Function<? super E, ? extends K> keyMapper, Supplier<M> mapSupplier) {
+        requireNonNull(mapSupplier);
         requireNonNull(keyMapper);
-        return reduceIdentity(supplier.get(), (map, value) -> map.put(keyMapper.apply(value), value));
+        return reduceIdentity(mapSupplier.get(), (map, value) -> map.put(keyMapper.apply(value), value));
     }
 
+    /**
+     * 将流水线元素收集到map中，键为元素自身，值由给定的方法获取。
+     * <p/>
+     * 不同于{@link Collectors#toMap(Function, Function)}系列API，如果键存在相同值，则会按照元素在流水线中的次序
+     * 依次装入结果map中，所以对于映射键相同的元素，在最终的结果map中仅会保留次序较后者。
+     * <p/>
+     * 结果map不保证可变性，如果明确要求可变性，请使用{@link #toMapValued(Function, Supplier)}。
+     *
+     * @param valueMapper 值映射方法。
+     * @param <V> 值的类型。
+     * @return 结果map。
+     * @throws NullPointerException 当值映射方法{@code valueMapper}为{@code null}时抛出。
+     * @see #toMapValued(Function, Supplier)
+     * @see #toMapKeyed(Function)
+     * @see #toMap(Function, Function)
+     */
     default <V> Map<E, V> toMapValued(Function<? super E, ? extends V> valueMapper) {
         return toMapValued(valueMapper, HashMap::new);
     }
 
-    default <V, M extends Map<E, V>> M toMapValued(Function<? super E, ? extends V> valueMapper, Supplier<M> supplier) {
-        requireNonNull(supplier);
+    /**
+     * 将流水线元素收集到map中，键为元素自身，值由给定的方法获取，使用给定的方法构造map对象。
+     * <p/>
+     * 不同于{@link Collectors#toMap(Function, Function)}系列API，如果键存在相同值，则会按照元素在流水线中的次序
+     * 依次装入结果map中，所以对于映射键相同的元素，在最终的结果map中仅会保留次序较后者。
+     *
+     * @param valueMapper 值映射方法。
+     * @param mapSupplier 结果map构造方法。
+     * @param <V> 值类型。
+     * @param <M> 结果map类型。
+     * @return 结果map。
+     * @throws NullPointerException 当值映射方法{@code keyMapper}或结果map构造方法{@code mapSupplier}为{@code null}时抛出。
+     * @see #toMapValued(Function)
+     * @see #toMapKeyed(Function)
+     * @see #toMap(Function, Function, Supplier)
+     */
+    default <V, M extends Map<E, V>> M toMapValued(Function<? super E, ? extends V> valueMapper,
+        Supplier<M> mapSupplier) {
+        requireNonNull(mapSupplier);
         requireNonNull(valueMapper);
-        return reduceIdentity(supplier.get(), (map, value) -> map.put(value, valueMapper.apply(value)));
+        return reduceIdentity(mapSupplier.get(), (map, value) -> map.put(value, valueMapper.apply(value)));
     }
 
+    /**
+     * 将流水线元素收集到map中，键和值由给定的方法获取。
+     * <p/>
+     * 不同于{@link Collectors#toMap(Function, Function)}系列API，如果映射得到的键存在相同值，则会按照元素在流水线中的次序
+     * 依次装入结果map中，所以对于映射键相同的元素，在最终的结果map中仅会保留次序较后者。
+     * <p/>
+     * 结果map不保证可变性，如果明确要求可变性，请使用{@link #toMap(Function, Function, Supplier)}。
+     *
+     * @param keyMapper 键映射方法。
+     * @param valueMapper 值映射方法。
+     * @param <K> 键的类型。
+     * @param <V> 值的类型。
+     * @return 结果map。
+     * @throws NullPointerException 当键映射方法{@code keyMapper}或值映射方法{@code valueMapper}为{@code null}时抛出。
+     * @see #toMap(Function, Function, Supplier)
+     * @see #toMapKeyed(Function)
+     * @see #toMapValued(Function)
+     */
     default <K, V> Map<K, V> toMap(Function<? super E, ? extends K> keyMapper,
         Function<? super E, ? extends V> valueMapper) {
         return toMap(keyMapper, valueMapper, HashMap::new);
     }
 
+    /**
+     * 将流水线元素收集到map中，键和值由给定的方法获取，使用给定的方法构造map对象。
+     * <p/>
+     * 不同于{@link Collectors#toMap(Function, Function)}系列API，如果映射得到的键存在相同值，则会按照元素在流水线中的次序
+     * 依次装入结果map中，所以对于映射键相同的元素，在最终的结果map中仅会保留次序较后者。
+     *
+     * @param keyMapper 键映射方法。
+     * @param valueMapper 值映射方法。
+     * @param mapSupplier 结果map构造方法。
+     * @param <K> 键的类型。
+     * @param <V> 值的类型。
+     * @param <M> 结果map类型。
+     * @return 结果map。
+     * @throws NullPointerException 当键映射方法{@code keyMapper}、值映射方法{@code valueMapper}或结果map构造方法
+     * {@code mapSupplier}为{@code null}时抛出。
+     * @see #toMap(Function, Function)
+     * @see #toMapKeyed(Function, Supplier)
+     * @see #toMapValued(Function, Supplier)
+     */
     default <K, V, M extends Map<K, V>> M toMap(Function<? super E, ? extends K> keyMapper,
-        Function<? super E, ? extends V> valueMapper, Supplier<M> supplier) {
-        requireNonNull(supplier);
+        Function<? super E, ? extends V> valueMapper, Supplier<M> mapSupplier) {
+        requireNonNull(mapSupplier);
         requireNonNull(keyMapper);
         requireNonNull(valueMapper);
-        return reduceIdentity(supplier.get(),
+        return reduceIdentity(mapSupplier.get(),
             (map, value) -> map.put(keyMapper.apply(value), valueMapper.apply(value)));
     }
 
+    /**
+     * 将流水线元素收集到不可变map中，键由给定的方法获取，值为元素自身。
+     * <p/>
+     * 不同于{@link Collectors#toMap(Function, Function)}系列API，如果映射得到的键存在相同值，则会按照元素在流水线中的次序
+     * 依次装入结果map中，所以对于映射键相同的元素，在最终的结果map中仅会保留次序较后者。
+     *
+     * @param keyMapper 键映射方法。
+     * @param <K> 键的类型。
+     * @return 不可变结果map。
+     * @throws NullPointerException 当键映射方法{@code keyMapper}为{@code null}时抛出。
+     * @see #toUnmodifiableMapValued(Function)
+     * @see #toUnmodifiableMap(Function, Function)
+     * @see #toMapKeyed(Function)
+     */
     default <K> Map<K, E> toUnmodifiableMapKeyed(Function<? super E, ? extends K> keyMapper) {
         return Collections.unmodifiableMap(toMapKeyed(keyMapper));
     }
 
+    /**
+     * 将流水线元素收集到不可变map中，键为元素自身，值由给定的方法获取。
+     * <p/>
+     * 不同于{@link Collectors#toMap(Function, Function)}系列API，如果键存在相同值，则会按照元素在流水线中的次序
+     * 依次装入结果map中，所以对于映射键相同的元素，在最终的结果map中仅会保留次序较后者。
+     *
+     * @param valueMapper 值映射方法。
+     * @param <V> 值的类型。
+     * @return 不可变结果map。
+     * @throws NullPointerException 当值映射方法{@code valueMapper}为{@code null}时抛出。
+     * @see #toUnmodifiableMapKeyed(Function)
+     * @see #toUnmodifiableMap(Function, Function)
+     * @see #toMapValued(Function)
+     */
     default <V> Map<E, V> toUnmodifiableMapValued(Function<? super E, ? extends V> valueMapper) {
         return Collections.unmodifiableMap(toMapValued(valueMapper));
     }
 
+    /**
+     * 将流水线元素收集到不可变map中，键和值由给定的方法获取。
+     * <p/>
+     * 不同于{@link Collectors#toMap(Function, Function)}系列API，如果映射得到的键存在相同值，则会按照元素在流水线中的次序
+     * 依次装入结果map中，所以对于映射键相同的元素，在最终的结果map中仅会保留次序较后者。
+     *
+     * @param keyMapper 键映射方法。
+     * @param valueMapper 值映射方法。
+     * @param <K> 键的类型。
+     * @param <V> 值的类型。
+     * @return 不可变结果map。
+     * @throws NullPointerException 当键映射方法{@code keyMapper}或值映射方法{@code valueMapper}为{@code null}时抛出。
+     * @see #toUnmodifiableMapKeyed(Function)
+     * @see #toUnmodifiableMapValued(Function)
+     * @see #toMap(Function, Function)
+     */
     default <K, V> Map<K, V> toUnmodifiableMap(Function<? super E, ? extends K> keyMapper,
         Function<? super E, ? extends V> valueMapper) {
         return Collections.unmodifiableMap(toMap(keyMapper, valueMapper));

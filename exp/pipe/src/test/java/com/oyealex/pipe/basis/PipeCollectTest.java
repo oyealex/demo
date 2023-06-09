@@ -1,6 +1,7 @@
 package com.oyealex.pipe.basis;
 
 import com.oyealex.pipe.PipeTestFixture;
+import com.oyealex.pipe.assist.IntBox;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +16,7 @@ import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
+import static com.oyealex.pipe.basis.Pipe.constant;
 import static com.oyealex.pipe.basis.Pipe.list;
 import static com.oyealex.pipe.basis.Pipe.set;
 import static java.util.Arrays.asList;
@@ -23,6 +25,7 @@ import static java.util.stream.Collectors.toMap;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 /**
  * 针对流水线收集元素到容器系列API的测试
@@ -136,5 +139,56 @@ class PipeCollectTest extends PipeTestFixture {
         return collection.stream().collect(toMap(keyMapper, valueMapper));
     }
 
+    @Test
+    @DisplayName("收集流水线元素到map中，重新映射键，如果映射的键会重复，则最终的map仅包含较后的元素")
+    void should_retain_latter_one_when_collect_pipe_elements_to_map_with_mapped_duplicated_keys() {
+        List<String> sample = generateRandomStrList();
+        Map<String, String> map = list(sample).toMapKeyed(ignored -> SOME_STR);
+        assertEquals(sample.get(sample.size() - 1), map.get(SOME_STR));
+    }
+
+    @Test
+    @DisplayName("收集流水线元素到map中，重新映射值，如果键会重复，则最终的map仅包含较后的元素")
+    void should_retain_latter_one_when_collect_pipe_elements_to_map_with_duplicated_keys() {
+        IntBox counter = IntBox.box();
+        Map<String, Integer> map = constant(SOME_STR, 10).toMapValued(ignored -> counter.incrementAndGet());
+        assertEquals(counter.get(), map.get(SOME_STR));
+    }
+
     // exception test
+
+    @Test
+    @DisplayName("当不能为null的参数为null时抛出异常")
+    void should_throw_exception_when_required_non_null_param_is_null() {
+        assertAll(() -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().toArray(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().toList(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().toSet(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().toCollection(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().toMapKeyed(null)),
+            () -> assertThrowsExactly(NullPointerException.class,
+                () -> infiniteIntegerPipe().toMapKeyed(null, HashMap::new)),
+            () -> assertThrowsExactly(NullPointerException.class,
+                () -> infiniteIntegerPipe().toMapKeyed(identity(), null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().toMapValued(null)),
+            () -> assertThrowsExactly(NullPointerException.class,
+                () -> infiniteIntegerPipe().toMapValued(null, HashMap::new)),
+            () -> assertThrowsExactly(NullPointerException.class,
+                () -> infiniteIntegerPipe().toMapValued(identity(), null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().toMap(null, identity())),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().toMap(identity(), null)),
+            () -> assertThrowsExactly(NullPointerException.class,
+                () -> infiniteIntegerPipe().toMap(null, identity(), HashMap::new)),
+            () -> assertThrowsExactly(NullPointerException.class,
+                () -> infiniteIntegerPipe().toMap(identity(), null, HashMap::new)),
+            () -> assertThrowsExactly(NullPointerException.class,
+                () -> infiniteIntegerPipe().toMap(identity(), identity(), null)),
+            () -> assertThrowsExactly(NullPointerException.class,
+                () -> infiniteIntegerPipe().toUnmodifiableMapKeyed(null)),
+            () -> assertThrowsExactly(NullPointerException.class,
+                () -> infiniteIntegerPipe().toUnmodifiableMapValued(null)),
+            () -> assertThrowsExactly(NullPointerException.class,
+                () -> infiniteIntegerPipe().toUnmodifiableMap(null, identity())),
+            () -> assertThrowsExactly(NullPointerException.class,
+                () -> infiniteIntegerPipe().toUnmodifiableMap(identity(), null)));
+    }
 }
