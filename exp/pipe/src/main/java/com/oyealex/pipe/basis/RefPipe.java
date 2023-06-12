@@ -463,8 +463,8 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public <R> Pipe<OUT> sortByOrderly(LongBiFunction<? super OUT, ? extends R> mapper,
-        Comparator<? super R> comparator) {
+    public <K> Pipe<OUT> sortByOrderly(LongBiFunction<? super OUT, ? extends K> mapper,
+        Comparator<? super K> comparator) {
         requireNonNull(mapper);
         return new SortOp.Orderly<>(this, naturalOrderIfNull(comparator), mapper);
     }

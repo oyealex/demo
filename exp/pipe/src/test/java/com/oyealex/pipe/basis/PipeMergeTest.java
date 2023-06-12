@@ -46,65 +46,51 @@ class PipeMergeTest extends PipeTestFixture {
         System.out.println(prefixedIntegerStrPipe("A").limit(2)
             .mergeAlternately(prefixedIntegerStrPipe("B").limit(4), MERGE_AS_NULL)
             .mapNull("_")
-            .println()
             .limit(1)
             .toList());
         System.out.println(prefixedIntegerStrPipe("A").limit(4)
             .mergeAlternately(prefixedIntegerStrPipe("B").limit(2), MERGE_AS_NULL)
             .mapNull("_")
-            .println()
             .limit(1)
             .toList());
-        System.out.println();
         System.out.println(prefixedIntegerStrPipe("A").limit(2)
             .mergeAlternately(prefixedIntegerStrPipe("B").limit(4), TAKE_OURS)
             .mapNull("_")
-            .println()
             .limit(1)
             .toList());
         System.out.println(prefixedIntegerStrPipe("A").limit(4)
             .mergeAlternately(prefixedIntegerStrPipe("B").limit(2), TAKE_OURS)
             .mapNull("_")
-            .println()
             .limit(1)
             .toList());
-        System.out.println();
         System.out.println(prefixedIntegerStrPipe("A").limit(2)
             .mergeAlternately(prefixedIntegerStrPipe("B").limit(4), TAKE_THEIRS)
             .mapNull("_")
-            .println()
             .limit(1)
             .toList());
         System.out.println(prefixedIntegerStrPipe("A").limit(4)
             .mergeAlternately(prefixedIntegerStrPipe("B").limit(2), TAKE_THEIRS)
             .mapNull("_")
-            .println()
             .limit(1)
             .toList());
-        System.out.println();
         System.out.println(prefixedIntegerStrPipe("A").limit(2)
             .mergeAlternately(prefixedIntegerStrPipe("B").limit(4), TAKE_REMAINING)
             .mapNull("_")
-            .println()
             .limit(1)
             .toList());
         System.out.println(prefixedIntegerStrPipe("A").limit(4)
             .mergeAlternately(prefixedIntegerStrPipe("B").limit(2), TAKE_REMAINING)
             .mapNull("_")
-            .println()
             .limit(1)
             .toList());
-        System.out.println();
         System.out.println(prefixedIntegerStrPipe("A").limit(2)
             .mergeAlternately(prefixedIntegerStrPipe("B").limit(4), DROP)
             .mapNull("_")
-            .println()
             .limit(1)
             .toList());
         System.out.println(prefixedIntegerStrPipe("A").limit(4)
             .mergeAlternately(prefixedIntegerStrPipe("B").limit(2), DROP)
             .mapNull("_")
-            .println()
             .limit(1)
             .toList());
     }

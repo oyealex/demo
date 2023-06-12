@@ -5,8 +5,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.function.Supplier;
@@ -14,6 +16,7 @@ import java.util.function.Supplier;
 import static com.oyealex.pipe.basis.Pipe.generate;
 import static com.oyealex.pipe.basis.Pipe.iterate;
 import static com.oyealex.pipe.basis.Pipe.list;
+import static com.oyealex.pipe.basis.Pipe.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -152,6 +155,38 @@ public abstract class PipeTestFixture { // TODO 2023-06-07 01:24 全面增加对
         return (value.intValue() & 1) == 0;
     }
 
+    @SafeVarargs
+    protected static <T> List<T> addAll(Collection<? extends T>... lists) {
+        List<T> all = new ArrayList<>();
+        for (Collection<? extends T> list : lists) {
+            all.addAll(list);
+        }
+        return all;
+    }
+
+    protected <T> void assertEqualsWithType(T expected, T actual) {
+        assertEquals(expected, actual);
+        assertEquals((expected == null ? new Object() : expected).getClass(),
+            (actual == null ? new Object() : actual).getClass());
+    }
+
+    protected <T> void assertEqualsWithType(Collection<T> expected, Collection<T> actual) {
+        assertEquals(expected, actual);
+        Iterator<T> expectedIterator = expected.iterator();
+        Iterator<T> actualIterator = actual.iterator();
+        while (expectedIterator.hasNext() && actualIterator.hasNext()) {
+            assertEquals(expectedIterator.next().getClass(), actualIterator.next().getClass());
+        }
+    }
+
+    protected static Pipe<UnComparableTestDouble> generateUnComparablePipe() {
+        return of(new UnComparableTestDouble(), new UnComparableTestDouble());
+    }
+
+    protected static class UnComparableTestDouble {
+        public UnComparableTestDouble() {}
+    }
+
     protected static class ComparableTestDouble implements Comparable<ComparableTestDouble> {
         private final String value;
 
@@ -189,27 +224,17 @@ public abstract class PipeTestFixture { // TODO 2023-06-07 01:24 全面增加对
         }
     }
 
-    @SafeVarargs
-    protected static <T> List<T> addAll(Collection<? extends T>... lists) {
-        List<T> all = new ArrayList<>();
-        for (Collection<? extends T> list : lists) {
-            all.addAll(list);
+    protected static class RecordedCounter<T> {
+        private final Map<T, Integer> ordered = new HashMap<>();
+
+        private int count = 0;
+
+        public RecordedCounter() {
         }
-        return all;
-    }
 
-    protected <T> void assertEqualsWithType(T expected, T actual) {
-        assertEquals(expected, actual);
-        assertEquals((expected == null ? new Object() : expected).getClass(),
-            (actual == null ? new Object() : actual).getClass());
-    }
-
-    protected <T> void assertEqualsWithType(Collection<T> expected, Collection<T> actual) {
-        assertEquals(expected, actual);
-        Iterator<T> expectedIterator = expected.iterator();
-        Iterator<T> actualIterator = actual.iterator();
-        while (expectedIterator.hasNext() && actualIterator.hasNext()) {
-            assertEquals(expectedIterator.next().getClass(), actualIterator.next().getClass());
+        public int getOrder(T value) {
+            return ordered.computeIfAbsent(value, ignored -> count++);
         }
     }
 }
+

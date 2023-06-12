@@ -979,7 +979,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 对流水线中的元素排序，以给定映射后的结果的自然顺序排序。
      * <p/>
-     * 要求映射后的结果类型{@code R}实现了{@link Comparable}。
+     * 要求映射后的结果类型{@code K}实现了{@link Comparable}。
      *
      * @param mapper 排序依据的映射方法。
      * @param <K> 映射结果的类型。
@@ -987,7 +987,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
      * @implNote 如果 {@code mapper}为{@link Function#identity()}则此方法等同于{@code sort()}。
      * @see #sortBy(Function, Comparator)
-     * @see #sortBy(Function)
+     * @see #sortByOrderly(LongBiFunction)
      */
     default <K extends Comparable<? super K>> Pipe<E> sortBy(Function<? super E, ? extends K> mapper) {
         return isStdIdentify(mapper) ? sort() : sort(comparing(mapper));
@@ -1014,14 +1014,14 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 对流水线中的元素排序，以给定的映射方法映射后的结果自然顺序为准，支持访问元素次序。
      * <p/>
-     * 要求映射后的结果类型{@code R}实现了{@link Comparable}。
+     * 要求映射后的结果类型{@code K}实现了{@link Comparable}。
      *
      * @param mapper 排序依据的映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @param <K> 映射结果的类型。
      * @return 元素排序后的流水线。
      * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
      * @see #sortBy(Function, Comparator)
-     * @see #sortBy(Function)
+     * @see #sortByOrderly(LongBiFunction, Comparator)
      */
     default <K extends Comparable<? super K>> Pipe<E> sortByOrderly(LongBiFunction<? super E, ? extends K> mapper) {
         return sortByOrderly(mapper, naturalOrder());
@@ -1032,13 +1032,13 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      *
      * @param mapper 排序依据的映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
      * @param comparator 元素比较器，如果比较器为{@code null}则默认以{@link Comparator#naturalOrder()}作为比较器。
-     * @param <R> 映射结果的类型。
+     * @param <K> 映射结果的类型。
      * @return 元素排序后的流水线。
      * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
      * @see #sortBy(Function, Comparator)
      * @see #sortByOrderly(LongBiFunction)
      */
-    <R> Pipe<E> sortByOrderly(LongBiFunction<? super E, ? extends R> mapper, Comparator<? super R> comparator);
+    <K> Pipe<E> sortByOrderly(LongBiFunction<? super E, ? extends K> mapper, Comparator<? super K> comparator);
 
     /**
      * 将被选中的元素置于流水线的头部，选中的元素和未选中的元素各自相对位置保持不变。
@@ -1857,12 +1857,14 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     }
 
     /**
-     * 获取流水线中最小的元素，以自然顺序为比较依据。
+     * 获取流水线中自然顺序最小的元素。
      * <p/>
-     * 尝试将元素转为{@link Comparable}来进行比较。
+     * 要求元素实现了{@link Comparable}。
      *
-     * @return 最小的元素，如果流水线为空则返回空的{@link Optional}
-     * @throws ClassCastException 当流水线元素无法转换为{@link Comparable}类型时抛出
+     * @return 最小的元素，如果流水线为空则返回{@link Optional#empty()}。
+     * @throws ClassCastException 当流水线元素无法转换为{@link Comparable}类型时抛出。
+     * @see #min(Comparator)
+     * @see #max()
      */
     default Optional<E> min() {
         return min(null);
@@ -1871,34 +1873,87 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 获取流水线中最小的元素，以给定的比较器为比较依据。
      *
-     * @param comparator 比较器
-     * @return 最小的元素，如果流水线为空则返回空的{@link Optional}
+     * @param comparator 比较器，如果比较器为{@code null}则默认以{@link Comparator#naturalOrder()}作为比较器。
+     * @return 最小的元素，如果流水线为空则返回{@link Optional#empty()}。
+     * @throws ClassCastException 当给定比较器{@code comparator}要求流水线元素实现{@link Comparable}接口，
+     * 而元素无法转换为{@link Comparable}类型时抛出。
      * @see Stream#min(Comparator)
+     * @see #min()
+     * @see #max(Comparator)
      */
     Optional<E> min(Comparator<? super E> comparator);
 
+    /**
+     * 获取流水线中最小的元素，以给定映射后的结果的自然顺序排序。
+     * <p/>
+     * 要求映射后的结果类型{@code K}实现了{@link Comparable}。
+     *
+     * @param mapper 比较依据的映射方法。
+     * @param <K> 映射结果的类型。
+     * @return 最小的元素，如果流水线为空则返回{@link Optional#empty()}。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @see #minBy(Function, Comparator)
+     * @see #maxBy(Function)
+     */
     default <K extends Comparable<? super K>> Optional<E> minBy(Function<? super E, ? extends K> mapper) {
         return isStdIdentify(mapper) ? min() : min(comparing(mapper));
     }
 
+    /**
+     * 获取流水线中最小的元素，以给定的比较器对映射之后的结果排序顺序为准。
+     *
+     * @param mapper 排序依据的映射方法。
+     * @param comparator 元素比较器，如果比较器为{@code null}则默认以{@link Comparator#naturalOrder()}作为比较器。
+     * @param <K> 映射结果的类型。
+     * @return 最小的元素，如果流水线为空则返回{@link Optional#empty()}。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @implNote 如果 {@code mapper}为{@link Function#identity()}则此方法等同于{@code min(comparator)}。
+     * @see #minBy(Function)
+     * @see #maxBy(Function, Comparator)
+     */
     @SuppressWarnings("unchecked")
     default <K> Optional<E> minBy(Function<? super E, ? extends K> mapper, Comparator<? super K> comparator) {
         return isStdIdentify(mapper) ? min((Comparator<? super E>) comparator) : min(comparing(mapper, comparator));
     }
 
+    /**
+     * 获取流水线中最小的元素，以给定的映射方法映射后的结果自然顺序为准，支持访问元素次序。
+     * <p/>
+     * 要求映射后的结果类型{@code K}实现了{@link Comparable}。
+     *
+     * @param mapper 排序依据的映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
+     * @param <K> 映射结果的类型。
+     * @return 最小的元素，如果流水线为空则返回{@link Optional#empty()}。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @see #minByOrderly(LongBiFunction, Comparator)
+     * @see #maxByOrderly(LongBiFunction)
+     */
     default <K extends Comparable<? super K>> Optional<E> minByOrderly(LongBiFunction<? super E, ? extends K> mapper) {
         return minByOrderly(mapper, naturalOrder());
     }
 
+    /**
+     * 获取流水线中最小的元素，以给定的比较方法排序，排序的依据为映射后的结果。
+     *
+     * @param mapper 排序依据的映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
+     * @param comparator 元素比较器，如果比较器为{@code null}则默认以{@link Comparator#naturalOrder()}作为比较器。
+     * @param <K> 映射结果的类型。
+     * @return 最小的元素，如果流水线为空则返回{@link Optional#empty()}。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @see #minByOrderly(LongBiFunction)
+     * @see #maxByOrderly(LongBiFunction, Comparator)
+     */
     <K> Optional<E> minByOrderly(LongBiFunction<? super E, ? extends K> mapper, Comparator<? super K> comparator);
 
     /**
-     * 获取流水线中最大的元素，以自然顺序为比较依据。
+     * 获取流水线中自然顺序最大的元素。
      * <p/>
-     * 尝试将元素转为{@link Comparable}来进行比较。
+     * 要求元素实现了{@link Comparable}。
      *
-     * @return 最大的元素，如果流水线为空则返回空的{@link Optional}
-     * @throws ClassCastException 当流水线元素无法转换为{@link Comparable}类型时抛出
+     * @return 最大的元素，如果流水线为空则返回{@link Optional#empty()}。
+     * @throws ClassCastException 当流水线元素无法转换为{@link Comparable}类型时抛出。
+     * @see #max(Comparator)
+     * @see #min()
      */
     default Optional<E> max() {
         return max(null);
@@ -1907,43 +1962,135 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 获取流水线中最大的元素，以给定的比较器为比较依据。
      *
-     * @param comparator 比较器
-     * @return 最大的元素，如果流水线为空则返回空的{@link Optional}
+     * @param comparator 比较器，如果比较器为{@code null}则默认以{@link Comparator#naturalOrder()}作为比较器。
+     * @return 最大的元素，如果流水线为空则返回{@link Optional#empty()}。
+     * @throws ClassCastException 当给定比较器{@code comparator}要求流水线元素实现{@link Comparable}接口，
+     * 而元素无法转换为{@link Comparable}类型时抛出。
      * @see Stream#max(Comparator)
+     * @see #max()
+     * @see #min(Comparator)
      */
     default Optional<E> max(Comparator<? super E> comparator) {
         return min(optimizedReverseOrder(comparator));
     }
 
+    /**
+     * 获取流水线中最大的元素，以给定映射后的结果的自然顺序排序。
+     * <p/>
+     * 要求映射后的结果类型{@code K}实现了{@link Comparable}。
+     *
+     * @param mapper 比较依据的映射方法。
+     * @param <K> 映射结果的类型。
+     * @return 最大的元素，如果流水线为空则返回{@link Optional#empty()}。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @see #maxBy(Function, Comparator)
+     * @see #minBy(Function)
+     */
     default <K extends Comparable<? super K>> Optional<E> maxBy(Function<? super E, ? extends K> mapper) {
         return isStdIdentify(mapper) ? max() : max(comparing(mapper));
     }
 
+    /**
+     * 获取流水线中最大的元素，以给定的比较器对映射之后的结果排序顺序为准。
+     *
+     * @param mapper 排序依据的映射方法。
+     * @param comparator 元素比较器，如果比较器为{@code null}则默认以{@link Comparator#naturalOrder()}作为比较器。
+     * @param <K> 映射结果的类型。
+     * @return 最大的元素，如果流水线为空则返回{@link Optional#empty()}。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @implNote 如果 {@code mapper}为{@link Function#identity()}则此方法等同于{@code min(comparator)}。
+     * @see #maxBy(Function)
+     * @see #minBy(Function, Comparator)
+     */
     @SuppressWarnings("unchecked")
     default <K> Optional<E> maxBy(Function<? super E, ? extends K> mapper, Comparator<? super K> comparator) {
         return isStdIdentify(mapper) ? max((Comparator<? super E>) comparator) : max(comparing(mapper, comparator));
     }
 
+    /**
+     * 获取流水线中最大的元素，以给定的映射方法映射后的结果自然顺序为准，支持访问元素次序。
+     * <p/>
+     * 要求映射后的结果类型{@code K}实现了{@link Comparable}。
+     *
+     * @param mapper 排序依据的映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
+     * @param <K> 映射结果的类型。
+     * @return 最大的元素，如果流水线为空则返回{@link Optional#empty()}。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @see #maxByOrderly(LongBiFunction, Comparator)
+     * @see #minByOrderly(LongBiFunction)
+     */
     default <K extends Comparable<? super K>> Optional<E> maxByOrderly(LongBiFunction<? super E, ? extends K> mapper) {
         return maxByOrderly(mapper, naturalOrder());
     }
 
+    /**
+     * 获取流水线中最大的元素，以给定的比较方法排序，排序的依据为映射后的结果。
+     *
+     * @param mapper 排序依据的映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
+     * @param comparator 元素比较器，如果比较器为{@code null}则默认以{@link Comparator#naturalOrder()}作为比较器。
+     * @param <K> 映射结果的类型。
+     * @return 最大的元素，如果流水线为空则返回{@link Optional#empty()}。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @see #maxByOrderly(LongBiFunction)
+     * @see #minByOrderly(LongBiFunction, Comparator)
+     */
     default <K> Optional<E> maxByOrderly(LongBiFunction<? super E, ? extends K> mapper,
         Comparator<? super K> comparator) {
         return minByOrderly(mapper, optimizedReverseOrder(comparator));
     }
 
+    /**
+     * 获取流水线中自然顺序最小和最大的元素。
+     * <p/>
+     * 要求元素实现了{@link Comparable}。
+     *
+     * @return 最小和最大的元素组成的二元组。
+     * @throws ClassCastException 当流水线元素无法转换为{@link Comparable}类型时抛出。
+     * @see #minMax(Comparator)
+     */
     default Tuple<Optional<E>, Optional<E>> minMax() {
         return minMax(null);
     }
 
+    /**
+     * 获取流水线中最小和最大的元素，以给定的比较器为比较依据。
+     *
+     * @param comparator 比较器，如果比较器为{@code null}则默认以{@link Comparator#naturalOrder()}作为比较器。
+     * @return 最小和最大的元素组成的二元组。
+     * @throws ClassCastException 当给定比较器{@code comparator}要求流水线元素实现{@link Comparable}接口，
+     * 而元素无法转换为{@link Comparable}类型时抛出。
+     * @see Stream#min(Comparator)
+     * @see #minMax()
+     */
     Tuple<Optional<E>, Optional<E>> minMax(Comparator<? super E> comparator);
 
+    /**
+     * 获取流水线中最小和最大的元素，以给定映射后的结果的自然顺序排序。
+     * <p/>
+     * 要求映射后的结果类型{@code K}实现了{@link Comparable}。
+     *
+     * @param mapper 比较依据的映射方法。
+     * @param <K> 映射结果的类型。
+     * @return 最小和最大的元素组成的二元组。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @see #minMaxBy(Function, Comparator)
+     */
     default <K extends Comparable<? super K>> Tuple<Optional<E>, Optional<E>> minMaxBy(
         Function<? super E, ? extends K> mapper) {
         return isStdIdentify(mapper) ? minMax() : minMax(comparing(mapper));
     }
 
+    /**
+     * 获取流水线中最小和最大的元素，以给定的比较器对映射之后的结果排序顺序为准。
+     *
+     * @param mapper 排序依据的映射方法。
+     * @param comparator 元素比较器，如果比较器为{@code null}则默认以{@link Comparator#naturalOrder()}作为比较器。
+     * @param <K> 映射结果的类型。
+     * @return 最小和最大的元素组成的二元组。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @implNote 如果 {@code mapper}为{@link Function#identity()}则此方法等同于{@code min(comparator)}。
+     * @see #minMaxBy(Function)
+     */
     @SuppressWarnings("unchecked")
     default <K> Tuple<Optional<E>, Optional<E>> minMaxBy(Function<? super E, ? extends K> mapper,
         Comparator<? super K> comparator) {
@@ -1951,11 +2098,32 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
             minMax(comparing(mapper, comparator));
     }
 
+    /**
+     * 获取流水线中最小和最大的元素，以给定的映射方法映射后的结果自然顺序为准，支持访问元素次序。
+     * <p/>
+     * 要求映射后的结果类型{@code K}实现了{@link Comparable}。
+     *
+     * @param mapper 排序依据的映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
+     * @param <K> 映射结果的类型。
+     * @return 最小和最大的元素组成的二元组。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @see #minMaxByOrderly(LongBiFunction, Comparator)
+     */
     default <K extends Comparable<? super K>> Tuple<Optional<E>, Optional<E>> minMaxByOrderly(
         LongBiFunction<? super E, ? extends K> mapper) {
         return minMaxByOrderly(mapper, naturalOrder());
     }
 
+    /**
+     * 获取流水线中最小和最大的元素，以给定的比较方法排序，排序的依据为映射后的结果。
+     *
+     * @param mapper 排序依据的映射方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为需要映射的元素。
+     * @param comparator 元素比较器，如果比较器为{@code null}则默认以{@link Comparator#naturalOrder()}作为比较器。
+     * @param <K> 映射结果的类型。
+     * @return 最小和最大的元素组成的二元组。
+     * @throws NullPointerException 当{@code mapper}为{@code null}时抛出。
+     * @see #minMaxByOrderly(LongBiFunction)
+     */
     <K> Tuple<Optional<E>, Optional<E>> minMaxByOrderly(LongBiFunction<? super E, ? extends K> mapper,
         Comparator<? super K> comparator);
 
@@ -2426,14 +2594,6 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
 
     default <U> U chain(Function<? super Pipe<E>, U> function) {
         return function.apply(this);
-    }
-
-    default Pipe<E> println() { // DBG 2023-05-20 01:07 调试接口
-        return peek(System.out::println);
-    }
-
-    default Pipe<E> print() { // DBG 2023-05-20 01:08 调试接口
-        return peek(System.out::print);
     }
 
     /* ╔════════════════════════════════════════════════════════════════════════════════════════════════════════╗ */

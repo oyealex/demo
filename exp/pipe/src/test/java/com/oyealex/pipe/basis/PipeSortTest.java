@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import static com.oyealex.pipe.basis.Pipe.empty;
 import static com.oyealex.pipe.basis.Pipe.list;
-import static com.oyealex.pipe.basis.Pipe.of;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.comparingInt;
 import static java.util.Comparator.naturalOrder;
@@ -50,8 +50,7 @@ class PipeSortTest extends PipeTestFixture {
     @DisplayName("能够正确对元素按照自然逆序排序")
     void should_sort_elements_reversely_by_natural_order_rightly() {
         List<String> sample = generateRandomStrList();
-        assertEquals(sample.stream().sorted(reverseOrder()).collect(toList()),
-            list(sample).sortReversely().toList());
+        assertEquals(sample.stream().sorted(reverseOrder()).collect(toList()), list(sample).sortReversely().toList());
     }
 
     @Test
@@ -162,24 +161,17 @@ class PipeSortTest extends PipeTestFixture {
     @Test
     @DisplayName("如果元素没有实现Comparable接口，则在排序时抛出异常")
     void should_throw_exception_if_sort_elements_which_do_not_implement_comparable() {
-        assertAll(() -> assertThrowsExactly(ClassCastException.class,
-                () -> of(new UnComparableTestDouble(), new UnComparableTestDouble()).sort().run()),
-            () -> assertThrowsExactly(ClassCastException.class,
-                () -> of(new UnComparableTestDouble(), new UnComparableTestDouble()).sortReversely().run()),
-            () -> assertThrowsExactly(ClassCastException.class,
-                () -> of(new UnComparableTestDouble(), new UnComparableTestDouble()).sort(null).run()));
+        assertAll(() -> assertThrowsExactly(ClassCastException.class, () -> generateUnComparablePipe().sort().run()),
+            () -> assertThrowsExactly(ClassCastException.class, () -> generateUnComparablePipe().sortReversely().run()),
+            () -> assertThrowsExactly(ClassCastException.class, () -> generateUnComparablePipe().sort(null).run()));
     }
 
     @Test
     @DisplayName("当不能为null的参数为null时抛出异常")
     void should_throw_exception_when_required_non_null_param_is_null() {
-        assertAll(() -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().sortBy(null)),
-            () -> assertThrowsExactly(NullPointerException.class,
-                () -> infiniteIntegerPipe().sortBy(null, naturalOrder())),
-            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().sortByOrderly(null)),
-            () -> assertThrowsExactly(NullPointerException.class,
-                () -> infiniteIntegerPipe().sortByOrderly(null, naturalOrder())));
+        assertAll(() -> assertThrowsExactly(NullPointerException.class, () -> empty().sortBy(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> empty().sortBy(null, naturalOrder())),
+            () -> assertThrowsExactly(NullPointerException.class, () -> empty().sortByOrderly(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> empty().sortByOrderly(null, naturalOrder())));
     }
-
-    private static class UnComparableTestDouble {}
 }
