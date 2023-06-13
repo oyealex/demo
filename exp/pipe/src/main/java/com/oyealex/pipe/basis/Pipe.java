@@ -581,11 +581,11 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @param nullReplacement {@code null}需要映射为的对象，不可为{@code null}。
      * @return 不包含任何 {@code null}的新的流水线。
      * @throws NullPointerException 当{@code nullReplacement}为{@code null}时抛出。
-     * @see #mapNull(Supplier)
+     * @see #mapIfNull(Supplier)
      */
-    default Pipe<E> mapNull(E nullReplacement) {
+    default Pipe<E> mapIfNull(E nullReplacement) {
         requireNonNull(nullReplacement);
-        return mapNull(() -> nullReplacement);
+        return mapIfNull(() -> nullReplacement);
     }
 
     /**
@@ -611,9 +611,28 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @return 不包含任何 {@code null}的新的流水线。
      * @throws NullPointerException 当{@code replacementSupplier}为{@code null}时抛出。
      * @implNote 在流水线运行期间 {@code replacementSupplier}产生的任何空值，均会导致抛出{@link NullPointerException}。
-     * @see #mapNull(Object)
+     * @see #mapIfNull(Object)
      */
-    Pipe<E> mapNull(Supplier<? extends E> replacementSupplier);
+    Pipe<E> mapIfNull(Supplier<? extends E> replacementSupplier);
+
+    /**
+     * 将不为{@code null}的元素使用{@code mapper}映射其他值。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * for (E element : getPipeElements()) {
+     *     doSomething(element != null ? mapper.apply(element) : null);
+     * }
+     * }</pre>
+     *
+     * @param mapper 非{@code null}的元素的映射方法。
+     * @return 新的流水线。
+     * @throws NullPointerException 当映射方法{@code mapper}为{@code null}时抛出。
+     * @see #mapIf(Predicate, Function)
+     * @see #mapIfNull(Supplier)
+     * @see #mapIfNull(Object)
+     */
+    <R> Pipe<R> mapIfNonNull(Function<? super E, ? extends R> mapper);
 
     /**
      * 将流水线中的元素映射为int类型。
@@ -2129,45 +2148,150 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
 
     /**
      * 计算当前流水线中元素的数量。
+     * <p/>
+     * 此方法会终结流水线。
      *
-     * @return 当前流水线中元素的数量
+     * @return 当前流水线中元素的数量。
      * @see Stream#count()
      */
     long count();
 
+    /**
+     * 判断此流水线是否为不包含任何元素的空流水线。
+     * <p/>
+     * 此方法会终结流水线。
+     *
+     * @return {@code true} - 此流水线为空流水线，不包含任何元素。
+     * @see #count()
+     */
     default boolean isEmpty() {
         return count() == 0L;
     }
 
+    /**
+     * 判断流水线是否存在任何元素满足给定条件。
+     * <p/>
+     * 此方法会终结流水线。
+     *
+     * @param predicate 条件。
+     * @return {@code true} - 流水线中至少存在一个元素满足给定条件。
+     * @throws NullPointerException 当给定的条件{@code predicate}为{@code null}时抛出。
+     * @see #allMatch(Predicate)
+     * @see #noneMatch(Predicate)
+     */
     boolean anyMatch(Predicate<? super E> predicate);
 
+    /**
+     * 判断流水线是否所有元素都满足给定条件。
+     * <p/>
+     * 此方法会终结流水线。
+     *
+     * @param predicate 条件。
+     * @return {@code true} - 流水线中的所有元素都满足给定条件。
+     * @throws NullPointerException 当给定的条件{@code predicate}为{@code null}时抛出。
+     * @see #anyMatch(Predicate)
+     * @see #noneMatch(Predicate)
+     */
     boolean allMatch(Predicate<? super E> predicate);
 
+    /**
+     * 判断流水线是否没有任何元素满足给定条件。
+     * <p/>
+     * 此方法会终结流水线。
+     *
+     * @param predicate 条件。
+     * @return {@code true} - 流水线中没有任何元素满足给定条件。
+     * @throws NullPointerException 当给定的条件{@code predicate}为{@code null}时抛出。
+     * @see #anyMatch(Predicate)
+     * @see #allMatch(Predicate)
+     */
     default boolean noneMatch(Predicate<? super E> predicate) {
         return !anyMatch(predicate);
     }
 
+    /**
+     * 判断流水线是否存在任何{@code null}元素。
+     * <p/>
+     * 此方法会终结流水线。
+     *
+     * @return {@code true} - 流水线中至少存在一个{@code null}元素。
+     * @see #allNull()
+     * @see #noneNull()
+     */
     boolean anyNull();
 
+    /**
+     * 判断流水线是否所有元素都为{@code null}。
+     * <p/>
+     * 此方法会终结流水线。
+     *
+     * @return {@code true} - 流水线中的所有元素都为{@code null}。
+     * @see #anyNull()
+     * @see #noneNull()
+     */
     boolean allNull();
 
+    /**
+     * 判断流水线是否没有任何元素为{@code null}。
+     * <p/>
+     * 此方法会终结流水线。
+     *
+     * @return {@code true} - 流水线中没有任何{@code null}元素。
+     * @see #anyNull()
+     * @see #allNull()
+     */
     default boolean noneNull() {
         return !anyNull();
     }
 
-    default <K> boolean anyNullBy(Function<? super E, ? extends K> mapper) {
+    /**
+     * 判断流水线是否存在任何元素通过给定方法映射结果为{@code null}。
+     * <p/>
+     * 此方法会终结流水线。
+     *
+     * @param mapper 映射方法。
+     * @return {@code true} - 流水线中至少存在一个元素通过给定方法映射结果为{@code null}。
+     * @throws NullPointerException 当给定的映射方法{@code mapper}为{@code null}时抛出。
+     * @see #allNullBy(Function)
+     * @see #noneNullBy(Function)
+     * @see #anyNull()
+     */
+    default boolean anyNullBy(Function<? super E, ?> mapper) {
         requireNonNull(mapper);
-        return anyMatch(value -> mapper.apply(value) == null);
+        return isStdIdentify(mapper) ? anyNull() : anyMatch(value -> mapper.apply(value) == null);
     }
 
-    default <K> boolean allNullBy(Function<? super E, ? extends K> mapper) {
+    /**
+     * 判断流水线是否所有元素通过给定方法映射结果都为{@code null}。
+     * <p/>
+     * 此方法会终结流水线。
+     *
+     * @param mapper 映射方法。
+     * @return {@code true} - 流水线中的所有元素通过给定方法映射结果都为{@code null}。
+     * @throws NullPointerException 当给定的映射方法{@code mapper}为{@code null}时抛出。
+     * @see #anyNullBy(Function)
+     * @see #noneNullBy(Function)
+     * @see #allNull()
+     */
+    default boolean allNullBy(Function<? super E, ?> mapper) {
         requireNonNull(mapper);
-        return allMatch(value -> mapper.apply(value) == null);
+        return isStdIdentify(mapper) ? allNull() : allMatch(value -> mapper.apply(value) == null);
     }
 
-    default <K> boolean noneNullBy(Function<? super E, ? extends K> mapper) {
-        requireNonNull(mapper);
-        return !anyNullBy(mapper);
+    /**
+     * 判断流水线是否没有任何元素通过给定方法映射结果为{@code null}。
+     * <p/>
+     * 此方法会终结流水线。
+     *
+     * @param mapper 映射方法。
+     * @return {@code true} - 流水线中没有任何元素通过给定方法映射结果为{@code null}。
+     * @throws NullPointerException 当给定的映射方法{@code mapper}为{@code null}时抛出。
+     * @see #anyNullBy(Function)
+     * @see #allNullBy(Function)
+     * @see #noneNull()
+     */
+    default boolean noneNullBy(Function<? super E, ?> mapper) {
+        return isStdIdentify(mapper) ? noneNull() : !anyNullBy(mapper);
     }
 
     /**

@@ -323,12 +323,23 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Pipe<OUT> mapNull(Supplier<? extends OUT> replacementSupplier) {
+    public <R> Pipe<R> mapIfNonNull(Function<? super OUT, ? extends R> mapper) {
+        requireNonNull(mapper);
+        return new RefPipe<OUT, R>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT | NOT_NONNULL) {
+            @Override
+            protected Op<OUT> wrapOp(Op<R> nextOp) {
+                return SimpleOps.mapIfNonNull(nextOp, mapper);
+            }
+        };
+    }
+
+    @Override
+    public Pipe<OUT> mapIfNull(Supplier<? extends OUT> replacementSupplier) {
         requireNonNull(replacementSupplier);
         return new RefPipe<OUT, OUT>(this, NOT_SORTED | NOT_REVERSED_SORTED | NOT_DISTINCT | IS_NONNULL) {
             @Override
             protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return SimpleOps.mapNullOp(nextOp, replacementSupplier);
+                return SimpleOps.mapIfNullOp(nextOp, replacementSupplier);
             }
         };
     }

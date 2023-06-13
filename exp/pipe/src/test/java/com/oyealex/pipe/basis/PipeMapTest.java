@@ -32,8 +32,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @see Pipe#mapIf(Function)
  * @see Pipe#mapToString()
  * @see Pipe#mapToString(String)
- * @see Pipe#mapNull(Object)
- * @see Pipe#mapNull(Supplier)
+ * @see Pipe#mapIfNull(Object)
+ * @see Pipe#mapIfNull(Supplier)
+ * @see Pipe#mapIfNonNull(Function)
  * @since 2023-04-28
  */
 class PipeMapTest extends PipeTestFixture {
@@ -116,7 +117,7 @@ class PipeMapTest extends PipeTestFixture {
     void should_map_null_to_given_value_rightly() {
         List<String> sample = generateOddIntegerStrWithNullsList();
         assertEquals(sample.stream().map(value -> value == null ? SOME_STR : value).collect(toList()),
-            list(sample).mapNull(SOME_STR).toList());
+            list(sample).mapIfNull(SOME_STR).toList());
     }
 
     @Test
@@ -124,7 +125,15 @@ class PipeMapTest extends PipeTestFixture {
     void should_map_null_to_given_supplier_result_value_rightly() {
         List<String> sample = generateOddIntegerStrWithNullsList();
         assertEquals(sample.stream().map(value -> value == null ? SOME_STR : value).collect(toList()),
-            list(sample).mapNull(() -> SOME_STR).toList());
+            list(sample).mapIfNull(() -> SOME_STR).toList());
+    }
+
+    @Test
+    @DisplayName("能够正确使用给定的映射方法将非null的元素映射为其他值")
+    void should_map_non_null_by_given_mapper_rightly() {
+        List<String> sample = generateOddIntegerStrWithNullsList();
+        assertEquals(sample.stream().map(v -> v == null ? null : Integer.valueOf(v)).collect(toList()),
+            list(sample).mapIfNonNull(Integer::valueOf).toList());
     }
 
     // exception test
@@ -132,27 +141,27 @@ class PipeMapTest extends PipeTestFixture {
     @Test
     @DisplayName("当不能为null的参数为null时抛出异常")
     void should_throw_exception_when_required_non_null_param_is_null() {
-        assertAll(() -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().map(null)),
-            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().mapOrderly(null)),
-            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().mapIf(null, "")),
-            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().mapIf(null, () -> "")),
+        assertAll(() -> assertThrowsExactly(NullPointerException.class, () -> infiniteRandomStrPipe().map(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteRandomStrPipe().mapOrderly(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteRandomStrPipe().mapIf(null, "")),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteRandomStrPipe().mapIf(null, () -> "")),
             () -> assertThrowsExactly(NullPointerException.class,
-                () -> infiniteIntegerStrPipe().mapIf(ignored -> true, (Supplier<String>) null)),
+                () -> infiniteRandomStrPipe().mapIf(ignored -> true, (Supplier<String>) null)),
             () -> assertThrowsExactly(NullPointerException.class,
-                () -> infiniteIntegerStrPipe().mapIf(null, val -> val + SOME_STR)),
+                () -> infiniteRandomStrPipe().mapIf(null, val -> val + SOME_STR)),
             () -> assertThrowsExactly(NullPointerException.class,
-                () -> infiniteIntegerStrPipe().mapIf(ignored -> true, (Function<? super String, String>) null)),
-            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerStrPipe().mapIf(null)),
+                () -> infiniteRandomStrPipe().mapIf(ignored -> true, (Function<? super String, String>) null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteRandomStrPipe().mapIf(null)),
             () -> assertThrowsExactly(NullPointerException.class,
-                () -> infiniteIntegerStrPipe().mapNull((Supplier<String>) null)),
-            () -> assertThrowsExactly(NullPointerException.class,
-                () -> infiniteIntegerStrPipe().mapNull((String) null)));
+                () -> infiniteRandomStrPipe().mapIfNull((Supplier<String>) null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteRandomStrPipe().mapIfNull((String) null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteRandomStrPipe().mapIfNonNull(null)));
     }
 
     @Test
     @DisplayName("当mapNull使用的supplier返回null时，运行中的流水线会抛出异常")
     void should_throw_exception_while_pipe_is_running_when_map_null_with_supplier_which_return_null() {
         assertThrowsExactly(NullPointerException.class,
-            () -> infiniteOddIntegerStrWithNullsPipe().mapNull(() -> null).run());
+            () -> infiniteOddIntegerStrWithNullsPipe().mapIfNull(() -> null).run());
     }
 }

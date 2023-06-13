@@ -277,7 +277,16 @@ final class SimpleOps extends NoInstance {
         };
     }
 
-    public static <T> Op<T> mapNullOp(Op<T> nextOp, Supplier<? extends T> supplier) {
+    public static <T, R> Op<T> mapIfNonNull(Op<R> nextOp, Function<? super T, ? extends R> mapper) {
+        return new ChainedOp<T, R>(nextOp) {
+            @Override
+            public void accept(T value) {
+                nextOp.accept(value == null ? null : mapper.apply(value));
+            }
+        };
+    }
+
+    public static <T> Op<T> mapIfNullOp(Op<T> nextOp, Supplier<? extends T> supplier) {
         return new ChainedOp<T, T>(nextOp) {
             @Override
             public void accept(T value) {

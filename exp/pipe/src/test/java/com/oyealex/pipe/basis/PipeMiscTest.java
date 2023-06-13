@@ -11,11 +11,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static com.oyealex.pipe.basis.Pipe.empty;
 import static com.oyealex.pipe.basis.Pipe.list;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * 针对流水线其他杂项API的测试。
@@ -23,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
  * @author oyealex
  * @see Pipe#peek(Consumer)
  * @see Pipe#peekOrderly(LongBiConsumer)
+ * @see Pipe#count()
+ * @see Pipe#isEmpty()
  * @since 2023-05-30
  */
 class PipeMiscTest extends PipeTestFixture {
@@ -44,6 +48,14 @@ class PipeMiscTest extends PipeTestFixture {
         LongBox counter = LongBox.box();
         assertEquals(sample.stream().map(value -> Tuple.of(counter.getAndIncrement(), value)).collect(toList()),
             peeked);
+    }
+
+    @Test
+    @DisplayName("能够正确计数流水线元素")
+    void should_count_elements_rightly() {
+        assertAll(() -> assertEquals(10, infiniteIntegerPipe().limit(10).count()),
+            () -> assertEquals(0, empty().count()), () -> assertTrue(infiniteIntegerPipe().limit(0).isEmpty()),
+            () -> assertTrue(empty().isEmpty()));
     }
 
     // optimization test
