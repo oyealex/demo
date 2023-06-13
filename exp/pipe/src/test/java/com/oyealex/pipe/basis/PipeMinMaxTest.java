@@ -58,6 +58,7 @@ class PipeMinMaxTest extends PipeTestFixture {
             () -> assertEquals(sample.stream().min(comparingInt(value -> value.length() + counter1.getOrder(value))),
                 list(sample).minByOrderly((order, value) -> value.length() + order)),
             () -> assertEquals(sample.stream().max(comparingInt(value -> value.length() + counter2.getOrder(value))),
+                // MK 2023-06-14 02:06 偶现失败
                 list(sample).minByOrderly((order, value) -> value.length() + order, reverseOrder())));
     }
 

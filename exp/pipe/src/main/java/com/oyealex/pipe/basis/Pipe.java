@@ -51,6 +51,7 @@ import static com.oyealex.pipe.policy.MergeRemainingPolicy.TAKE_REMAINING;
 import static com.oyealex.pipe.utils.MiscUtil.isStdIdentify;
 import static com.oyealex.pipe.utils.MiscUtil.naturalOrderIfNull;
 import static com.oyealex.pipe.utils.MiscUtil.optimizedReverseOrder;
+import static java.util.Collections.unmodifiableMap;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Objects.requireNonNull;
@@ -2297,11 +2298,19 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 获取流水线中的第一个元素。
      *
-     * @return 流水线中的第一个元素，如果流水线为空则返回空的{@link Optional}
+     * @return 流水线中的第一个元素。
      * @see Stream#findFirst()
+     * @see #findFirstLast()
+     * @see #findAny()
      */
     Optional<E> findFirst();
 
+    /**
+     * 获取流水线中第一个非{@code null}元素。
+     *
+     * @return 流水线中第一个非 {@code null}元素。
+     * @see #findLastNonnull()
+     */
     default Optional<E> findFirstNonnull() {
         return dropNull().findFirst();
     }
@@ -2309,21 +2318,37 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     /**
      * 获取流水线中的最后一个元素。
      *
-     * @return 流水线中的最后一个元素，如果流水线为空则返回空的{@link Optional}
+     * @return 流水线中的最后一个元素。
+     * @see #findFirst()
+     * @see #findFirstLast()
      */
     Optional<E> findLast();
 
+    /**
+     * 获取流水线中最后一个非{@code null}元素。
+     *
+     * @return 流水线中最后一个非 {@code null}元素。
+     * @see #findFirstNonnull()
+     */
     default Optional<E> findLastNonnull() {
         return dropNull().findLast();
     }
 
+    /**
+     * 获取流水线中的第一个和最后一个元素。
+     *
+     * @return 流水线中的第一个和最后一个元素。
+     * @see #findFirst()
+     * @see #findLast()
+     */
     Tuple<Optional<E>, Optional<E>> findFirstLast();
 
     /**
      * 同{@link #findFirst()}。
      *
-     * @return 流水线中的任一元素，如果流水线为空则返回空的{@link Optional}
+     * @return 流水线中的任一元素。
      * @see Stream#findAny()
+     * @see #findFirst()
      */
     default Optional<E> findAny() {
         return findFirst();
@@ -2581,7 +2606,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @see #toMapKeyed(Function)
      */
     default <K> Map<K, E> toUnmodifiableMapKeyed(Function<? super E, ? extends K> keyMapper) {
-        return Collections.unmodifiableMap(toMapKeyed(keyMapper));
+        return unmodifiableMap(toMapKeyed(keyMapper));
     }
 
     /**
@@ -2599,7 +2624,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      * @see #toMapValued(Function)
      */
     default <V> Map<E, V> toUnmodifiableMapValued(Function<? super E, ? extends V> valueMapper) {
-        return Collections.unmodifiableMap(toMapValued(valueMapper));
+        return unmodifiableMap(toMapValued(valueMapper));
     }
 
     /**
@@ -2620,7 +2645,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      */
     default <K, V> Map<K, V> toUnmodifiableMap(Function<? super E, ? extends K> keyMapper,
         Function<? super E, ? extends V> valueMapper) {
-        return Collections.unmodifiableMap(toMap(keyMapper, valueMapper));
+        return unmodifiableMap(toMap(keyMapper, valueMapper));
     }
 
     @Todo
@@ -2716,8 +2741,56 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
         return join("", "", "");
     }
 
+    /**
+     * 提供流水线的链式调用能力。
+     * <p/>
+     * 一般用于针对流水线进行参数化处理。
+     * <p/>
+     * 第一个例子：需要根据条件限制任意流水线元素数量，并进行去重操作：
+     * <pre>{@code
+     * // chain method
+     * private <T> Pipe<T> distinctAndLimit(Pipe<T> pipe) {
+     *     int size = getLimitSize();
+     *     return pipe.limit(size).distinct();
+     * }
+     * // ...
+     * // use
+     * Pipe.list(elements).chain(this::distinctAndLimit).forEach(this::doSomething);
+     * }</pre>
+     * <p/>
+     * 第二个例子：给任意流水线添加debug方法，打印流水线中的元素：
+     * <pre>{@code
+     * // chain method
+     * private <T> Pipe<T> debug(Pipe<T> pipe) {
+     *     return pipe.peek(System.out::println);
+     * }
+     * // ...
+     * // use: 观察元素映射前后的值
+     * Pipe.list(elements)
+     *     .chain(this::debug)
+     *     .map(this::mapToSomething)
+     *     .chain(this::debug)
+     *     .run();
+     * }</pre>
+     * <p/>
+     * 第三个例子：将任意流水线中的元素映射为字符串，追加固定字符串，然后搜集到列表：
+     * <pre>{@code
+     * // chain method
+     * private <T> List<String> convertAndCollect(Pipe<T> pipe) {
+     *     return pipe.mapToString().append("line", "end").toList();
+     * }
+     * // ...
+     * // use:
+     * List<String> result = Pipe.list(elements).chain(this::convertAndCollect);
+     * }</pre>
+     *
+     * @param function 链式调用方法。
+     * @param <U> 调用结果类型。
+     * @return 调用结果。
+     * @throws NullPointerException 当给定的调用方法{@code function}为{@code null}时抛出。
+     */
     default <U> U chain(Function<? super Pipe<E>, U> function) {
-        return function.apply(this);
+        return requireNonNull(function).apply(this);
     }
 
     /* ╔════════════════════════════════════════════════════════════════════════════════════════════════════════╗ */

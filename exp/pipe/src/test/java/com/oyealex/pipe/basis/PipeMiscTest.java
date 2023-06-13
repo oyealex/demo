@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static com.oyealex.pipe.basis.Pipe.empty;
 import static com.oyealex.pipe.basis.Pipe.list;
@@ -27,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @see Pipe#peekOrderly(LongBiConsumer)
  * @see Pipe#count()
  * @see Pipe#isEmpty()
+ * @see Pipe#chain(Function)
  * @since 2023-05-30
  */
 class PipeMiscTest extends PipeTestFixture {
@@ -58,6 +60,12 @@ class PipeMiscTest extends PipeTestFixture {
             () -> assertTrue(empty().isEmpty()));
     }
 
+    @Test
+    @DisplayName("能够正确执行链式方法")
+    void should_execute_chain_method_rightly() {
+        // TODO 2023-06-14 02:09 continue
+    }
+
     // optimization test
 
     // exception test
@@ -65,7 +73,8 @@ class PipeMiscTest extends PipeTestFixture {
     @Test
     @DisplayName("当不能为null的参数为null时抛出异常")
     void should_throw_exception_when_required_non_null_param_is_null() {
-        assertAll(() -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().peek(null)),
-            () -> assertThrowsExactly(NullPointerException.class, () -> infiniteIntegerPipe().peekOrderly(null)));
+        assertAll(() -> assertThrowsExactly(NullPointerException.class, () -> empty().peek(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> empty().peekOrderly(null)),
+            () -> assertThrowsExactly(NullPointerException.class, () -> empty().chain(null)));
     }
 }
