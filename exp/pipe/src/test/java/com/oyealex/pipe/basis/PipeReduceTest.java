@@ -25,14 +25,14 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * 针对流水线其他杂项API的测试。
+ * 针对流水线缩减系列API的测试。
  *
  * @author oyealex
  * @see Pipe#reduce(BinaryOperator)
  * @see Pipe#reduce(Object, BiFunction)
  * @see Pipe#reduce(Object, Function, BiFunction)
  * @see Pipe#reduceTo(Object, BiConsumer)
- * @since 2023-05-30
+ * @since 2023-06-15
  */
 class PipeReduceTest extends PipeTestFixture {
     @Test
