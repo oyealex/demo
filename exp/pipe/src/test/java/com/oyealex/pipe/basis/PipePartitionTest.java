@@ -45,7 +45,7 @@ class PipePartitionTest extends PipeTestFixture {
     @Test
     @DisplayName("能够根据固定大小正确对流水线元素分区")
     void should_partition_elements_by_fixed_size_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         int size = sample.size();
         assertAll(() -> assertEquals(partition(sample, 5), list(sample).partition(5).chain(this::toList)),
             () -> assertEquals(partition(sample, 1), list(sample).partition(1).chain(this::toList)),
@@ -56,7 +56,7 @@ class PipePartitionTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确根据策略对元素分区")
     void should_partition_elements_by_policy_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertAll(() -> assertEquals(partition(sample, getPolicyRoundly(), ArrayList::new),
                 list(sample).partition(getPolicyRoundly()).chain(this::toList)),
             () -> assertEquals(partition(sample, getPolicyRoundly(), ArrayList::new),
@@ -67,7 +67,7 @@ class PipePartitionTest extends PipeTestFixture {
     @Test
     @DisplayName("能够根据固定大小正确将元素分区为容器对象")
     void should_partition_elements_to_containers_by_fixed_size_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         int size = 5;
         assertAll(() -> assertEquals(partition(sample, size), list(sample).partitionToList(size).toList()),
             () -> assertEquals(partition(sample, getPolicyRoundly(), ArrayList::new),

@@ -69,7 +69,20 @@ import static java.util.function.Function.identity;
  * <h1>数据源</h1>
  * 数据源有一系列的元素组成，在执行流水线的时候逐个经过流水线定义的每个操作，得到最终结果。
  * <h2>有限数据源</h2>
+ * 有限数据源含有有限数量的数据，一般通过{@link #list(List)}、{@link #set(Set)}等从现有的数据中构造，或者由无限数据源通过
+ * {@link #limit(long)}、{@link #slice(long, long)}等约束有限数量而来。
+ * <br/>
+ * 有限数据源并不意着流水线的所有操作都能正常进行，例如{@link #toList()}等收集元素到容器的终结方法存在处理元素的数量上限，
+ * 此时如果有限数据源的流水线包含的元素超过容器能够容纳的数量上限，会导致异常抛出。
  * <h2>无限数据源</h2>
+ * 无限数据源含有的数据数量无限，一般由{@link #generate(Supplier)}、{@link #iterate(Object, UnaryOperator)}等构造，
+ * 无限数据源无法执行部分形如{@link #takeLast()}、{@link #findLast()}等关于最后若干元素的操作，或形如{@link #count()}、
+ * {@link #max()}、{@link #sort()}等需要遍历全量元素的操作。
+ * <br/>
+ * {@code Pipe}并不会主动拦截这些操作，如果使用不当可能导致运行陷入无限的循环之中，或是导致OOM。
+ * <br/>
+ * 包含无限数据源的流水线经过形如{@link #limit(long)}等约束元素数量的操作之后可以转为有限数据源的流水线，
+ * 但是{@link #takeIf(Predicate)}等不会导致无限数据源转为有限数据源，这些方法隐含地需要遍历所有元素。
  * <p/>
  *
  * <h1>数据操作</h1>
@@ -84,7 +97,7 @@ import static java.util.function.Function.identity;
  * 例如{@link #forEach(Consumer)}）。
  * <br/>
  * 终结操作会启动流水线的数据运算，将数据源的数据<b>串行地</b>逐个经过各个节点地处理，最终流入终结操作产生一个最终结果。
- * <h2>短路优化</h2>
+ * <h2>短路</h2>
  * 并不是所有情况下数据源中的数据都会经历完整的运算，有些操作会导致流水线短路。
  * <br/>
  * 例如{@link #limit(long)}：
@@ -104,9 +117,9 @@ import static java.util.function.Function.identity;
  * 而终结操作{@code findLast()}则不会对这来自第一个操作的10个元素执行短路，只有处理完流入此节点的全部10个元素之后才能得到最终结果。
  * <p/>
  *
- * <h1>线程安全</h1>
+ * <h1>线程安全和并行流水线</h1>
  * 由于实际运用中并行流水线很少使用，为了降低实现复杂度并执行更多的针对性优化，并结合本库的核心目标，
- * 在当前实现中流水线的任何API均不是线程安全的，哪怕提供了线程安全的数据源和操作，流水线总是串行执行数据操作。
+ * 在当前实现中流水线的任何API均不是线程安全的，并且均不会并行执行，哪怕提供了线程安全的数据源和操作，流水线总是串行执行数据操作。
  * <p/>
  * <i>不排除后续扩展为支持线程安全的可能。</i>
  *
@@ -1839,41 +1852,134 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     }
 
     /**
-     * 访问流水线中的每个元素。
+     * 访问流水线中的元素，并结束此流水线。
      *
-     * @param consumer 访问元素的方法
+     * @param consumer 访问元素的方法。
+     * @throws NullPointerException 当访问方法{@code consumer}为{@code null}时抛出。
      * @see Stream#forEach(Consumer)
+     * @see #forEachOrderly(LongBiConsumer)
      */
     void forEach(Consumer<? super E> consumer);
 
+    /**
+     * 访问流水线中的元素，并结束此流水线，支持访问元素的次序。
+     *
+     * @param consumer 访问元素的方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为访问的元素。
+     * @throws NullPointerException 当访问方法{@code consumer}为{@code null}时抛出。
+     * @see #forEach(Consumer)
+     */
+    void forEachOrderly(LongBiConsumer<? super E> consumer);
+
+    /**
+     * 执行并结束此流水线。
+     */
     default void run() {
         forEach(ignored -> {});
     }
 
     /**
-     * 访问流水线中的每个元素，支持访问元素的次序。
+     * 对流水线中的前两个元素应用给定的操作{@code reducer}，操作得到的结果和下一个流水线元素一起作为下一次操作的参数，
+     * 以此类推直到流水线中的所有元素都处理完毕，最后一次操作的结果作为最终结果返回。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * E result = null;
+     * boolean found = false;
+     * for (E element : getPipeElements()) {
+     *     if (found) {
+     *         result = reducer.apply(result, element);
+     *     } else {
+     *         found = true;
+     *         result = element;
+     *     }
+     * }
+     * return found ? Optional.of(result) : Optional.empty();
+     * }</pre>
      *
-     * @param consumer 访问元素的方法：第一个参数为访问的元素在流水线中的次序，从0开始计算；第二个参数为访问的元素。
+     * @param reducer 操作。
+     * @return 最终结果。
+     * @throws NullPointerException 当操作方法{@code reducer}为{@code null}时抛出。
      */
-    void forEachOrderly(LongBiConsumer<? super E> consumer);
+    Optional<E> reduce(BinaryOperator<E> reducer);
 
-    Optional<E> reduce(BinaryOperator<E> operator);
-
-    default E reduce(E initVar, BinaryOperator<E> reducer) {
-        return reduce(initVar, (BiFunction<? super E, ? super E, ? extends E>) reducer);
-    }
-
+    /**
+     * 对流水线中的每个元素执行给定的操作{@code reducer}，以给定值{@code initVar}作为初始值，
+     * 操作得到的结果和下一个流水线元素一起作为下一次操作的参数，以此类推直到流水线中的所有元素都处理完毕，
+     * 最后一次操作的结果作为最终结果返回。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * R result = initVar;
+     * for (E element : getPipeElements()) {
+     *     result = reducer.apply(result, element);
+     * }
+     * return result;
+     * }</pre>
+     *
+     * @param initVar 初始值。
+     * @param reducer 操作。
+     * @param <R> 最终结果类型。
+     * @return 最终结果。
+     * @throws NullPointerException 当操作方法{@code operator}为{@code null}时抛出。
+     * @see #reduce(Object, Function, BiFunction)
+     * @see #reduceTo(Object, BiConsumer)
+     */
     <R> R reduce(R initVar, BiFunction<? super R, ? super E, ? extends R> reducer);
 
-    default <R> R reduceIdentity(R initVar, BiConsumer<? super R, ? super E> reducer) {
+    /**
+     * 将流水线中的每个元素通过{@code mapper}映射之后，对映射结果执行给定的操作{@code reducer}，
+     * 以给定值{@code initVar}作为初始值，操作得到的结果和下一个流水线元素一起作为下一次操作的参数，
+     * 以此类推直到流水线中的所有元素都处理完毕，最后一次操作的结果作为最终结果返回。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * R result = initVar;
+     * for (E element : getPipeElements()) {
+     *     result = reducer.apply(result, mapper.apply(element));
+     * }
+     * return result;
+     * }</pre>
+     *
+     * @param initVar 初始值。
+     * @param mapper 映射方法。
+     * @param reducer 操作。
+     * @param <R> 最终结果类型。
+     * @param <T> 映射后的类型。
+     * @return 最终结果。
+     * @throws NullPointerException 当映射方法{@code mapper}或操作方法{@code reducer}为{@code null}时抛出。
+     * @see #reduce(Object, BiFunction)
+     */
+    default <R, T> R reduce(R initVar, Function<? super E, ? extends T> mapper, BiFunction<R, T, R> reducer) {
+        requireNonNull(mapper);
+        requireNonNull(reducer);
+        return reduce(initVar, (result, value) -> reducer.apply(result, mapper.apply(value)));
+    }
+
+    /**
+     * 以给定值{@code initVar}作为固定初始值，对流水线中的每个元素执行给定的操作{@code reducer}，最后返回给定的初始值。
+     * <p/>
+     * 大致等同于：
+     * <pre>{@code
+     * R result = initVar;
+     * for (E element : getPipeElements()) {
+     *     reducer.accept(result, element);
+     * }
+     * return result;
+     * }</pre>
+     *
+     * @param initVar 初始值，也是最终返回的结果值。
+     * @param reducer 操作。
+     * @param <R> 最终结果类型。
+     * @return 最终结果，即给定的初始值{@code initVar}。
+     * @throws NullPointerException 当操作方法{@code operator}为{@code null}时抛出。
+     * @see #reduce(Object, BiFunction)
+     */
+    default <R> R reduceTo(R initVar, BiConsumer<? super R, ? super E> reducer) {
+        requireNonNull(reducer);
         return reduce(initVar, (result, value) -> {
             reducer.accept(result, value);
             return result;
         });
-    }
-
-    default <R> R reduce(R initVar, Function<? super E, ? extends R> mapper, BinaryOperator<R> operator) {
-        return reduce(initVar, (result, value) -> operator.apply(result, mapper.apply(value)));
     }
 
     /**
@@ -2158,18 +2264,6 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     long count();
 
     /**
-     * 判断此流水线是否为不包含任何元素的空流水线。
-     * <p/>
-     * 此方法会终结流水线。
-     *
-     * @return {@code true} - 此流水线为空流水线，不包含任何元素。
-     * @see #count()
-     */
-    default boolean isEmpty() {
-        return count() == 0L;
-    }
-
-    /**
      * 判断流水线是否存在任何元素满足给定条件。
      * <p/>
      * 此方法会终结流水线。
@@ -2452,7 +2546,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
      */
     default <C extends Collection<E>> C toCollection(Supplier<C> collectionSupplier) {
         requireNonNull(collectionSupplier);
-        return reduceIdentity(collectionSupplier.get(), Collection::add);
+        return reduceTo(collectionSupplier.get(), Collection::add);
     }
 
     /**
@@ -2494,7 +2588,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
     default <K, M extends Map<K, E>> M toMapKeyed(Function<? super E, ? extends K> keyMapper, Supplier<M> mapSupplier) {
         requireNonNull(mapSupplier);
         requireNonNull(keyMapper);
-        return reduceIdentity(mapSupplier.get(), (map, value) -> map.put(keyMapper.apply(value), value));
+        return reduceTo(mapSupplier.get(), (map, value) -> map.put(keyMapper.apply(value), value));
     }
 
     /**
@@ -2537,7 +2631,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
         Supplier<M> mapSupplier) {
         requireNonNull(mapSupplier);
         requireNonNull(valueMapper);
-        return reduceIdentity(mapSupplier.get(), (map, value) -> map.put(value, valueMapper.apply(value)));
+        return reduceTo(mapSupplier.get(), (map, value) -> map.put(value, valueMapper.apply(value)));
     }
 
     /**
@@ -2587,8 +2681,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
         requireNonNull(mapSupplier);
         requireNonNull(keyMapper);
         requireNonNull(valueMapper);
-        return reduceIdentity(mapSupplier.get(),
-            (map, value) -> map.put(keyMapper.apply(value), valueMapper.apply(value)));
+        return reduceTo(mapSupplier.get(), (map, value) -> map.put(keyMapper.apply(value), valueMapper.apply(value)));
     }
 
     /**
@@ -2668,7 +2761,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
         Supplier<? extends M> mapSupplier) {
         requireNonNull(classifier);
         requireNonNull(mapSupplier);
-        return reduceIdentity(mapSupplier.get(),
+        return reduceTo(mapSupplier.get(),
             (map, value) -> map.computeIfAbsent(classifier.apply(value), key -> new ArrayList<>()).add(value));
     }
 
@@ -2677,7 +2770,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
         BiFunction<K, List<E>, V> finisher) {
         requireNonNull(classifier);
         requireNonNull(finisher);
-        HashMap<K, Object> result = reduceIdentity(new HashMap<>(),
+        HashMap<K, Object> result = reduceTo(new HashMap<>(),
             (map, value) -> ((ArrayList<E>) map.computeIfAbsent(classifier.apply(value),
                 key -> new ArrayList<E>())).add(value));
         result.replaceAll((key, list) -> finisher.apply(key, (List<E>) list));
@@ -2686,7 +2779,7 @@ public interface Pipe<E> extends BasePipe<E, Pipe<E>> {
 
     default <K> Map<K, Long> groupAndCount(Function<? super E, ? extends K> classifier) {
         requireNonNull(classifier);
-        return reduceIdentity(new HashMap<>(),
+        return reduceTo(new HashMap<>(),
             (map, value) -> map.compute(classifier.apply(value), (key, count) -> count == null ? 1L : count + 1));
     }
 

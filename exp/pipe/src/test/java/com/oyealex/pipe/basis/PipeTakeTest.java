@@ -38,7 +38,7 @@ class PipeTakeTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确根据断言保留元素")
     void should_take_elements_as_predicate_rightly() {
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         Predicate<String> predicate = val -> val.length() > 5;
         assertEquals(sample.stream().filter(predicate).collect(toList()), list(sample).takeIf(predicate).toList());
     }
@@ -46,7 +46,7 @@ class PipeTakeTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确根据断言过滤元素")
     void should_filter_elements_as_predicate_rightly() {
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         Predicate<String> predicate = val -> val.length() > 5;
         assertEquals(sample.stream().filter(predicate).collect(toList()), list(sample).filter(predicate).toList());
     }
@@ -54,7 +54,7 @@ class PipeTakeTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确根据有序断言保留元素")
     void should_take_elements_as_predicate_with_order_rightly() {
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         IntBox counter = IntBox.box();
         assertEquals(sample.stream().filter(ignored -> isOdd(counter.getAndIncrement())).collect(toList()),
             list(sample).takeIfOrderly((order, value) -> isOdd(order)).toList());
@@ -63,7 +63,7 @@ class PipeTakeTest extends PipeTestFixture {
     @Test
     @DisplayName("在非空流水线中能正确获取第一个元素")
     void should_take_first_element_in_non_empty_pipe_rightly() {
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         assertEquals(sample.subList(0, 1), list(sample).takeFirst().toList());
     }
 
@@ -76,7 +76,7 @@ class PipeTakeTest extends PipeTestFixture {
     @Test
     @DisplayName("获取第一个元素之后应当短路流水线")
     void should_circuit_after_taking_first_element() {
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         List<String> handled = new ArrayList<>();
         List<String> first = list(sample).peek(handled::add).takeFirst().toList();
         assertEquals(first, handled);
@@ -115,7 +115,7 @@ class PipeTakeTest extends PipeTestFixture {
     @Test
     @DisplayName("在非空流水线中能够正确获取最后一个元素")
     void should_take_last_element_in_non_empty_pipe_rightly() {
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         assertEquals(sample.subList(sample.size() - 1, sample.size()), list(sample).takeLast().toList());
     }
 
@@ -150,14 +150,14 @@ class PipeTakeTest extends PipeTestFixture {
     @DisplayName("takeWhile能够持续获取元素，直到断言首次为false")
     void should_take_elements_until_predicate_get_false_firstly_when_take_while() {
         IntBox counter = IntBox.box();
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         assertEquals(sample.subList(0, 5), list(sample).takeWhile(str -> counter.getAndIncrement() < 5).toList());
     }
 
     @Test
     @DisplayName("能够正确根据有序断言保留元素直到断言首次为false")
     void should_take_elements_as_predicate_with_order_rightly_when_take_while() {
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         IntBox counter = IntBox.box();
         assertEquals(sample.stream().filter(ignored -> counter.getAndIncrement() < 5).collect(toList()),
             list(sample).takeWhileOrderly((order, value) -> order < 5).toList());
@@ -169,7 +169,7 @@ class PipeTakeTest extends PipeTestFixture {
     @DisplayName("当takeWhile的断言首次为false后应当短路流水线")
     void should_circuit_after_predicate_get_false_when_take_while() {
         IntBox counter = IntBox.box();
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         List<String> handled = new ArrayList<>();
         list(sample).peek(handled::add).takeWhile(str -> counter.getAndIncrement() < 5).run();
         assertEquals(sample.subList(0, 6), handled);

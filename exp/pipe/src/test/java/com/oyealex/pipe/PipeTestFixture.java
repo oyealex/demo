@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 import static com.oyealex.pipe.basis.Pipe.generate;
@@ -107,20 +109,20 @@ public abstract class PipeTestFixture { // TODO 2023-06-07 01:24 全面增加对
         });
     }
 
-    protected static List<Integer> generateIntegerList() {
+    protected static List<Integer> genIntegerList() {
         return infiniteIntegerPipe().limit(NORMAL_SIZE).toList();
     }
 
-    protected static List<String> generateRandomStrList() {
+    protected static List<String> genRandomStrList() {
         return infiniteRandomStrPipe().limit(NORMAL_SIZE).toList();
     }
 
-    protected static List<String> generateIntegerStrList(int size) {
+    protected static List<String> genIntegerStrList(int size) {
         return infiniteIntegerStrPipe().limit(NORMAL_SIZE).toList();
     }
 
-    protected static List<String> generateIntegerStrList() {
-        return generateIntegerStrList(NORMAL_SIZE);
+    protected static List<String> genIntegerStrList() {
+        return genIntegerStrList(NORMAL_SIZE);
     }
 
     protected static Pipe<Integer> oddIntegerWithNullsPipe() {
@@ -139,7 +141,7 @@ public abstract class PipeTestFixture { // TODO 2023-06-07 01:24 全面增加对
         return infiniteIntegerPipe().map(value -> isOdd(value) ? null : String.valueOf(value));
     }
 
-    protected static List<String> generateOddIntegerStrWithNullsList() {
+    protected static List<String> genOddIntegerStrWithNullsList() {
         return infiniteOddIntegerStrWithNullsPipe().limit(NORMAL_SIZE).toList();
     }
 
@@ -179,8 +181,15 @@ public abstract class PipeTestFixture { // TODO 2023-06-07 01:24 全面增加对
         }
     }
 
-    protected static Pipe<UnComparableTestDouble> generateUnComparablePipe() {
+    protected static Pipe<UnComparableTestDouble> genUnComparablePipe() {
         return of(new UnComparableTestDouble(), new UnComparableTestDouble());
+    }
+
+    protected static <R, T> BiFunction<R, T, R> wrapToFunction(BiConsumer<R, T> consumer) {
+        return (result, value) -> {
+            consumer.accept(result, value);
+            return result;
+        };
     }
 
     protected static class UnComparableTestDouble {

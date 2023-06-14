@@ -713,13 +713,13 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     }
 
     @Override
-    public Optional<OUT> reduce(BinaryOperator<OUT> operator) {
-        return evaluate(SimpleOps.reduceTerminalOp(operator));
+    public Optional<OUT> reduce(BinaryOperator<OUT> reducer) {
+        return evaluate(SimpleOps.reduceTerminalOp(requireNonNull(reducer)));
     }
 
     @Override
     public <R> R reduce(R initVar, BiFunction<? super R, ? super OUT, ? extends R> reducer) {
-        return evaluate(SimpleOps.reduceTerminalOp(initVar, reducer));
+        return evaluate(SimpleOps.reduceTerminalOp(initVar, requireNonNull(reducer)));
     }
 
     @Override
@@ -843,35 +843,5 @@ abstract class RefPipe<IN, OUT> implements Pipe<OUT> {
     @Override
     public void close() {
         headPipe.close();
-    }
-
-    @Override
-    public Pipe<OUT> debug() {
-        return new RefPipe<OUT, OUT>(this, EMPTY) {
-            @Override
-            protected Op<OUT> wrapOp(Op<OUT> nextOp) {
-                return new ChainedOp<OUT, OUT>(nextOp) {
-                    @Override
-                    public void begin(long size) {
-                        super.begin(size);
-                    }
-
-                    @Override
-                    public void end() {
-                        super.end();
-                    }
-
-                    @Override
-                    public void accept(OUT value) {
-                        nextOp.accept(value);
-                    }
-
-                    @Override
-                    public boolean canShortCircuit() {
-                        return super.canShortCircuit();
-                    }
-                };
-            }
-        };
     }
 }

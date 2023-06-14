@@ -56,7 +56,7 @@ class PipeCollectTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确将流水线元素收集到拆分器中")
     void should_collect_pipe_elements_to_spliterator_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         List<String> actual = new ArrayList<>(sample.size());
         list(sample).toSpliterator().forEachRemaining(actual::add);
         assertEquals(sample, actual);
@@ -65,7 +65,7 @@ class PipeCollectTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确将流水线元素收集到迭代器中")
     void should_collect_pipe_elements_to_iterator_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         List<String> actual = new ArrayList<>(sample.size());
         list(sample).toIterator().forEachRemaining(actual::add);
         assertEquals(sample, actual);
@@ -74,14 +74,14 @@ class PipeCollectTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确将流水线元素收集到数组中")
     void should_collect_pipe_elements_to_array_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertEquals(sample, asList(list(sample).toArray(String[]::new)));
     }
 
     @Test
     @DisplayName("能够正确将流水线元素收集到列表中")
     void should_collect_pipe_elements_to_list_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertAll(() -> assertEquals(sample, list(sample).toList()),
             () -> assertEquals(sample, list(sample).toList(ArrayList::new)),
             () -> assertEquals(ArrayList.class, list(sample).toList(ArrayList::new).getClass()),
@@ -92,7 +92,7 @@ class PipeCollectTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确将流水线元素收集到集合中")
     void should_collect_pipe_elements_to_set_rightly() {
-        HashSet<String> sample = new HashSet<>(generateRandomStrList());
+        HashSet<String> sample = new HashSet<>(genRandomStrList());
         assertAll(() -> assertEquals(sample, set(sample).toSet()),
             () -> assertEquals(sample, set(sample).toSet(HashSet::new)),
             () -> assertEquals(HashSet.class, set(sample).toSet(HashSet::new).getClass()),
@@ -103,7 +103,7 @@ class PipeCollectTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确将流水线元素收集到容器中")
     void should_collect_pipe_elements_to_collection_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertAll(() -> assertEquals(new Vector<>(sample), list(sample).toCollection(Vector::new)),
             () -> assertEquals(Vector.class, list(sample).toCollection(Vector::new).getClass()));
     }
@@ -142,7 +142,7 @@ class PipeCollectTest extends PipeTestFixture {
     @Test
     @DisplayName("收集流水线元素到map中，重新映射键，如果映射的键会重复，则最终的map仅包含较后的元素")
     void should_retain_latter_one_when_collect_pipe_elements_to_map_with_mapped_duplicated_keys() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         Map<String, String> map = list(sample).toMapKeyed(ignored -> SOME_STR);
         assertEquals(sample.get(sample.size() - 1), map.get(SOME_STR));
     }

@@ -40,7 +40,7 @@ class PipeDropTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确根据断言丢弃元素")
     void should_drop_elements_as_predicate_rightly() {
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         Predicate<String> predicate = val -> val.length() > 5;
         assertEquals(sample.stream().filter(predicate.negate()).collect(toList()),
             list(sample).dropIf(predicate).toList());
@@ -49,7 +49,7 @@ class PipeDropTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确根据有序断言丢弃元素")
     void should_drop_elements_as_predicate_with_order_rightly() {
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         IntBox counter = IntBox.box();
         assertEquals(sample.stream().filter(ignored -> (counter.getAndIncrement() & 1) != 1).collect(toList()),
             list(sample).dropIfOrderly((order, value) -> isOdd(order)).toList());
@@ -58,7 +58,7 @@ class PipeDropTest extends PipeTestFixture {
     @Test
     @DisplayName("在非空流水线中能正丢弃第一个元素")
     void should_drop_first_element_in_non_empty_pipe_rightly() {
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         assertEquals(sample.subList(1, sample.size()), list(sample).dropFirst().toList());
     }
 
@@ -85,14 +85,14 @@ class PipeDropTest extends PipeTestFixture {
     @Test
     @DisplayName("当尝试丢弃前0个元素时得到所有元素")
     void should_get_all_elements_when_try_to_get_first_zero_elements() {
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         assertEquals(sample, list(sample).dropFirst(0).toList());
     }
 
     @Test
     @DisplayName("在非空流水线中能够正丢弃取最后一个元素")
     void should_drop_last_element_in_non_empty_pipe_rightly() {
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         assertEquals(sample.subList(0, sample.size() - 1), list(sample).dropLast().toList());
     }
 
@@ -119,7 +119,7 @@ class PipeDropTest extends PipeTestFixture {
     @Test
     @DisplayName("当尝试丢弃最后0个元素时得到所有元素")
     void should_get_all_elements_when_try_to_get_last_zero_elements() {
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         assertEquals(sample, list(sample).dropLast(0).toList());
     }
 
@@ -127,7 +127,7 @@ class PipeDropTest extends PipeTestFixture {
     @DisplayName("dropWhile能够持续丢弃元素，直到断言首次为false")
     void should_drop_elements_until_predicate_get_false_firstly_when_drop_while() {
         IntBox counter = IntBox.box();
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         assertEquals(sample.subList(5, sample.size()),
             list(sample).dropWhile(str -> counter.getAndIncrement() < 5).toList());
     }
@@ -135,7 +135,7 @@ class PipeDropTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确根据有序断言丢弃元素直到断言首次为false")
     void should_drop_elements_as_predicate_with_order_rightly_when_drop_while() {
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         IntBox counter = IntBox.box();
         assertEquals(sample.stream().filter(ignored -> counter.getAndIncrement() >= 5).collect(toList()),
             list(sample).dropWhileOrderly((order, value) -> order < 5).toList());
@@ -144,7 +144,7 @@ class PipeDropTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确丢弃空元素")
     void should_drop_null_elements_rightly() {
-        List<String> sample = generateOddIntegerStrWithNullsList();
+        List<String> sample = genOddIntegerStrWithNullsList();
         assertTrue(sample.stream().anyMatch(Objects::isNull));
         assertTrue(list(sample).dropNull().toList().stream().noneMatch(Objects::isNull));
     }
@@ -152,7 +152,7 @@ class PipeDropTest extends PipeTestFixture {
     @Test
     @DisplayName("能够根据映射结果正确丢弃空元素")
     void should_drop_null_elements_by_mapped_value_rightly() {
-        List<Integer> sample = generateIntegerList();
+        List<Integer> sample = genIntegerList();
         Function<Integer, String> mapper = value -> isOdd(value) ? null : "";
         assertEquals(sample.stream().filter(value -> mapper.apply(value) != null).collect(toList()),
             list(sample).dropNullBy(mapper).toList());

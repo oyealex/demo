@@ -44,7 +44,7 @@ class PipeDisplaceTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确将选中的元素移动到流水线头部或尾部")
     void should_move_selected_elements_to_the_head_or_tail_of_pipe_rightly() {
-        List<Integer> sample = generateIntegerList();
+        List<Integer> sample = genIntegerList();
         assertAll(() -> assertEquals(moveSelected(sample, PipeTestFixture::isOdd, true),
                 list(sample).selectToFirst(PipeTestFixture::isOdd).toList()),
             () -> assertEquals(moveSelected(sample, PipeTestFixture::isEven, false),
@@ -54,9 +54,11 @@ class PipeDisplaceTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确将流水线中null移动到流水线头部或尾部")
     void should_move_nulls_to_the_head_or_tail_of_pipe_rightly() {
-        List<String> sample = generateOddIntegerStrWithNullsList();
-        assertAll(() -> assertEquals(moveSelected(sample, Objects::isNull, true), list(sample).selectNullsToFirst().toList()),
-            () -> assertEquals(moveSelected(sample, Objects::isNull, false), list(sample).selectNullsToLast().toList()));
+        List<String> sample = genOddIntegerStrWithNullsList();
+        assertAll(
+            () -> assertEquals(moveSelected(sample, Objects::isNull, true), list(sample).selectNullsToFirst().toList()),
+            () -> assertEquals(moveSelected(sample, Objects::isNull, false),
+                list(sample).selectNullsToLast().toList()));
     }
 
     @Test
@@ -72,10 +74,12 @@ class PipeDisplaceTest extends PipeTestFixture {
     @Test
     @DisplayName("如果映射方法为映射自身，则根据映射结果为null移动元素到头部或尾部等同于移动null到头部或尾部")
     void should_move_elements_by_mapped_result_in_the_same_way_of_move_nulls_when_mapper_is_identify() {
-        List<String> sample = generateOddIntegerStrWithNullsList();
+        List<String> sample = genOddIntegerStrWithNullsList();
         assertAll(
-            () -> assertEquals(list(sample).selectNullsToFirstBy(identity()).toList(), list(sample).selectNullsToFirst().toList()),
-            () -> assertEquals(list(sample).selectNullsToLastBy(identity()).toList(), list(sample).selectNullsToLast().toList()));
+            () -> assertEquals(list(sample).selectNullsToFirstBy(identity()).toList(),
+                list(sample).selectNullsToFirst().toList()),
+            () -> assertEquals(list(sample).selectNullsToLastBy(identity()).toList(),
+                list(sample).selectNullsToLast().toList()));
     }
 
     private <T> List<T> moveSelected(List<T> sample, Predicate<T> select, boolean selectedFirst) {
@@ -86,7 +90,7 @@ class PipeDisplaceTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确的逆序元素")
     void should_reverse_elements_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         List<String> expected = new ArrayList<>(sample);
         Collections.reverse(expected);
         assertEquals(expected, list(sample).reverse().toList());
@@ -95,21 +99,21 @@ class PipeDisplaceTest extends PipeTestFixture {
     @Test
     @DisplayName("逆序一个已经自然有序的流水线等同于将流水线逆序排序")
     void should_sort_in_reversed_natural_order_when_reverse_a_naturally_sorted_pipe() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertEquals(sample.stream().sorted(reverseOrder()).collect(toList()), list(sample).sort().reverse().toList());
     }
 
     @Test
     @DisplayName("逆序一个已经自然有序的流水线等同于将流水线逆序排序")
     void should_sort_in_natural_order_when_reverse_a_pipe_in_reversed_natural_order() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertEquals(sample.stream().sorted().collect(toList()), list(sample).sortReversely().reverse().toList());
     }
 
     @Test
     @DisplayName("能够正确打乱元素顺序")
     void should_shuffle_elements_in_different_order() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertAll(() -> assertNotEquals(sample, list(sample).shuffle().toList()),
             () -> assertNotEquals(list(sample).shuffle().toList(), list(sample).shuffle().toList()),
             () -> assertNotEquals(list(sample).shuffle().toList(), list(sample).shuffle().toList()),
@@ -119,7 +123,7 @@ class PipeDisplaceTest extends PipeTestFixture {
     @Test
     @DisplayName("能够根据给定的随机数正确打乱元素顺序")
     void should_shuffle_elements_by_the_given_random() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertAll(() -> assertNotEquals(sample, list(sample).shuffle(new Random(0L)).toList()),
             () -> assertEquals(list(sample).shuffle(new Random(0L)).toList(),
                 list(sample).shuffle(new Random(0L)).toList()),

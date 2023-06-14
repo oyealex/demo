@@ -32,14 +32,14 @@ class PipeDistinctTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确对元素去重")
     void should_distinct_elements_rightly() {
-        List<String> duplicated = duplicateList(generateIntegerStrList());
+        List<String> duplicated = duplicateList(genIntegerStrList());
         assertEquals(duplicated.stream().distinct().collect(toList()), list(duplicated).distinct().toList());
     }
 
     @Test
     @DisplayName("能够正确根据映射结果对元素去重")
     void should_distinct_by_mapper_rightly() {
-        List<String> duplicated = duplicateList(generateRandomStrList());
+        List<String> duplicated = duplicateList(genRandomStrList());
         Set<Integer> seen = new HashSet<>();
         assertEquals(duplicated.stream().filter(val -> seen.add(val.length())).collect(toList()),
             list(duplicated).distinctBy(String::length).toList());
@@ -48,7 +48,7 @@ class PipeDistinctTest extends PipeTestFixture {
     @Test
     @DisplayName("即使映射方法返回了null也能正常去重")
     void should_distinct_rightly_even_if_mapper_get_null_result() {
-        List<String> duplicated = duplicateList(generateRandomStrList());
+        List<String> duplicated = duplicateList(genRandomStrList());
         Set<Integer> seen = new HashSet<>();
         assertEquals(duplicated.stream().filter(val -> seen.add(null)).collect(toList()),
             list(duplicated).distinctBy(ignored -> null).toList());
@@ -57,7 +57,7 @@ class PipeDistinctTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确依次根据映射结果对元素去重")
     void should_distinct_by_mapper_orderly_rightly() {
-        List<String> duplicated = duplicateList(generateRandomStrList());
+        List<String> duplicated = duplicateList(genRandomStrList());
         IntBox counter = IntBox.box();
         Set<Integer> seen = new HashSet<>();
         assertEquals(duplicated.stream().filter(ignored -> seen.add(counter.getAndIncrement() % 5)).collect(toList()),
@@ -67,7 +67,7 @@ class PipeDistinctTest extends PipeTestFixture {
     @Test
     @DisplayName("即使按次序映射方法返回了null也能正常去重")
     void should_distinct_orderly_rightly_even_if_mapper_get_null_result() {
-        List<String> duplicated = duplicateList(generateRandomStrList());
+        List<String> duplicated = duplicateList(genRandomStrList());
         Set<Integer> seen = new HashSet<>();
         assertEquals(duplicated.stream().filter(ignored -> seen.add(null)).collect(toList()),
             list(duplicated).distinctByOrderly((order, val) -> null).toList());

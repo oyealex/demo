@@ -50,8 +50,8 @@ class PipeExpansionTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确将各种对象中的元素插入到流水线头部或尾部")
     void should_add_elements_from_some_objects_into_the_head_or_tail_of_pipe_rightly() {
-        List<String> sample = generateOddIntegerStrWithNullsList();
-        List<String> expansion = generateOddIntegerStrWithNullsList();
+        List<String> sample = genOddIntegerStrWithNullsList();
+        List<String> expansion = genOddIntegerStrWithNullsList();
         List<String> prepended = addAll(expansion, sample);
         List<String> appended = addAll(sample, expansion);
         assertAll(() -> assertEquals(prepended, list(sample).prepend(expansion.spliterator()).toList()),
@@ -67,7 +67,7 @@ class PipeExpansionTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确将元素插入到流水线头部或尾部")
     void should_add_element_into_the_head_or_tail_of_pipe_rightly() {
-        List<String> sample = generateOddIntegerStrWithNullsList();
+        List<String> sample = genOddIntegerStrWithNullsList();
         String element = "element";
         assertAll(() -> assertEquals(addAll(singletonList(null), sample), list(sample).prepend((String) null).toList()),
             () -> assertEquals(addAll(sample, singletonList(null)), list(sample).append((String) null).toList()),
@@ -78,8 +78,8 @@ class PipeExpansionTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确将map的key插入到流水线头部或尾部")
     void should_add_the_keys_of_map_into_the_head_or_tail_of_pipe_rightly() {
-        Map<String, String> map = list(generateRandomStrList()).toMap(String::toLowerCase, String::toUpperCase);
-        List<String> sample = generateRandomStrList();
+        Map<String, String> map = list(genRandomStrList()).toMap(String::toLowerCase, String::toUpperCase);
+        List<String> sample = genRandomStrList();
         List<String> prepended = expandAndSortPartially(map.keySet(), sample, 0);
         List<String> appended = expandAndSortPartially(sample, map.keySet(), 1);
         assertAll(() -> assertEquals(prepended,
@@ -91,8 +91,8 @@ class PipeExpansionTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确将map的key插入到流水线头部或尾部")
     void should_add_the_keys_of_map_into_the_head_or_tail_of_pipe_rightly_with_value_predicate() {
-        Map<String, String> map = list(generateRandomStrList()).toMap(String::toLowerCase, String::toUpperCase);
-        List<String> sample = generateRandomStrList();
+        Map<String, String> map = list(genRandomStrList()).toMap(String::toLowerCase, String::toUpperCase);
+        List<String> sample = genRandomStrList();
         Predicate<String> predicate = v -> v.length() > 3;
         List<String> selectedKeys = set(map.entrySet()).takeIf(entry -> predicate.test(entry.getValue()))
             .map(Map.Entry::getKey)
@@ -108,8 +108,8 @@ class PipeExpansionTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确将map的value插入到流水线头部或尾部")
     void should_add_the_values_of_map_into_the_head_or_tail_of_pipe_rightly() {
-        Map<String, String> map = list(generateRandomStrList()).toMap(String::toLowerCase, String::toUpperCase);
-        List<String> sample = generateRandomStrList();
+        Map<String, String> map = list(genRandomStrList()).toMap(String::toLowerCase, String::toUpperCase);
+        List<String> sample = genRandomStrList();
         List<String> prepended = expandAndSortPartially(map.values(), sample, 0);
         List<String> appended = expandAndSortPartially(sample, map.values(), 1);
         assertAll(() -> assertEquals(prepended,
@@ -121,8 +121,8 @@ class PipeExpansionTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确将map的value插入到流水线头部或尾部")
     void should_add_the_values_of_map_into_the_head_or_tail_of_pipe_rightly_with_value_predicate() {
-        Map<String, String> map = list(generateRandomStrList()).toMap(String::toLowerCase, String::toUpperCase);
-        List<String> sample = generateRandomStrList();
+        Map<String, String> map = list(genRandomStrList()).toMap(String::toLowerCase, String::toUpperCase);
+        List<String> sample = genRandomStrList();
         Predicate<String> predicate = v -> v.length() > 3;
         List<String> selectedKeys = set(map.entrySet()).takeIf(entry -> predicate.test(entry.getKey()))
             .map(Map.Entry::getValue)

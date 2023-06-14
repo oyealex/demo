@@ -42,6 +42,4 @@ public interface BasePipe<T, P extends BasePipe<T, P>> extends AutoCloseable {
 
     @Override
     void close();
-
-    P debug();
 }

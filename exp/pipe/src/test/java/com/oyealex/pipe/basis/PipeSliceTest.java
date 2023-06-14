@@ -35,7 +35,7 @@ class PipeSliceTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确跳过和限制元素")
     void should_skip_and_limit_elements_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertAll(
             () -> assertEquals(sample.stream().skip(SKIP).collect(toList()), list(sample).skip(SKIP).toList()),
             () -> assertEquals(sample.stream().limit(LIMIT).collect(toList()),
@@ -45,7 +45,7 @@ class PipeSliceTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确的根据断言跳过和限制元素")
     void should_skip_and_limit_elements_by_predicate_rightly() {
-        List<Integer> sample = generateIntegerList();
+        List<Integer> sample = genIntegerList();
         IntBox skipCounter = IntBox.box();
         IntBox limitCounter = IntBox.box();
         assertAll(
@@ -58,7 +58,7 @@ class PipeSliceTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确对流水线元素切片")
     void should_slice_elements_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertEquals(sample.stream().skip(SKIP).limit(LIMIT).collect(toList()),
             list(sample).slice(SKIP, SKIP + LIMIT).toList());
     }
@@ -66,7 +66,7 @@ class PipeSliceTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确对流水线元素根据断言切片")
     void should_slice_elements_by_predicate_rightly() {
-        List<Integer> sample = generateIntegerList();
+        List<Integer> sample = genIntegerList();
         IntBox skipCounter = IntBox.box();
         IntBox limitCounter = IntBox.box();
         assertEquals(sample.stream()
@@ -101,7 +101,7 @@ class PipeSliceTest extends PipeTestFixture {
     @Test
     @DisplayName("如果跳过元素数量为0或保留元素数量为Long最大值，则得到原流水线")
     void should_get_source_pipe_when_skip_size_is_0_or_limit_size_is_max_value_of_long() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertAll(() -> assertEquals(sample, list(sample).skip(0).toList()),
             () -> assertEquals(sample, list(sample).skip(0, String::isEmpty).toList()),
             () -> assertEquals(sample, list(sample).limit(Long.MAX_VALUE).toList()),
@@ -127,7 +127,7 @@ class PipeSliceTest extends PipeTestFixture {
     @Test
     @DisplayName("如果切片范围款对为最大，则得到原流水线")
     void should_get_source_pipe_when_slice_with_max_range_width() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertAll(() -> assertEquals(sample, list(sample).slice(0, Long.MAX_VALUE).toList()),
             () -> assertEquals(sample, list(sample).slice(0, Long.MAX_VALUE, String::isEmpty).toList()));
     }

@@ -42,21 +42,21 @@ class PipeSortTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确对元素按照自然顺序排序")
     void should_sort_elements_by_natural_order_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertEquals(sample.stream().sorted().collect(toList()), list(sample).sort().toList());
     }
 
     @Test
     @DisplayName("能够正确对元素按照自然逆序排序")
     void should_sort_elements_reversely_by_natural_order_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertEquals(sample.stream().sorted(reverseOrder()).collect(toList()), list(sample).sortReversely().toList());
     }
 
     @Test
     @DisplayName("能够正确按照给定的比较器排序")
     void should_sort_elements_by_given_comparator_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertEquals(sample.stream().sorted(comparingInt(String::length)).collect(toList()),
             list(sample).sort(comparingInt(String::length)).toList());
     }
@@ -64,14 +64,14 @@ class PipeSortTest extends PipeTestFixture {
     @Test
     @DisplayName("当给定的比较器为null时按照自然顺序排序")
     void should_sort_elements_by_natural_order_when_given_comparator_is_null() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertEquals(sample.stream().sorted().collect(toList()), list(sample).sort(null).toList());
     }
 
     @Test
     @DisplayName("能够正确按照映射结果排序")
     void should_sort_elements_by_mapped_result_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertEquals(sample.stream().sorted(comparingInt(String::length)).collect(toList()),
             list(sample).sortBy(String::length).toList());
     }
@@ -79,7 +79,7 @@ class PipeSortTest extends PipeTestFixture {
     @Test
     @DisplayName("如果映射方法为映射自身，则根据映射结果排序等同于根据自身排序")
     void should_sort_elements_by_mapped_result_in_the_same_way_of_sort_elements_self_when_mapper_is_identify() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertAll(() -> assertEquals(list(sample).sortBy(identity()).toList(), list(sample).sort().toList()),
             () -> assertEquals(list(sample).sortBy(identity(), reverseOrder()).toList(),
                 list(sample).sort(reverseOrder()).toList()));
@@ -88,7 +88,7 @@ class PipeSortTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确使用给定比较器按照映射后的结果对元素排序")
     void should_sort_elements_by_mapped_result_and_given_comparator_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertEquals(sample.stream().sorted(comparing(String::length, reverseOrder())).collect(toList()),
             list(sample).sortBy(String::length, reverseOrder()).toList());
     }
@@ -96,7 +96,7 @@ class PipeSortTest extends PipeTestFixture {
     @Test
     @DisplayName("当给定的比较器为null时，能够正确按照映射后的结果以自然顺序对元素排序")
     void should_sort_elements_by_mapped_result_in_natural_order_when_given_comparator_is_null() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertEquals(sample.stream().sorted(comparing(String::length, naturalOrder())).collect(toList()),
             list(sample).sortBy(String::length, null).toList());
     }
@@ -161,9 +161,9 @@ class PipeSortTest extends PipeTestFixture {
     @Test
     @DisplayName("如果元素没有实现Comparable接口，则在排序时抛出异常")
     void should_throw_exception_if_sort_elements_which_do_not_implement_comparable() {
-        assertAll(() -> assertThrowsExactly(ClassCastException.class, () -> generateUnComparablePipe().sort().run()),
-            () -> assertThrowsExactly(ClassCastException.class, () -> generateUnComparablePipe().sortReversely().run()),
-            () -> assertThrowsExactly(ClassCastException.class, () -> generateUnComparablePipe().sort(null).run()));
+        assertAll(() -> assertThrowsExactly(ClassCastException.class, () -> genUnComparablePipe().sort().run()),
+            () -> assertThrowsExactly(ClassCastException.class, () -> genUnComparablePipe().sortReversely().run()),
+            () -> assertThrowsExactly(ClassCastException.class, () -> genUnComparablePipe().sort(null).run()));
     }
 
     @Test

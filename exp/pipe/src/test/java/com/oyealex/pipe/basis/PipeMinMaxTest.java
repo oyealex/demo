@@ -47,7 +47,7 @@ class PipeMinMaxTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确获流水线最小元素")
     void should_get_the_min_element_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         RecordedCounter<String> counter1 = new RecordedCounter<>();
         RecordedCounter<String> counter2 = new RecordedCounter<>();
         assertAll(() -> assertEquals(sample.stream().min(naturalOrder()), list(sample).min()),
@@ -65,7 +65,7 @@ class PipeMinMaxTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确获流水线最大元素")
     void should_get_the_max_element_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         RecordedCounter<String> counter1 = new RecordedCounter<>();
         RecordedCounter<String> counter2 = new RecordedCounter<>();
         assertAll(() -> assertEquals(sample.stream().max(naturalOrder()), list(sample).max()),
@@ -82,7 +82,7 @@ class PipeMinMaxTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确获流水线最下和最大元素")
     void should_get_min_and_max_elements_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         RecordedCounter<String> counter11 = new RecordedCounter<>();
         RecordedCounter<String> counter12 = new RecordedCounter<>();
         RecordedCounter<String> counter21 = new RecordedCounter<>();
@@ -125,11 +125,11 @@ class PipeMinMaxTest extends PipeTestFixture {
     @Test
     @DisplayName("如果元素没有实现Comparable接口，则在尝试使用自然顺序获取最大或最小值时抛出异常")
     void should_throw_exception_when_get_min_or_max_element_by_natural_order_and_elements_are_not_comparable() {
-        assertAll(() -> assertThrowsExactly(ClassCastException.class, () -> generateUnComparablePipe().min()),
-            () -> assertThrowsExactly(ClassCastException.class, () -> generateUnComparablePipe().min(null)),
-            () -> assertThrowsExactly(ClassCastException.class, () -> generateUnComparablePipe().max()),
-            () -> assertThrowsExactly(ClassCastException.class, () -> generateUnComparablePipe().max(null)),
-            () -> assertThrowsExactly(ClassCastException.class, () -> generateUnComparablePipe().minMax()),
-            () -> assertThrowsExactly(ClassCastException.class, () -> generateUnComparablePipe().minMax(null)));
+        assertAll(() -> assertThrowsExactly(ClassCastException.class, () -> genUnComparablePipe().min()),
+            () -> assertThrowsExactly(ClassCastException.class, () -> genUnComparablePipe().min(null)),
+            () -> assertThrowsExactly(ClassCastException.class, () -> genUnComparablePipe().max()),
+            () -> assertThrowsExactly(ClassCastException.class, () -> genUnComparablePipe().max(null)),
+            () -> assertThrowsExactly(ClassCastException.class, () -> genUnComparablePipe().minMax()),
+            () -> assertThrowsExactly(ClassCastException.class, () -> genUnComparablePipe().minMax(null)));
     }
 }

@@ -38,11 +38,11 @@ class PipeFlatMapTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确扁平映射元素")
     void should_flat_map_elements_rightly() {
-        List<Integer> sample = generateIntegerList();
+        List<Integer> sample = genIntegerList();
         assertEquals(
-            sample.stream().map(PipeTestFixture::generateIntegerStrList).flatMap(Collection::stream).collect(toList()),
+            sample.stream().map(PipeTestFixture::genIntegerStrList).flatMap(Collection::stream).collect(toList()),
             list(sample)
-                .map(PipeTestFixture::generateIntegerStrList)
+                .map(PipeTestFixture::genIntegerStrList)
                 .flatMap(list -> list((List<? extends String>) list))
                 .toList());
     }
@@ -50,13 +50,13 @@ class PipeFlatMapTest extends PipeTestFixture {
     @Test
     @DisplayName("能够根据次序正确扁平映射元素")
     void should_flat_map_elements_orderly_rightly() {
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         IntBox counter = IntBox.box();
         assertEquals(sample.stream()
-            .map(ignored -> generateIntegerStrList(counter.getAndIncrement()))
+            .map(ignored -> genIntegerStrList(counter.getAndIncrement()))
             .flatMap(Collection::stream)
             .collect(toList()), list(sample).flatMapOrderly((order, value) -> {
-            List<? extends String> list = generateIntegerStrList((int) order);
+            List<? extends String> list = genIntegerStrList((int) order);
             return list(list);
         }).toList());
     }
@@ -64,16 +64,16 @@ class PipeFlatMapTest extends PipeTestFixture {
     @Test
     @DisplayName("能够将元素映射为容器，并正确地进行扁平映射")
     void should_flat_map_collection_elements_rightly() {
-        List<Integer> sample = generateIntegerList();
+        List<Integer> sample = genIntegerList();
         assertEquals(
-            sample.stream().map(PipeTestFixture::generateIntegerStrList).flatMap(Collection::stream).collect(toList()),
-            list(sample).flatMapCollection(PipeTestFixture::generateIntegerStrList).toList());
+            sample.stream().map(PipeTestFixture::genIntegerStrList).flatMap(Collection::stream).collect(toList()),
+            list(sample).flatMapCollection(PipeTestFixture::genIntegerStrList).toList());
     }
 
     @Test
     @DisplayName("能正确将元素扁平映射为单例流水线")
     void should_flat_map_to_singleton_pipe_rightly() {
-        List<String> sample = generateIntegerStrList();
+        List<String> sample = genIntegerStrList();
         assertEquals(sample.stream().map(Stream::of).map(stream -> stream.collect(toList())).collect(toList()),
             list(sample).flatMapSingleton().map(Pipe::toList).toList());
     }

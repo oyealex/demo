@@ -6,14 +6,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Optional;
 
-import static com.oyealex.pipe.basis.Pipe.empty;
 import static com.oyealex.pipe.basis.Pipe.list;
 import static java.util.Optional.of;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 /**
  * 针对流水线搜索系列API的测试。
@@ -31,7 +28,7 @@ class PipeFindTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确找到流水线第一个或最后一个元素")
     void should_find_first_or_last_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         String first = sample.get(0);
         String last = sample.get(sample.size() - 1);
         assertAll(

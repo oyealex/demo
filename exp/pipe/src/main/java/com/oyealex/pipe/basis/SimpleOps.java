@@ -195,12 +195,12 @@ final class SimpleOps extends NoInstance {
         };
     }
 
-    public static <T> TerminalOp<T, Optional<T>> reduceTerminalOp(BinaryOperator<T> operator) {
+    public static <T> TerminalOp<T, Optional<T>> reduceTerminalOp(BinaryOperator<T> reducer) {
         return new TerminalOp.FindOpt<T, T>() {
             @Override
             public void accept(T value) {
                 if (found) {
-                    result = operator.apply(result, value);
+                    result = reducer.apply(result, value);
                 } else {
                     found = true;
                     result = value;

@@ -26,7 +26,7 @@ class PipeExtraCollectTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确将流水线元素收集为字符串")
     void should_collect_pipe_elements_to_string_rightly() {
-        List<String> sample = generateRandomStrList();
+        List<String> sample = genRandomStrList();
         assertAll(() -> assertEquals(join("", sample), list(sample).join()),
             () -> assertEquals(join(SOME_STR, sample), list(sample).join(SOME_STR)),
             () -> assertEquals(sample.stream().collect(joining(SOME_STR, "[", "]")),
@@ -36,7 +36,7 @@ class PipeExtraCollectTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确将流水线元素收集为字符串，即使流水线中包含null元素")
     void should_collect_pipe_elements_to_string_rightly_when_the_pipe_contains_null() {
-        List<String> sample = generateOddIntegerStrWithNullsList();
+        List<String> sample = genOddIntegerStrWithNullsList();
         assertAll(() -> assertEquals(join("", sample), list(sample).join()),
             () -> assertEquals(join(SOME_STR, sample), list(sample).join(SOME_STR)),
             () -> assertEquals(sample.stream().collect(joining(SOME_STR, "[", "]")),
@@ -46,7 +46,7 @@ class PipeExtraCollectTest extends PipeTestFixture {
     @Test
     @DisplayName("能够正确将流水线元素收集为字符串，对于非字符串元素流水线会自动转为字符串")
     void should_convert_non_string_elements_to_string_and_collect_to_list_rightly() {
-        List<Integer> sample = generateIntegerList();
+        List<Integer> sample = genIntegerList();
         assertAll(() -> assertEquals(sample.stream().map(Objects::toString).collect(joining()), list(sample).join()),
             () -> assertEquals(sample.stream().map(Objects::toString).collect(joining(SOME_STR)),
                 list(sample).join(SOME_STR)),
