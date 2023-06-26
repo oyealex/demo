@@ -1,0 +1,9 @@
+[workspace]
+
+members = [
+    "playground",
+    "minegrep",
+    "closures_example",
+    "rust_by_example",
+    "tauri_demo"
+]
