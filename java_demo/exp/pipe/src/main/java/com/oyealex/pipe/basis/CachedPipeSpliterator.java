@@ -1,13 +1,15 @@
 package com.oyealex.pipe.basis;
 
-import com.oyealex.pipe.assist.Box;
 import com.oyealex.pipe.flag.PipeFlag;
 
+import java.util.ArrayDeque;
 import java.util.Comparator;
+import java.util.Queue;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
 import static com.oyealex.pipe.flag.PipeFlag.SPLIT_MASK;
+import static java.util.Objects.requireNonNull;
 
 /**
  * 将流水线中的元素包装为拆分器。
@@ -28,77 +30,74 @@ import static com.oyealex.pipe.flag.PipeFlag.SPLIT_MASK;
  * @author oyealex
  * @since 2023-05-08
  */
-class PipeSpliterator<OUT> implements Spliterator<OUT> {
+@Deprecated
+class CachedPipeSpliterator<OUT> implements Spliterator<OUT> {
     /** 被包装的流水线 */
     private final RefPipe<?, OUT> pipe;
 
     /** 被包装流水线的数据源 */
     private final Spliterator<Object> split;
 
-    private Box<OUT> dataHolder;
-
-    private Box<Boolean> dataMark;
+    /** 用于缓存短路遍历元素的队列 */
+    private Queue<OUT> cachedQueue;
 
     /** 已经封装了流水线全部节点操作，并最终将元素流入缓存队列的操作方法 */
     private Op<Object> wrappedOfferOp;
 
     /** 是否已经完整遍历 */
-    private boolean isCompleted = false;
+    private boolean isTravelledFully = false;
 
-    PipeSpliterator(RefPipe<?, OUT> pipe, Spliterator<Object> split) {
+    CachedPipeSpliterator(RefPipe<?, OUT> pipe, Spliterator<Object> split) {
         this.pipe = pipe;
         this.split = split;
     }
 
+    private boolean fillQueue() {
+        while (cachedQueue.isEmpty()) {
+            if (wrappedOfferOp.canShortCircuit() || !split.tryAdvance(wrappedOfferOp)) {
+                if (isTravelledFully) {
+                    return false;
+                } else {
+                    wrappedOfferOp.end();
+                    isTravelledFully = true;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean advance() {
+        if (cachedQueue == null) {
+            if (isTravelledFully) {
+                return false;
+            }
+            cachedQueue = new ArrayDeque<>();
+            wrappedOfferOp = pipe.wrapAllOp(cachedQueue::offer);
+            wrappedOfferOp.begin(split.getExactSizeIfKnown());
+            return fillQueue();
+        } else {
+            return !cachedQueue.isEmpty() || fillQueue();
+        }
+    }
+
     @Override
     public boolean tryAdvance(Consumer<? super OUT> action) {
+        requireNonNull(action);
         boolean hasNext = advance();
         if (hasNext) {
-            dataMark.set(false);
-            action.accept(dataHolder.remove());
+            action.accept(cachedQueue.poll());
         }
         return hasNext;
     }
 
     @Override
     public void forEachRemaining(Consumer<? super OUT> action) {
-        if (dataHolder == null && !isCompleted) {
+        if (cachedQueue == null && !isTravelledFully) {
             pipe.driveData(split, TerminalOp.wrap(action));
-            isCompleted = true;
+            isTravelledFully = true;
         } else {
-            do { /*noop*/ } while (tryAdvance(action));
+            do {/*noop*/} while (tryAdvance(action));
         }
-    }
-
-    private boolean advance() {
-        if (dataHolder == null) {
-            if (isCompleted) {
-                return false;
-            }
-            dataHolder = Box.box();
-            dataMark = Box.box(false);
-            wrappedOfferOp = pipe.wrapAllOp(value -> {
-                dataHolder.set(value);
-                dataMark.set(true);
-            });
-            wrappedOfferOp.begin(split.getExactSizeIfKnown());
-            return takeNextData();
-        } else {
-            return dataMark.get() || takeNextData();
-        }
-    }
-
-    private boolean takeNextData() {
-        if (wrappedOfferOp.canShortCircuit() || !split.tryAdvance(wrappedOfferOp)) {
-            if (!isCompleted) {
-                wrappedOfferOp.end();
-                isCompleted = true;
-                dataHolder.remove();
-                dataMark.set(false);
-            }
-            return false;
-        }
-        return true;
     }
 
     @Override

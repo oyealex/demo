@@ -20,12 +20,14 @@ public final class Box<T> implements Supplier<T> {
     private Box() {
     }
 
-    public T getValue() {
-        return value;
+    public void set(T value) {
+        this.value = value;
     }
 
-    public void setValue(T value) {
-        this.value = value;
+    public T remove() {
+        T result = value;
+        value = null;
+        return result;
     }
 
     public Optional<T> unwrap() {
@@ -34,7 +36,7 @@ public final class Box<T> implements Supplier<T> {
 
     @Override
     public T get() {
-        return getValue();
+        return value;
     }
 
     @Override

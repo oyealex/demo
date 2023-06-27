@@ -93,7 +93,7 @@ class PipeMiscTest extends PipeTestFixture {
     @DisplayName("当关闭流水线时能够正确执行关闭动作")
     void should_execute_close_action_when_close_pipe() {
         Box<Boolean> mark = Box.box(false);
-        try (Pipe<String> pipe = Pipe.<String>empty().onClose(() -> mark.setValue(true))) {
+        try (Pipe<String> pipe = Pipe.<String>empty().onClose(() -> mark.set(true))) {
             pipe.run();
         }
         assertTrue(mark.get());
@@ -106,7 +106,7 @@ class PipeMiscTest extends PipeTestFixture {
         assertThrowsExactly(IllegalStateException.class, () -> {
             try (Pipe<String> pipe = Pipe.<String>empty().onClose(() -> {
                 throw new IllegalStateException();
-            }).onClose(() -> mark.setValue(true))) {
+            }).onClose(() -> mark.set(true))) {
                 pipe.run();
             }
         });

@@ -1,10 +1,8 @@
 package com.oyealex.pipe;
 
-import com.oyealex.pipe.basis.Pipe;
 import org.junit.jupiter.api.Test;
 
-import static com.oyealex.pipe.policy.PartitionPolicy.END;
-import static com.oyealex.pipe.policy.PartitionPolicy.IN;
+import java.util.Spliterator;
 
 /**
  * Smoke
@@ -15,9 +13,35 @@ import static com.oyealex.pipe.policy.PartitionPolicy.IN;
 class SmokeTest extends PipeTestFixture {
     @Test
     void smoke() {
-        System.out.println(infiniteIntegerStrPipe().limit(10)
-            .partitionOrderly((order, ignored) -> order == 7 ? END : IN)
-            .map(Pipe::toList)
-            .toList());
+        Spliterator<String> split = integerStrPipe().limit(10).toSpliterator();
+        try {
+            split.tryAdvance(ignored -> {
+                throw new RuntimeException();
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        split.tryAdvance(System.out::println);
+        split.tryAdvance(System.out::println);
+        split.tryAdvance(System.out::println);
+        split.forEachRemaining(System.out::println);
+        split.forEachRemaining(System.out::println);
+    }
+
+    @Test
+    void normal() {
+        Spliterator<String> split = integerStrPipe().limit(10).toList().spliterator();
+        try {
+            split.tryAdvance(ignored -> {
+                throw new RuntimeException();
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        split.tryAdvance(System.out::println);
+        split.tryAdvance(System.out::println);
+        split.tryAdvance(System.out::println);
+        split.forEachRemaining(System.out::println);
+        split.forEachRemaining(System.out::println);
     }
 }
