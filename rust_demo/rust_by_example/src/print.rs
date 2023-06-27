@@ -14,10 +14,12 @@ mod test {
         println!("{0}, this is {1}. {1}, this is {0}", "Alice", "Bob");
 
         // As can named arguments.
-        println!("{subject} {verb} {object}",
-                 object = "the lazy dog",
-                 subject = "the quick brown fox",
-                 verb = "jumps over");
+        println!(
+            "{subject} {verb} {object}",
+            object = "the lazy dog",
+            subject = "the quick brown fox",
+            verb = "jumps over"
+        );
 
         // Different formatting can be invoked by specifying the format character after a
         // `:`.
@@ -26,7 +28,6 @@ mod test {
         println!("Base 8 (octal):        {:o}", 69420); //207454
         println!("Base 16 (hexadecimal): {:x}", 69420); //10f2c
         println!("Base 16 (hexadecimal): {:X}", 69420); //10F2C
-
 
         // You can right-justify text with a specified width. This will
         // output "    1". (Four white spaces and a "1", for a total width of 5.)
@@ -38,7 +39,6 @@ mod test {
 
         // You can use named arguments in the format specifier by appending a `$`
         println!("{number:0>width$}", number = 1, width = 5);
-
 
         // Rust even checks to make sure the correct number of arguments are
         // used.
@@ -90,8 +90,23 @@ mod test {
         //                          in arg "prec" (5)}
         println!("Hello {} is {number:.prec$}", "x", prec = 5, number = 0.01);
 
-        println!("{}, `{name:.*}` has 3 fractional digits", "Hello", 3, name=1234.56);
-        println!("{}, `{name:.*}` has 3 characters", "Hello", 3, name="1234.56");
-        println!("{}, `{name:>8.*}` has 3 right-aligned characters", "Hello", 3, name="1234.56");
+        println!(
+            "{}, `{name:.*}` has 3 fractional digits",
+            "Hello",
+            3,
+            name = 1234.56
+        );
+        println!(
+            "{}, `{name:.*}` has 3 characters",
+            "Hello",
+            3,
+            name = "1234.56"
+        );
+        println!(
+            "{}, `{name:>8.*}` has 3 right-aligned characters",
+            "Hello",
+            3,
+            name = "1234.56"
+        );
     }
 }

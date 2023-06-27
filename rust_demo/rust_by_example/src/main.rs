@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 #![allow(overflowing_literals)]
 
-
 mod print;
 
 fn main() {

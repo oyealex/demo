@@ -1,8 +1,8 @@
-use std::io;
 use rand::Rng;
-use std::io::{Write, BufReader, BufRead, ErrorKind};
-use std::fs::File;
 use std::cmp::Ordering;
+use std::fs::File;
+use std::io;
+use std::io::{BufRead, BufReader, ErrorKind, Write};
 
 fn main() {
     let au8: u8 = 5;
