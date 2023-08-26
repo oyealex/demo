@@ -1,0 +1,9 @@
+app:
+  domain: mse
+  name: server
+  version: v1
+spring:
+  profiles:
+    include: basis
+server:
+  port: 9101
