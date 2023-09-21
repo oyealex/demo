@@ -1,4 +1,5 @@
 extern crate core;
+extern crate minegrep;
 
 use std::env;
 use std::process;
