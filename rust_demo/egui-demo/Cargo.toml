@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 env_logger = "0.10.0"
 eframe = {version = "0.22.0", features = ["__screenshot"]}
+rfd = "0.11.4"
+egui_demo_lib = "0.22.0"
