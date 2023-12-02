@@ -186,34 +186,112 @@ public class SimpleBitEnumTool<E extends Enum<E>> {
     /**
      * 根据位序列判断代表的两个枚举序列是否含有交集。
      *
-     * @param firstBits 第一份枚举序列的位序列。
-     * @param secondBits 第二份枚举序列的位序列。
+     * @param firstBits 第一个枚举序列的位序列。
+     * @param secondBits 第二个枚举序列的位序列。
      * @return {@code true} - 给定的两个枚举序列含有交集。
      */
-    public boolean haveIntersections(long firstBits, long secondBits) {
-        return (bitsMask & firstBits & secondBits) != 0L;
+    public boolean haveIntersection(long firstBits, long secondBits) {
+        return getIntersectionBits(firstBits, secondBits) != 0L;
     }
 
     /**
      * 获取给定两个枚举序列交集数量。
      *
-     * @param firstBits 第一份枚举序列的位序列。
-     * @param secondBits 第二份枚举序列的位序列。
+     * @param firstBits 第一个枚举序列的位序列。
+     * @param secondBits 第二个枚举序列的位序列。
      * @return 给定两个枚举序列交集数量。
      */
-    public int countIntersections(long firstBits, long secondBits) {
-        return Long.bitCount(bitsMask & firstBits & secondBits);
+    public int countIntersection(long firstBits, long secondBits) {
+        return Long.bitCount(getIntersectionBits(firstBits, secondBits));
     }
 
     /**
      * 获取给定两个枚举序列交集。
      *
-     * @param firstBits 第一份枚举序列的位序列。
-     * @param secondBits 第二份枚举序列的位序列。
+     * @param firstBits 第一个枚举序列的位序列。
+     * @param secondBits 第二个枚举序列的位序列。
      * @return 给定两个枚举序列交集。
      */
-    public Set<E> getIntersections(long firstBits, long secondBits) {
-        return fromBits(bitsMask & firstBits & secondBits);
+    public Set<E> getIntersection(long firstBits, long secondBits) {
+        return fromBits(getIntersectionBits(firstBits, secondBits));
+    }
+
+    private long getIntersectionBits(long firstBits, long secondBits) {
+        return bitsMask & firstBits & secondBits;
+    }
+
+    /**
+     * 根据位序列判断代表的两个枚举序列是否含有差集（第一个序列独有的枚举值）。
+     *
+     * @param firstBits 第一个枚举序列的位序列。
+     * @param secondBits 第二个枚举序列的位序列。
+     * @return {@code true} - 给定的两个枚举序列含有差集（第一个序列独有的枚举值）。
+     */
+    public boolean haveDifference(long firstBits, long secondBits) {
+        return getDifferenceBits(firstBits, secondBits) != 0L;
+    }
+
+    /**
+     * 获取给定两个枚举序列差集（第一个序列独有的枚举值）数量。
+     *
+     * @param firstBits 第一个枚举序列的位序列。
+     * @param secondBits 第二个枚举序列的位序列。
+     * @return 给定两个枚举序列差集（第一个序列独有的枚举值）数量。
+     */
+    public int countDifference(long firstBits, long secondBits) {
+        return Long.bitCount(getDifferenceBits(firstBits, secondBits));
+    }
+
+    /**
+     * 获取给定两个枚举序列差集（第一个序列独有的枚举值）。
+     *
+     * @param firstBits 第一个枚举序列的位序列。
+     * @param secondBits 第二个枚举序列的位序列。
+     * @return 给定两个枚举序列差集（第一个序列独有的枚举值）。
+     */
+    public Set<E> getDifference(long firstBits, long secondBits) {
+        return fromBits(getDifferenceBits(firstBits, secondBits));
+    }
+
+    private long getDifferenceBits(long firstBits, long secondBits) {
+        return bitsMask & firstBits ^ bitsMask & firstBits & secondBits;
+    }
+
+    /**
+     * 根据位序列判断代表的两个枚举序列是否含有对称差集（两个序列各自独有的枚举值）。
+     *
+     * @param firstBits 第一个枚举序列的位序列。
+     * @param secondBits 第二个枚举序列的位序列。
+     * @return {@code true} - 给定的两个枚举序列含有对称差集（两个序列各自独有的枚举值）。
+     */
+    public boolean haveSymmetricDifference(long firstBits, long secondBits) {
+        return getSymmetricDifferenceBits(firstBits, secondBits) != 0L;
+    }
+
+    /**
+     * 获取给定两个枚举序列对称差集（两个序列各自独有的枚举值）数量。
+     *
+     * @param firstBits 第一个枚举序列的位序列。
+     * @param secondBits 第二个枚举序列的位序列。
+     * @return 给定两个枚举序列对称差集（两个序列各自独有的枚举值）数量。
+     */
+    public int countSymmetricDifference(long firstBits, long secondBits) {
+        return Long.bitCount(getSymmetricDifferenceBits(firstBits, secondBits));
+    }
+
+    /**
+     * 获取给定两个枚举序列对称差集（两个序列各自独有的枚举值）。
+     *
+     * @param firstBits 第一个枚举序列的位序列。
+     * @param secondBits 第二个枚举序列的位序列。
+     * @return 给定两个枚举序列对称差集（两个序列各自独有的枚举值）。
+     */
+    public Set<E> getSymmetricDifference(long firstBits, long secondBits) {
+        return fromBits(getSymmetricDifferenceBits(firstBits, secondBits));
+    }
+
+    private long getSymmetricDifferenceBits(long firstBits, long secondBits) {
+        return bitsMask & firstBits ^ bitsMask & secondBits;
     }
 
     /**

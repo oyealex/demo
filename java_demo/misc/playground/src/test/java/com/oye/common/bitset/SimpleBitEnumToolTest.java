@@ -41,6 +41,10 @@ class SimpleBitEnumToolTest {
 
     private static final SimpleBitEnumTool<TimeUnit> SHORTEN_TOOL = new SimpleBitEnumTool<>(PARTS);
 
+    private static final long INVALID_BITS = 1L << 32;
+
+    private static final long ANOTHER_INVALID_BITS = 1L << 33;
+
     @Test
     @DisplayName("能够正确从枚举类型中构造枚举位序列工具")
     void should_construct_tool_from_enum_type_rightly() {
@@ -144,52 +148,147 @@ class SimpleBitEnumToolTest {
 
     @Test
     @DisplayName("能够正确判断交集是否存在")
-    void should_judge_if_intersections_exist_rightly() {
+    void should_judge_if_intersection_exist_rightly() {
         assertAll(
             // have
-            () -> assertTrue(TOOL.haveIntersections(1L << DAYS.ordinal() | 1L << HOURS.ordinal(),
-                1L << DAYS.ordinal() | 1L << MINUTES.ordinal())),
+            () -> assertTrue(TOOL.haveIntersection(TOOL.toBits(DAYS, HOURS), TOOL.toBits(DAYS, MINUTES))),
             // not have
-            () -> assertFalse(TOOL.haveIntersections(1L << HOURS.ordinal(), 1L << MINUTES.ordinal())),
-            () -> assertFalse(TOOL.haveIntersections(0L, 0L)),
+            () -> assertFalse(TOOL.haveIntersection(TOOL.toBits(HOURS), TOOL.toBits(MINUTES))),
+            () -> assertFalse(TOOL.haveIntersection(0L, 0L)),
             // with invalid bits
-            () -> assertTrue(TOOL.haveIntersections(1L << HOURS.ordinal() | 1L << 32, 1L << HOURS.ordinal())),
-            () -> assertFalse(TOOL.haveIntersections(1L << 32, 1L << 33 | 1L << 32)));
+            () -> assertTrue(TOOL.haveIntersection(TOOL.toBits(HOURS) | INVALID_BITS, TOOL.toBits(HOURS))),
+            () -> assertFalse(TOOL.haveIntersection(INVALID_BITS, ANOTHER_INVALID_BITS | INVALID_BITS)));
     }
 
     @Test
     @DisplayName("能够正确计算交集数量")
-    void should_cont_intersections_rightly() {
+    void should_cont_intersection_rightly() {
         assertAll(
             // have
-            () -> assertEquals(1, TOOL.countIntersections(1L << DAYS.ordinal() | 1L << HOURS.ordinal(),
-                1L << DAYS.ordinal() | 1L << MINUTES.ordinal())), () -> assertEquals(2,
-                TOOL.countIntersections(1L << DAYS.ordinal() | 1L << HOURS.ordinal(),
-                    1L << DAYS.ordinal() | 1L << MINUTES.ordinal() | 1L << HOURS.ordinal())),
+            () -> assertEquals(1, TOOL.countIntersection(TOOL.toBits(DAYS, HOURS), TOOL.toBits(DAYS, MINUTES))),
+            () -> assertEquals(2, TOOL.countIntersection(TOOL.toBits(DAYS, HOURS), TOOL.toBits(DAYS, MINUTES, HOURS))),
             // not have
-            () -> assertEquals(0, TOOL.countIntersections(1L << HOURS.ordinal(), 1L << MINUTES.ordinal())),
-            () -> assertEquals(0, TOOL.countIntersections(0L, 0L)),
+            () -> assertEquals(0, TOOL.countIntersection(TOOL.toBits(HOURS), TOOL.toBits(MINUTES))),
+            () -> assertEquals(0, TOOL.countIntersection(0L, 0L)),
             // with invalid bits
-            () -> assertEquals(1, TOOL.countIntersections(1L << HOURS.ordinal() | 1L << 32, 1L << HOURS.ordinal())),
-            () -> assertEquals(0, TOOL.countIntersections(1L << 32, 1L << 33 | 1L << 32)));
+            () -> assertEquals(1, TOOL.countIntersection(TOOL.toBits(HOURS) | INVALID_BITS, TOOL.toBits(HOURS))),
+            () -> assertEquals(0, TOOL.countIntersection(INVALID_BITS, ANOTHER_INVALID_BITS | INVALID_BITS)));
     }
 
     @Test
     @DisplayName("能够正确获取交集枚举值")
-    void should_get_intersections_rightly() {
+    void should_get_intersection_rightly() {
         assertAll(
             // have
-            () -> assertEquals(Set.of(DAYS), TOOL.getIntersections(1L << DAYS.ordinal() | 1L << HOURS.ordinal(),
-                1L << DAYS.ordinal() | 1L << MINUTES.ordinal())), () -> assertEquals(Set.of(DAYS, HOURS),
-                TOOL.getIntersections(1L << DAYS.ordinal() | 1L << HOURS.ordinal(),
-                    1L << DAYS.ordinal() | 1L << MINUTES.ordinal() | 1L << HOURS.ordinal())),
+            () -> assertEquals(Set.of(DAYS),
+                TOOL.getIntersection(TOOL.toBits(DAYS, HOURS), TOOL.toBits(DAYS, MINUTES))),
+            () -> assertEquals(Set.of(DAYS, HOURS),
+                TOOL.getIntersection(TOOL.toBits(DAYS, HOURS), TOOL.toBits(DAYS, MINUTES, HOURS))),
             // not have
-            () -> assertEquals(Set.of(), TOOL.getIntersections(1L << HOURS.ordinal(), 1L << MINUTES.ordinal())),
-            () -> assertEquals(Set.of(), TOOL.getIntersections(0L, 0L)),
+            () -> assertEquals(Set.of(), TOOL.getIntersection(TOOL.toBits(HOURS), TOOL.toBits(MINUTES))),
+            () -> assertEquals(Set.of(), TOOL.getIntersection(0L, 0L)),
             // with invalid bits
-            () -> assertEquals(Set.of(HOURS),
-                TOOL.getIntersections(1L << HOURS.ordinal() | 1L << 32, 1L << HOURS.ordinal())),
-            () -> assertEquals(Set.of(), TOOL.getIntersections(1L << 32, 1L << 33 | 1L << 32)));
+            () -> assertEquals(Set.of(HOURS), TOOL.getIntersection(TOOL.toBits(HOURS) | 1L << 32, TOOL.toBits(HOURS))),
+            () -> assertEquals(Set.of(), TOOL.getIntersection(INVALID_BITS, 1L << 33 | ANOTHER_INVALID_BITS)));
+    }
+
+    @Test
+    @DisplayName("能够正确判断差集是否存在")
+    void should_judge_if_difference_exist_rightly() {
+        assertAll(
+            // have
+            () -> assertTrue(TOOL.haveDifference(TOOL.toBits(HOURS, MINUTES), TOOL.toBits(HOURS, SECONDS))),
+            // not have
+            () -> assertFalse(TOOL.haveDifference(TOOL.toBits(HOURS, MINUTES), TOOL.toBits(HOURS, MINUTES))),
+            () -> assertFalse(TOOL.haveDifference(TOOL.toBits(HOURS, MINUTES), TOOL.toBits(HOURS, MINUTES, DAYS))),
+            // with invalid bits
+            () -> assertFalse(TOOL.haveDifference(TOOL.toBits(HOURS, MINUTES) | INVALID_BITS,
+                TOOL.toBits(HOURS, MINUTES) | ANOTHER_INVALID_BITS)), () -> assertTrue(
+                TOOL.haveDifference(TOOL.toBits(HOURS, MINUTES) | INVALID_BITS,
+                    TOOL.toBits(HOURS, SECONDS) | ANOTHER_INVALID_BITS)));
+    }
+
+    @Test
+    @DisplayName("能够正确计算差集数量")
+    void should_count_difference_rightly() {
+        assertAll(
+            // have
+            () -> assertEquals(1, TOOL.countDifference(TOOL.toBits(HOURS, MINUTES), TOOL.toBits(HOURS, SECONDS))),
+            // not have
+            () -> assertEquals(0, TOOL.countDifference(TOOL.toBits(HOURS, MINUTES), TOOL.toBits(HOURS, MINUTES))),
+            () -> assertEquals(0, TOOL.countDifference(TOOL.toBits(HOURS, MINUTES), TOOL.toBits(HOURS, MINUTES, DAYS))),
+            // with invalid bits
+            () -> assertEquals(0, TOOL.countDifference(TOOL.toBits(HOURS, MINUTES) | INVALID_BITS,
+                TOOL.toBits(HOURS, MINUTES) | ANOTHER_INVALID_BITS)), () -> assertEquals(1,
+                TOOL.countDifference(TOOL.toBits(HOURS, MINUTES) | INVALID_BITS,
+                    TOOL.toBits(HOURS, SECONDS) | ANOTHER_INVALID_BITS)));
+    }
+
+    @Test
+    @DisplayName("能够正确获取差集")
+    void should_get_difference_rightly() {
+        assertAll(
+            // have
+            () -> assertEquals(Set.of(MINUTES),
+                TOOL.getDifference(TOOL.toBits(HOURS, MINUTES), TOOL.toBits(HOURS, SECONDS))),
+            // not have
+            () -> assertEquals(Set.of(), TOOL.getDifference(TOOL.toBits(HOURS, MINUTES), TOOL.toBits(HOURS, MINUTES))),
+            () -> assertEquals(Set.of(),
+                TOOL.getDifference(TOOL.toBits(HOURS, MINUTES), TOOL.toBits(HOURS, MINUTES, DAYS))),
+            // with invalid bits
+            () -> assertEquals(Set.of(), TOOL.getDifference(TOOL.toBits(HOURS, MINUTES) | INVALID_BITS,
+                TOOL.toBits(HOURS, MINUTES) | ANOTHER_INVALID_BITS)), () -> assertEquals(Set.of(MINUTES),
+                TOOL.getDifference(TOOL.toBits(HOURS, MINUTES) | INVALID_BITS,
+                    TOOL.toBits(HOURS, SECONDS) | ANOTHER_INVALID_BITS)));
+    }
+
+    @Test
+    @DisplayName("能够正确判断对称差集是否存在")
+    void should_judge_if_symmetric_difference_exist_rightly() {
+        assertAll(
+            // have
+            () -> assertTrue(TOOL.haveSymmetricDifference(TOOL.toBits(HOURS, MINUTES), TOOL.toBits(HOURS, SECONDS))),
+            // not have
+            () -> assertFalse(TOOL.haveSymmetricDifference(TOOL.toBits(HOURS, MINUTES), TOOL.toBits(HOURS, MINUTES))),
+            // with invalid bits
+            () -> assertFalse(TOOL.haveSymmetricDifference(TOOL.toBits(HOURS, MINUTES) | INVALID_BITS,
+                TOOL.toBits(HOURS, MINUTES) | ANOTHER_INVALID_BITS)), () -> assertTrue(
+                TOOL.haveSymmetricDifference(TOOL.toBits(HOURS, MINUTES) | INVALID_BITS,
+                    TOOL.toBits(HOURS, SECONDS) | ANOTHER_INVALID_BITS)));
+    }
+
+    @Test
+    @DisplayName("能够正确计算对称差集数量")
+    void should_count_symmetric_difference_rightly() {
+        assertAll(
+            // have
+            () -> assertEquals(2,
+                TOOL.countSymmetricDifference(TOOL.toBits(HOURS, MINUTES), TOOL.toBits(HOURS, SECONDS))),
+            // not have
+            () -> assertEquals(0,
+                TOOL.countSymmetricDifference(TOOL.toBits(HOURS, MINUTES), TOOL.toBits(HOURS, MINUTES))),
+            // with invalid bits
+            () -> assertEquals(0, TOOL.countSymmetricDifference(TOOL.toBits(HOURS, MINUTES) | INVALID_BITS,
+                TOOL.toBits(HOURS, MINUTES) | ANOTHER_INVALID_BITS)), () -> assertEquals(2,
+                TOOL.countSymmetricDifference(TOOL.toBits(HOURS, MINUTES) | INVALID_BITS,
+                    TOOL.toBits(HOURS, SECONDS) | ANOTHER_INVALID_BITS)));
+    }
+
+    @Test
+    @DisplayName("能够正确获取对称差集")
+    void should_get_symmetric_difference_rightly() {
+        assertAll(
+            // have
+            () -> assertEquals(Set.of(MINUTES, SECONDS),
+                TOOL.getSymmetricDifference(TOOL.toBits(HOURS, MINUTES), TOOL.toBits(HOURS, SECONDS))),
+            // not have
+            () -> assertEquals(Set.of(),
+                TOOL.getSymmetricDifference(TOOL.toBits(HOURS, MINUTES), TOOL.toBits(HOURS, MINUTES))),
+            // with invalid bits
+            () -> assertEquals(Set.of(), TOOL.getSymmetricDifference(TOOL.toBits(HOURS, MINUTES) | INVALID_BITS,
+                TOOL.toBits(HOURS, MINUTES) | ANOTHER_INVALID_BITS)), () -> assertEquals(Set.of(MINUTES, SECONDS),
+                TOOL.getSymmetricDifference(TOOL.toBits(HOURS, MINUTES) | INVALID_BITS,
+                    TOOL.toBits(HOURS, SECONDS) | ANOTHER_INVALID_BITS)));
     }
 
     @Test
@@ -216,6 +315,7 @@ class SimpleBitEnumToolTest {
         assertDoesNotThrow(() -> System.out.println(TOOL));
     }
 
+    @SuppressWarnings("unused")
     private enum LotsOfEnum {
         E0, E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13, E14, E15, E16, E17, E18, E19, E20, E21, E22, E23,
         E24, E25, E26, E27, E28, E29, E30, E31, E32, E33, E34, E35, E36, E37, E38, E39, E40, E41, E42, E43, E44, E45,
