@@ -1,0 +1,5 @@
+[package]
+name = "rust_model_example"
+version = "0.1.0"
+
+[dependencies]

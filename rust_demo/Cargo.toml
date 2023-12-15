@@ -5,4 +5,5 @@ members = [
     "egui-demo",
     "playground",
     "minegrep",
+    "rust_model_example"
 ]
