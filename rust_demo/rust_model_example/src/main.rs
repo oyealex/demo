@@ -23,4 +23,5 @@ fn main() {
     let _ = FolderModPriModPubStruct {};
     let _ = FolderModDirectPubStruct {};
     let _ = PreModPubStruct {};
+    println!("this is a demo model to show how to organize mods in a binary crate");
 }
