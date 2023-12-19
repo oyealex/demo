@@ -8,8 +8,8 @@ use single_file_mod::OuterStruct;
 
 // 声明所有mod，否则无法使用
 mod foo;
-mod single_file_mod;
 mod pre;
+mod single_file_mod;
 
 // prelude模式
 mod prelude {

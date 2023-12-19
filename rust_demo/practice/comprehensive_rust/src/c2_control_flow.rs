@@ -4,9 +4,7 @@ pub mod block {
             let y = 10;
             println!("y: {y}");
             let z = {
-                let w = {
-                    3 + 4
-                };
+                let w = { 3 + 4 };
                 println!("w: {w}");
                 y * w
             };
@@ -34,11 +32,7 @@ pub mod if_expression {
         println!("x: {x}");
 
         let mut x = 10;
-        x = if x % 2 == 0 {
-            x / 2
-        } else {
-            3 * x + 1
-        };
+        x = if x % 2 == 0 { x / 2 } else { 3 * x + 1 };
         println!("x: {x}")
     }
 }
@@ -71,8 +65,8 @@ pub mod while_loop {
 pub mod break_and_continue {
     pub fn practice() {
         let v = vec![10, 20, 30];
-        let mut iter = v.into_iter();
-        'outer: while let Some(x) = iter.next() {
+        let iter = v.into_iter();
+        'outer: for x in iter.skip(1) {
             println!("x: {x}");
             let mut i = 0;
             while i < x {
@@ -92,7 +86,9 @@ pub mod loop_expression {
         loop {
             x = if x % 2 == 0 { x / 2 } else { 3 * x + 1 };
             println!("x: {x}");
-            if x == 1 { break; }
+            if x == 1 {
+                break;
+            }
         }
     }
 }

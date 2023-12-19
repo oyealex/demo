@@ -12,9 +12,11 @@ fn main() -> Result<(), eframe::Error> {
     eframe::run_native(
         "egui example: easy mark editor",
         options,
-        Box::new(|_cc| Box::new(MyApp {
-            editor: EasyMarkEditor::default(),
-        })),
+        Box::new(|_cc| {
+            Box::new(MyApp {
+                editor: EasyMarkEditor::default(),
+            })
+        }),
     )
 }
 
