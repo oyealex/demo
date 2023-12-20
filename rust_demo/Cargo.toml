@@ -2,9 +2,10 @@
 resolver = "2"
 
 members = [
-    "egui-demo",
+    "gui/egui_demo",
+    "gui/slint_demo",
     "playground",
-    "minegrep",
-    "rust_model_example",
+    "practice/minegrep",
+    "practice/rust_model_example",
     "practice/comprehensive_rust"
 ]
