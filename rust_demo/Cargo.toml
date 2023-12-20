@@ -3,7 +3,7 @@ resolver = "2"
 
 members = [
     "gui/egui_demo",
-    "gui/slint_demo",
+    "gui/druid_demo",
     "playground",
     "practice/minegrep",
     "practice/rust_model_example",

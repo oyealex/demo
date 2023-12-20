@@ -26,6 +26,7 @@ struct MyApp {
 
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        println!("update");
         self.editor.panels(ctx);
     }
 }
