@@ -1,8 +1,29 @@
 use iced::{Element, Error, Sandbox, Settings};
 use iced::widget::text_input;
+use iced::window::{Level, Position};
 
 fn main() -> Result<(), Error> {
-    Editor::run(Settings::default())
+    Editor::run(Settings {
+        id: None,
+        window: iced::window::Settings {
+            size: (1024, 768),
+            position: Position::default(),
+            min_size: None,
+            max_size: None,
+            visible: true,
+            resizable: true,
+            decorations: false,
+            transparent: false,
+            level: Level::default(),
+            icon: None,
+            platform_specific: Default::default(),
+        } ,
+        flags: Default::default(),
+        default_font: Default::default(),
+        default_text_size: 16.0,
+        antialiasing: false,
+        exit_on_close_request: true,
+    })
 }
 
 struct Editor {
