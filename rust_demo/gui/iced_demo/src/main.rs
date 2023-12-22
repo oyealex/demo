@@ -1,6 +1,6 @@
-use iced::{Element, Error, Sandbox, Settings};
 use iced::widget::text_input;
 use iced::window::{Level, Position};
+use iced::{Element, Error, Sandbox, Settings};
 
 fn main() -> Result<(), Error> {
     Editor::run(Settings {
@@ -17,7 +17,7 @@ fn main() -> Result<(), Error> {
             level: Level::default(),
             icon: None,
             platform_specific: Default::default(),
-        } ,
+        },
         flags: Default::default(),
         default_font: Default::default(),
         default_text_size: 16.0,

@@ -31,7 +31,12 @@ pub mod layout {
 
     fn dbg_size<T>() {
         // 打印类型T的名称、大小、留白
-        println!("{}: size {} bytes, align: {} bytes", type_name::<T>(), size_of::<T>(), align_of::<T>());
+        println!(
+            "{}: size {} bytes, align: {} bytes",
+            type_name::<T>(),
+            size_of::<T>(),
+            align_of::<T>()
+        );
     }
 
     enum Foo {
