@@ -1,10 +1,12 @@
+#![allow(dead_code)]
+
 use fltk::app::{App, Scheme};
 use fltk::button::Button;
 use fltk::enums::{Align, Color, FrameType};
 use fltk::frame::Frame;
 use fltk::group::Flex;
 use fltk::input::Input;
-use fltk::prelude::{GroupExt, WidgetBase, WidgetExt};
+use fltk::prelude::{GroupExt, WidgetBase, WidgetExt, WindowExt};
 use fltk::window::Window;
 
 pub fn run() {
@@ -12,7 +14,8 @@ pub fn run() {
 
     // Flex::debug(true); // 显示布局边界
 
-    let mut window = Window::default().with_size(600, 300);
+    // 置于屏幕中央
+    let mut window = Window::default().with_size(600, 300).center_screen();
     window.set_color(Color::by_index(55));
 
     let mut main_col = Flex::default_fill().column(); // 填满父组件
