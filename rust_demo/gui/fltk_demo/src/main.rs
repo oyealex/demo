@@ -1,5 +1,5 @@
 mod examples;
 
 fn main() {
-    examples::flex_login::run();
+    examples::move_frame::run();
 }
