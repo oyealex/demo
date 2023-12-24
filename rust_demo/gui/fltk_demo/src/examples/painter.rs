@@ -1,17 +1,18 @@
 #![allow(dead_code)]
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use fltk::{
     app,
     draw::{
-        draw_line, draw_point, draw_rect_fill, set_draw_color, set_line_style, LineStyle, Offscreen,
+        draw_line, draw_point, draw_rect_fill, LineStyle, Offscreen, set_draw_color, set_line_style,
     },
     enums::{Color, Event, FrameType},
     frame::Frame,
     prelude::*,
     window::Window,
 };
-use std::cell::RefCell;
-use std::rc::Rc;
 
 const WIDTH: i32 = 800;
 const HEIGHT: i32 = 600;
@@ -62,17 +63,13 @@ pub fn run() {
         let mut x = 0;
         let mut y = 0;
         move |f, ev| {
-            println!(
-                "{ev}, coords {:?}, mouse {:?}",
-                app::event_coords(),
-                app::get_mouse()
-            );
+            // println!("{ev}, coords {:?}, mouse {:?}", app::event_coords(), app::get_mouse());
             let offs = offs.borrow_mut();
             match ev {
                 Event::Push => {
                     offs.begin();
                     set_draw_color(Color::Red);
-                    set_line_style(LineStyle::Solid, 3);
+                    set_line_style(LineStyle::CapRound, 3);
                     let coords = app::event_coords();
                     x = coords.0;
                     y = coords.1;
@@ -85,9 +82,10 @@ pub fn run() {
                 Event::Drag => {
                     offs.begin();
                     set_draw_color(Color::Red);
-                    set_line_style(LineStyle::Solid, 3);
+                    set_line_style(LineStyle::CapRound, 3);
                     let coords = app::event_coords();
                     draw_line(x, y, coords.0, coords.1);
+                    // draw_point(x, y);
                     x = coords.0;
                     y = coords.1;
                     offs.end();
