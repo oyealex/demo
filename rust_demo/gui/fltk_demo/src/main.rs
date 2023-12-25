@@ -1,5 +1,5 @@
 mod examples;
 
 fn main() {
-    examples::painter::run();
+    examples::palette::run();
 }

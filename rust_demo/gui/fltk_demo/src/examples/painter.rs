@@ -17,6 +17,13 @@ use fltk::{
 const WIDTH: i32 = 800;
 const HEIGHT: i32 = 600;
 
+enum Tool {
+    /// 线条
+    Line,
+    /// 矩形
+    RectangleFrame,
+}
+
 pub fn run() {
     let app = app::App::default().with_scheme(app::Scheme::Gtk);
 
@@ -67,28 +74,32 @@ pub fn run() {
             let offs = offs.borrow_mut();
             match ev {
                 Event::Push => {
-                    offs.begin();
-                    set_draw_color(Color::Red);
-                    set_line_style(LineStyle::CapRound, 3);
-                    let coords = app::event_coords();
-                    x = coords.0;
-                    y = coords.1;
-                    draw_point(x, y);
-                    offs.end();
+                    {
+                        offs.begin();
+                        set_draw_color(Color::Red);
+                        set_line_style(LineStyle::CapRound, 3);
+                        let coords = app::event_coords();
+                        x = coords.0;
+                        y = coords.1;
+                        draw_point(x, y);
+                        offs.end();
+                    }
                     f.redraw();
                     set_line_style(LineStyle::Solid, 0);
                     true
                 }
                 Event::Drag => {
-                    offs.begin();
-                    set_draw_color(Color::Red);
-                    set_line_style(LineStyle::CapRound, 3);
-                    let coords = app::event_coords();
-                    draw_line(x, y, coords.0, coords.1);
-                    // draw_point(x, y);
-                    x = coords.0;
-                    y = coords.1;
-                    offs.end();
+                    {
+                        offs.begin();
+                        set_draw_color(Color::Red);
+                        set_line_style(LineStyle::CapRound, 3);
+                        let coords = app::event_coords();
+                        draw_line(x, y, coords.0, coords.1);
+                        // draw_point(x, y);
+                        x = coords.0;
+                        y = coords.1;
+                        offs.end();
+                    }
                     f.redraw();
                     set_line_style(LineStyle::Solid, 0);
                     true
