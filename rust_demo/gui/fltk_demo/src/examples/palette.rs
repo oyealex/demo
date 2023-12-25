@@ -45,12 +45,12 @@ pub fn run() {
         color_col.set_frame(FrameType::BorderBox);
         color_col.set_pad(0);
         {
-            for row_idx in 0..COUNT_MATRIX.1 {
+            for row_idx in 0..COUNT_MATRIX.1 as u8 {
                 let mut color_row = Flex::default().row();
                 color_row.set_pad(0);
-                for col_idx in 0..COUNT_MATRIX.0 {
+                for col_idx in 0..COUNT_MATRIX.0 as u8 {
                     let mut cell = Frame::default().with_size(CELL_SIZE, CELL_SIZE);
-                    cell.set_color(Color::by_index((row_idx * COUNT_MATRIX.1 + col_idx) as u8));
+                    cell.set_color(Color::by_index(row_idx * COUNT_MATRIX.0 as u8 + col_idx));
                     cell.set_frame(FrameType::BorderBox);
                 }
                 color_row.end();
