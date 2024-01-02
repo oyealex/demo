@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use fltk::app::{App, Scheme};
 use fltk::enums::{Color, FrameType};
 use fltk::frame::Frame;
