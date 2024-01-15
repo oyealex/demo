@@ -1,5 +1,5 @@
 use fltk::app::{App, Scheme};
-use fltk::enums::{Align, Color, Font, FrameType};
+use fltk::enums::{Align, Color, Event, Font, FrameType};
 use fltk::frame::Frame;
 use fltk::group::Flex;
 use fltk::prelude::{GroupExt, WidgetBase, WidgetExt, WindowExt};
@@ -121,6 +121,13 @@ pub fn run() {
                 let mut detail_color_cell = Frame::default();
                 detail_color_cell.set_frame(FrameType::BorderBox);
                 detail_color_cell.set_color(Color::by_index(5));
+                detail_color_cell.handle(|_cell, event| match event {
+                    Event::Drag | Event::Enter | Event::Leave => {
+                        println!("{}", event);
+                        true
+                    }
+                    _ => false,
+                });
                 detail_col.fixed(&detail_color_cell, DETAIL_COLOR_CELL_SIZE);
 
                 Frame::default();
@@ -132,7 +139,7 @@ pub fn run() {
             detail_panel_row.fixed(&space, SPACE);
         }
         detail_panel_row.end();
-    content_row.fixed(&detail_panel_row, SPACE *  2 + DETAIL_COLOR_CELL_SIZE);
+        content_row.fixed(&detail_panel_row, SPACE * 2 + DETAIL_COLOR_CELL_SIZE);
     }
     content_row.end();
 
