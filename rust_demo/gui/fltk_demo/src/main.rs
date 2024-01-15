@@ -1,6 +1,6 @@
-#![windows_subsystem = "windows"]
+// #![windows_subsystem = "windows"]
 mod examples;
 
 fn main() {
-    examples::advance_palette::run();
+    examples::calculator::run();
 }

@@ -1,9 +1,13 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+use fltk::app;
 use fltk::app::{App, Scheme};
 use fltk::enums::{Align, Color, Event, Font, FrameType};
 use fltk::frame::Frame;
 use fltk::group::Flex;
 use fltk::prelude::{GroupExt, WidgetBase, WidgetExt, WindowExt};
 use fltk::window::Window;
+use crate::main;
 
 /// 每个色块尺寸
 const CELL_SIZE: i32 = 20;
@@ -33,6 +37,7 @@ pub fn run() {
         .center_screen();
     window.set_color(main_color);
 
+    let (color_sender, color_receiver) = app::channel::<Color>();
     // Flex::debug(true);
     // 主要内容
     let mut content_row = Flex::default_fill().row();
@@ -94,7 +99,9 @@ pub fn run() {
                     for col_idx in 0..COUNT_MATRIX.0 as u8 {
                         let mut cell = Frame::default().with_size(CELL_SIZE, CELL_SIZE);
                         cell.set_frame(FrameType::BorderBox);
-                        cell.set_color(Color::by_index(row_idx * COUNT_MATRIX.0 as u8 + col_idx));
+                        let color = Color::by_index(row_idx * COUNT_MATRIX.0 as u8 + col_idx);
+                        cell.set_color(color);
+                        cell.emit(color_sender, color);
                     }
                     color_row.end();
                 }
@@ -120,14 +127,7 @@ pub fn run() {
 
                 let mut detail_color_cell = Frame::default();
                 detail_color_cell.set_frame(FrameType::BorderBox);
-                detail_color_cell.set_color(Color::by_index(5));
-                detail_color_cell.handle(|_cell, event| match event {
-                    Event::Drag | Event::Enter | Event::Leave => {
-                        println!("{}", event);
-                        true
-                    }
-                    _ => false,
-                });
+                detail_color_cell.set_color(main_color);
                 detail_col.fixed(&detail_color_cell, DETAIL_COLOR_CELL_SIZE);
 
                 Frame::default();
@@ -145,6 +145,12 @@ pub fn run() {
 
     window.end();
     window.show();
+
+    while app.wait() {
+        if let Some(color) = color_receiver.recv() {
+
+        }
+    }
 
     app.run().expect("run app failed");
 }
