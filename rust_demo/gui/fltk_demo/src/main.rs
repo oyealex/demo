@@ -2,5 +2,5 @@
 mod examples;
 
 fn main() {
-    examples::calculator::run();
+    examples::advance_palette::run();
 }
