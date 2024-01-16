@@ -1,5 +1,5 @@
 use fltk::app;
-use fltk::app::{App, Scheme};
+use fltk::app::{App, Scheme, Sender};
 use fltk::enums::{Align, Color, Event, Font, FrameType};
 use fltk::frame::Frame;
 use fltk::group::Flex;
@@ -27,6 +27,7 @@ const WINDOW_SIZE: (i32, i32) = (
 pub fn run() {
     let app = App::default().with_scheme(Scheme::Gtk);
 
+    // 主要颜色
     let main_color = Color::White;
     let mut window = Window::default()
         .with_label("Colors")
@@ -34,26 +35,61 @@ pub fn run() {
         .center_screen();
     window.set_color(main_color);
 
+    // 发送和接收颜色变更事件
     let (color_sender, color_receiver) = app::channel::<Color>();
-    // Flex::debug(true);
-    // 主要内容
+
+    // 内容行
     let mut content_row = Flex::default_fill().row();
     content_row.set_pad(0);
     content_row.set_margin(0);
 
     // 纵向索引
+    layout_index_col(main_color, &mut content_row);
+
+    // 容纳纵向索引和色块
+    let mut color_and_index_col = Flex::default().column();
+    color_and_index_col.set_pad(0);
+    color_and_index_col.set_margin(0);
+
+    // 水平索引
+    layout_index_row(main_color, &mut color_and_index_col);
+
+    // 色块
+    layout_color_cells(color_sender, &mut content_row);
+
+    color_and_index_col.end();
+
+    // 详情面板
+    let mut detail_color_cell = layout_detail_panel(main_color, &mut content_row);
+
+    content_row.end();
+
+    window.end();
+    window.show();
+
+    while app.wait() {
+        if let Some(color) = color_receiver.recv() {
+            detail_color_cell.set_color(color);
+            detail_color_cell.redraw();
+        }
+    }
+
+    // app.run().expect("run app failed");
+}
+
+fn layout_index_col(main_color: Color, content_row: &mut Flex) {
     let mut index_col = Flex::default().column();
     index_col.set_pad(0);
     index_col.set_margin(0);
 
     let mut space = Frame::default();
-    space.set_frame(FrameType::BorderBox);
+    // space.set_frame(FrameType::BorderBox);
     space.set_color(main_color);
     for col_idx in 0..COUNT_MATRIX.1 {
         let mut label = Frame::default()
             .with_label((col_idx * COUNT_MATRIX.0).to_string().as_str())
             .with_align(Align::Inside | Align::Right);
-        label.set_frame(FrameType::BorderBox);
+        // label.set_frame(FrameType::BorderBox);
         label.set_label_font(Font::Courier);
         label.set_color(main_color);
         index_col.fixed(&label, CELL_SIZE);
@@ -61,12 +97,9 @@ pub fn run() {
 
     index_col.end();
     content_row.fixed(&index_col, INDEX_COL_DIMENSION.0);
+}
 
-    let mut color_and_index_col = Flex::default().column();
-    color_and_index_col.set_pad(0);
-    color_and_index_col.set_margin(0);
-
-    // 水平索引
+fn layout_index_row(main_color: Color, color_and_index_col: &mut Flex) {
     let mut index_row = Flex::default().row();
     index_row.set_pad(0);
     index_row.set_margin(0);
@@ -76,15 +109,16 @@ pub fn run() {
             .with_label(col_idx.to_string().as_str())
             .with_align(Align::Inside | Align::Bottom);
         label.set_label_font(Font::Courier);
-        label.set_frame(FrameType::BorderBox);
+        // label.set_frame(FrameType::BorderBox);
         label.set_color(main_color);
         index_row.fixed(&label, CELL_SIZE);
     }
 
     index_row.end();
     color_and_index_col.fixed(&index_row, INDEX_ROW_DIMENSION.1);
+}
 
-    // 色块
+fn layout_color_cells(color_sender: Sender<Color>, content_row: &mut Flex) {
     let mut color_col = Flex::default().column();
     color_col.set_pad(0);
     color_col.set_margin(0);
@@ -114,10 +148,9 @@ pub fn run() {
 
     color_col.end();
     content_row.fixed(&color_col, CELL_SIZE * COUNT_MATRIX.0);
+}
 
-    color_and_index_col.end();
-
-    // 详情面板
+fn layout_detail_panel(main_color: Color, content_row: &mut Flex) -> Frame {
     let mut detail_panel_row = Flex::default().row();
     detail_panel_row.set_pad(0);
     detail_panel_row.set_margin(0);
@@ -146,18 +179,5 @@ pub fn run() {
 
     detail_panel_row.end();
     content_row.fixed(&detail_panel_row, SPACE * 2 + DETAIL_COLOR_CELL_SIZE);
-
-    content_row.end();
-
-    window.end();
-    window.show();
-
-    while app.wait() {
-        if let Some(color) = color_receiver.recv() {
-            detail_color_cell.set_color(color);
-            detail_color_cell.redraw();
-        }
-    }
-
-    // app.run().expect("run app failed");
+    detail_color_cell
 }
