@@ -17,7 +17,7 @@ const INDEX_ROW_DIMENSION: (i32, i32) = (CELL_SIZE * COUNT_MATRIX.0, 40);
 /// 内容到窗口边界的距离
 const SPACE: i32 = 20;
 /// 详情色块尺寸
-const DETAIL_COLOR_CELL_SIZE: i32 = CELL_SIZE * 3;
+const DETAIL_COLOR_CELL_SIZE: i32 = CELL_SIZE * 4;
 /// 窗体尺寸
 const WINDOW_SIZE: (i32, i32) = (
     CELL_SIZE * COUNT_MATRIX.0 + INDEX_COL_DIMENSION.0 + SPACE * 2 + DETAIL_COLOR_CELL_SIZE,
@@ -60,7 +60,7 @@ pub fn run() {
     color_and_index_col.end();
 
     // 详情面板
-    let mut detail_color_cell = layout_detail_panel(main_color, &mut content_row);
+    let mut color_handle_fn = layout_detail_panel(main_color, &mut content_row);
 
     content_row.end();
 
@@ -69,8 +69,7 @@ pub fn run() {
 
     while app.wait() {
         if let Some(color) = color_receiver.recv() {
-            detail_color_cell.set_color(color);
-            detail_color_cell.redraw();
+            color_handle_fn(color);
         }
     }
 
@@ -150,7 +149,7 @@ fn layout_color_cells(color_sender: Sender<Color>, content_row: &mut Flex) {
     content_row.fixed(&color_col, CELL_SIZE * COUNT_MATRIX.0);
 }
 
-fn layout_detail_panel(main_color: Color, content_row: &mut Flex) -> Frame {
+fn layout_detail_panel(main_color: Color, content_row: &mut Flex) -> impl FnMut(Color) {
     let mut detail_panel_row = Flex::default().row();
     detail_panel_row.set_pad(0);
     detail_panel_row.set_margin(0);
@@ -179,5 +178,8 @@ fn layout_detail_panel(main_color: Color, content_row: &mut Flex) -> Frame {
 
     detail_panel_row.end();
     content_row.fixed(&detail_panel_row, SPACE * 2 + DETAIL_COLOR_CELL_SIZE);
-    detail_color_cell
+    move |color| {
+        detail_color_cell.set_color(color);
+        detail_color_cell.redraw();
+    }
 }
