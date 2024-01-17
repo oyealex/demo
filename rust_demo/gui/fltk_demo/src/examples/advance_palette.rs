@@ -29,7 +29,7 @@ const WINDOW_SIZE: (i32, i32) = (
 const MAIN_COLOR: Color = Color::White;
 
 pub fn run() {
-    let app = App::default().with_scheme(Scheme::Gtk);
+    let app = App::default().with_scheme(Scheme::Gtk).load_system_fonts();
 
     // 主要颜色
     let mut window = Window::default()
@@ -175,6 +175,7 @@ fn layout_detail_panel(content_row: &mut Flex) -> impl FnMut(Color) {
     // 信息面板
     let mut info_label = Frame::default();
     detail_col.fixed(&info_label, DETAIL_INFO_LABEL_HEIGHT);
+    info_label.set_label_font(Font::by_name(" Cascadia Code"));
     info_label.set_label(&MAIN_COLOR.to_hex_str());
     info_label.set_frame(FrameType::BorderBox);
     info_label.set_color(MAIN_COLOR);
