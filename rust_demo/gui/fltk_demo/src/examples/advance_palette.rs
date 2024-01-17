@@ -18,22 +18,25 @@ const INDEX_ROW_DIMENSION: (i32, i32) = (CELL_SIZE * COUNT_MATRIX.0, 40);
 const SPACE: i32 = 20;
 /// 详情色块尺寸
 const DETAIL_COLOR_CELL_SIZE: i32 = CELL_SIZE * 4;
+/// 详细信息面板高度
+const DETAIL_INFO_LABEL_HEIGHT: i32 = 30;
 /// 窗体尺寸
 const WINDOW_SIZE: (i32, i32) = (
     CELL_SIZE * COUNT_MATRIX.0 + INDEX_COL_DIMENSION.0 + SPACE * 2 + DETAIL_COLOR_CELL_SIZE,
     CELL_SIZE * COUNT_MATRIX.1 + INDEX_ROW_DIMENSION.1,
 );
+/// 主颜色
+const MAIN_COLOR: Color = Color::White;
 
 pub fn run() {
     let app = App::default().with_scheme(Scheme::Gtk);
 
     // 主要颜色
-    let main_color = Color::White;
     let mut window = Window::default()
         .with_label("Colors")
         .with_size(WINDOW_SIZE.0, WINDOW_SIZE.1)
         .center_screen();
-    window.set_color(main_color);
+    window.set_color(MAIN_COLOR);
 
     // 发送和接收颜色变更事件
     let (color_sender, color_receiver) = app::channel::<Color>();
@@ -44,7 +47,7 @@ pub fn run() {
     content_row.set_margin(0);
 
     // 纵向索引
-    layout_index_col(main_color, &mut content_row);
+    layout_index_col(MAIN_COLOR, &mut content_row);
 
     // 容纳纵向索引和色块
     let mut color_and_index_col = Flex::default().column();
@@ -52,7 +55,7 @@ pub fn run() {
     color_and_index_col.set_margin(0);
 
     // 水平索引
-    layout_index_row(main_color, &mut color_and_index_col);
+    layout_index_row(MAIN_COLOR, &mut color_and_index_col);
 
     // 色块
     layout_color_cells(color_sender, &mut content_row);
@@ -60,7 +63,7 @@ pub fn run() {
     color_and_index_col.end();
 
     // 详情面板
-    let mut color_handle_fn = layout_detail_panel(main_color, &mut content_row);
+    let mut color_handle_fn = layout_detail_panel(&mut content_row);
 
     content_row.end();
 
@@ -149,7 +152,7 @@ fn layout_color_cells(color_sender: Sender<Color>, content_row: &mut Flex) {
     content_row.fixed(&color_col, CELL_SIZE * COUNT_MATRIX.0);
 }
 
-fn layout_detail_panel(main_color: Color, content_row: &mut Flex) -> impl FnMut(Color) {
+fn layout_detail_panel(content_row: &mut Flex) -> impl FnMut(Color) {
     let mut detail_panel_row = Flex::default().row();
     detail_panel_row.set_pad(0);
     detail_panel_row.set_margin(0);
@@ -163,10 +166,18 @@ fn layout_detail_panel(main_color: Color, content_row: &mut Flex) -> impl FnMut(
 
     Frame::default();
 
+    // 颜色详情单元格
     let mut detail_color_cell = Frame::default();
     detail_color_cell.set_frame(FrameType::BorderBox);
-    detail_color_cell.set_color(main_color);
+    detail_color_cell.set_color(MAIN_COLOR);
     detail_col.fixed(&detail_color_cell, DETAIL_COLOR_CELL_SIZE);
+
+    // 信息面板
+    let mut info_label = Frame::default();
+    detail_col.fixed(&info_label, DETAIL_INFO_LABEL_HEIGHT);
+    info_label.set_label(&MAIN_COLOR.to_hex_str());
+    info_label.set_frame(FrameType::BorderBox);
+    info_label.set_color(MAIN_COLOR);
 
     Frame::default();
 
@@ -181,5 +192,6 @@ fn layout_detail_panel(main_color: Color, content_row: &mut Flex) -> impl FnMut(
     move |color| {
         detail_color_cell.set_color(color);
         detail_color_cell.redraw();
+        info_label.set_label(&color.to_hex_str());
     }
 }
