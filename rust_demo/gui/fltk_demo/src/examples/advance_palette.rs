@@ -1,3 +1,4 @@
+use clipboard::{ClipboardContext, ClipboardProvider};
 use fltk::app;
 use fltk::app::{App, Scheme, Sender};
 use fltk::enums::{Align, Color, Event, Font, FrameType};
@@ -190,9 +191,12 @@ fn layout_detail_panel(content_row: &mut Flex) -> impl FnMut(Color) {
 
     detail_panel_row.end();
     content_row.fixed(&detail_panel_row, SPACE * 2 + DETAIL_COLOR_CELL_SIZE);
+
+    let mut clipboard = ClipboardContext::new().expect("open system clipboard failed");
     move |color| {
         detail_color_cell.set_color(color);
         detail_color_cell.redraw();
         info_label.set_label(&color.to_hex_str());
+        clipboard.set_contents(color.to_hex_str()).expect("copy color value into system clipboard failed");
     }
 }
