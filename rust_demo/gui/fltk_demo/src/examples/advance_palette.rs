@@ -173,6 +173,7 @@ fn layout_detail_panel(content_row: &mut Flex) -> impl FnMut(Color) {
     detail_color_cell.set_color(MAIN_COLOR);
     detail_col.fixed(&detail_color_cell, DETAIL_COLOR_CELL_SIZE);
 
+    let mut clipboard = ClipboardContext::new().expect("open system clipboard failed");
     // 信息面板
     let mut info_label = Frame::default();
     detail_col.fixed(&info_label, DETAIL_INFO_LABEL_HEIGHT);
@@ -180,6 +181,16 @@ fn layout_detail_panel(content_row: &mut Flex) -> impl FnMut(Color) {
     info_label.set_label(&MAIN_COLOR.to_hex_str());
     info_label.set_frame(FrameType::BorderBox);
     info_label.set_color(MAIN_COLOR);
+    info_label.handle(move |label, event| {
+        match event {
+            Event::Push => {
+                println!("on click: {}", label.label());
+                clipboard.set_contents(label.label()).expect("copy color value into system clipboard failed");
+                true
+            }
+            _ => false,
+        }
+    });
 
     Frame::default();
 
@@ -192,11 +203,9 @@ fn layout_detail_panel(content_row: &mut Flex) -> impl FnMut(Color) {
     detail_panel_row.end();
     content_row.fixed(&detail_panel_row, SPACE * 2 + DETAIL_COLOR_CELL_SIZE);
 
-    let mut clipboard = ClipboardContext::new().expect("open system clipboard failed");
     move |color| {
         detail_color_cell.set_color(color);
         detail_color_cell.redraw();
         info_label.set_label(&color.to_hex_str());
-        clipboard.set_contents(color.to_hex_str()).expect("copy color value into system clipboard failed");
     }
 }
