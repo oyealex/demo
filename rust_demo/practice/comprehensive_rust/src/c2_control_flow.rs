@@ -51,6 +51,17 @@ pub mod for_loop {
     }
 }
 
+pub mod multi_table_9_9 {
+    pub fn practice() {
+        for i in 1..=9 {
+            for j in 1..=i {
+                print!("{j} * {i} = {:2} | ", i * j);
+            }
+            println!()
+        }
+    }
+}
+
 pub mod while_loop {
     pub fn practice() {
         let mut x = 10;

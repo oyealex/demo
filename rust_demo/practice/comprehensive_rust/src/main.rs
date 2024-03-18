@@ -7,5 +7,5 @@ mod thread;
 
 // https://google.github.io/comprehensive-rust/zh-CN/index.html
 fn main() {
-    thread::test::practice();
+    c2_control_flow::multi_table_9_9::practice();
 }
