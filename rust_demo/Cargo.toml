@@ -6,6 +6,7 @@ members = [
     "gui/druid_demo",
     "gui/iced_demo",
     "gui/fltk_demo",
+    "gui/slint_demo",
     "playground",
     "practice/minegrep",
     "practice/rust_model_example",
