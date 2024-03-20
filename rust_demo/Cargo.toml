@@ -10,8 +10,8 @@ members = [
     "playground",
     "practice/minegrep",
     "practice/rust_model_example",
-    "practice/comprehensive_rust"
-]
+    "practice/comprehensive_rust",
+    "practice/rust_by_example"]
 
 [profile.release]
 strip = true
