@@ -2,5 +2,5 @@ mod base;
 mod primitives;
 
 fn main() {
-    primitives::practice_matrix::run();
+    primitives::arrays_and_slices::run();
 }

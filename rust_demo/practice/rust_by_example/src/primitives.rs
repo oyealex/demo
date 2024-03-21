@@ -34,6 +34,7 @@ pub mod tuples {
     }
 }
 
+#[allow(dead_code)]
 pub mod practice_matrix {
     use std::fmt;
     use std::fmt::Formatter;
@@ -60,5 +61,20 @@ pub mod practice_matrix {
         println!("Matrix: \n{}", matrix);
         matrix.transpose();
         println!("Transpose: \n{}", matrix);
+    }
+}
+
+pub mod arrays_and_slices {
+    use std::mem;
+
+    fn analyze_slice(slice: &[i32]) {
+        println!("First element of the slice is {}", slice[0]);
+        println!("The slice has {} elements", slice.len());
+        println!("The slice's memory size is {}", mem::size_of_val(slice));
+    }
+
+    pub fn run() {
+        let x = [1, 2, 3, 4, 5, 6];
+        analyze_slice(&x[..3]);
     }
 }
