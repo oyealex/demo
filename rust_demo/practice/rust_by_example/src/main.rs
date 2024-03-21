@@ -1,5 +1,5 @@
 mod base;
 
 fn main() {
-    base::formatted_print::run();
+    base::display_list::run();
 }

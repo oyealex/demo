@@ -61,6 +61,7 @@ pub mod documentation {
 
 /// 格式化打印
 pub mod formatted_print {
+    #[allow(dead_code)]
     pub fn run() {
         println!("==<占位符>==");
         println!("普通占位符打印 {{}}：一天有{}小时，一周有{}天。", 24, 7);
@@ -104,5 +105,93 @@ pub mod formatted_print {
 
         let s = "123";
         println!("{:p}", s);
+    }
+}
+
+/// 调试打印
+#[allow(dead_code)]
+pub mod debug_print {
+    #[derive(Debug)]
+    struct Structure(i32);
+
+    #[derive(Debug)]
+    struct Deep(Structure);
+
+    #[derive(Debug)]
+    struct MoreDeep {
+        structure: Structure,
+        deep: Deep,
+    }
+
+    pub fn run() {
+        println!("{:?} months in a year.", 12);
+        println!("structure: {:?}", Structure(32));
+        println!("deep structure: {:?}", Deep(Structure(32)));
+        println!(
+            "more deep structure: {:?}",
+            MoreDeep {
+                structure: Structure(12),
+                deep: Deep(Structure(32))
+            }
+        );
+        println!(
+            "more deep structure with pretty info: {:#?}",
+            MoreDeep {
+                structure: Structure(12),
+                deep: Deep(Structure(32))
+            }
+        );
+    }
+}
+
+/// 打印一个列表
+pub mod display_list {
+    use std::fmt;
+    use std::fmt::Formatter;
+
+    struct List1(Vec<i32>);
+    impl fmt::Display for List1 {
+        fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+            let vec = &self.0;
+            write!(f, "[")?;
+
+            // 单独处理第一个元素
+            let mut iter = vec.iter();
+            if let Some(err) = iter.next().map(|x| write!(f, "{}", x)) {
+                err?
+            }
+
+            for v in iter {
+                write!(f, ", {}", v)?;
+            }
+
+            write!(f, "]")
+        }
+    }
+
+    struct List2(Vec<i32>);
+
+    impl fmt::Display for List2 {
+        fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+            let vec = &self.0;
+            write!(f, "[")?;
+
+            // 使用带索引的迭代器
+            for (count, v) in vec.iter().enumerate() {
+                if count != 0 {
+                    write!(f, ", ")?;
+                }
+                write!(f, "{}", v)?;
+            }
+
+            write!(f, "]")
+        }
+    }
+
+    pub fn run() {
+        println!("{}", List1(vec![1, 2, 3, 4, 5]));
+        println!("{}", List1(vec![]));
+        println!("{}", List2(vec![1, 2, 3, 4, 5]));
+        println!("{}", List2(vec![]));
     }
 }
