@@ -145,6 +145,7 @@ pub mod debug_print {
 }
 
 /// 打印一个列表
+#[allow(dead_code)]
 pub mod display_list {
     use std::fmt;
     use std::fmt::Formatter;
@@ -188,10 +189,84 @@ pub mod display_list {
         }
     }
 
+    struct List3(Vec<i32>);
+
+    impl fmt::Display for List3 {
+        fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+            let vec = &self.0;
+            write!(f, "[")?;
+
+            // 使用带索引的迭代器
+            for (count, v) in vec.iter().enumerate() {
+                if count != 0 {
+                    write!(f, ", ")?;
+                }
+                write!(f, "{}: {}", count, v)?;
+            }
+
+            write!(f, "]")
+        }
+    }
+
     pub fn run() {
-        println!("{}", List1(vec![1, 2, 3, 4, 5]));
+        println!("{}", List1(vec![5, 4, 3, 2, 1]));
         println!("{}", List1(vec![]));
-        println!("{}", List2(vec![1, 2, 3, 4, 5]));
+        println!("{}", List2(vec![5, 4, 3, 2, 1]));
         println!("{}", List2(vec![]));
+        println!("{}", List3(vec![5, 4, 3, 2, 1]));
+        println!("{}", List3(vec![]));
+    }
+}
+
+#[allow(dead_code)]
+pub mod display_color {
+    use std::fmt;
+    use std::fmt::Formatter;
+
+    #[derive(Debug)]
+    struct Color {
+        red: u8,
+        green: u8,
+        blue: u8,
+    }
+
+    impl fmt::Display for Color {
+        fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+            write!(
+                f,
+                "RGB ({}, {}, {}) {:#08X}",
+                self.red,
+                self.green,
+                self.blue,
+                self.red as i32 * 65536 + self.green as i32 * 256 + self.blue as i32
+            )
+        }
+    }
+
+    pub fn run() {
+        println!(
+            "{}",
+            Color {
+                red: 128,
+                green: 255,
+                blue: 90
+            }
+        );
+        println!(
+            "{}",
+            Color {
+                red: 0,
+                green: 3,
+                blue: 254
+            }
+        );
+        println!(
+            "{}",
+            Color {
+                red: 0,
+                green: 0,
+                blue: 0
+            }
+        );
     }
 }

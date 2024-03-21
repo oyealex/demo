@@ -1,5 +1,6 @@
 mod base;
+mod primitives;
 
 fn main() {
-    base::display_list::run();
+    primitives::practice_matrix::run();
 }
