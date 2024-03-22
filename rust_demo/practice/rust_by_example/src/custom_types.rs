@@ -67,3 +67,189 @@ pub mod structures {
         println!("Rectangle type size: {}", mem::size_of::<Rectangle>());
     }
 }
+
+pub mod enums {
+    use std::mem::size_of_val;
+
+    #[derive(Debug)]
+    enum WebEvent {
+        PageLoad,
+        PageUnload,
+        KeyPress(char),
+        Paste(String),
+        Click { x: i64, y: i64 },
+    }
+
+    // 使用type关键字给类型起别名
+    type Event = WebEvent;
+
+    impl Event {
+        fn print_size(&self) {
+            // 在为自身实现方法时可以使用Self关键字代替类型名称
+            match self {
+                Self::PageLoad => println!("PageLoad size is: {}", size_of_val(self)),
+                Self::PageUnload => println!("PageUnload size is: {}", size_of_val(self)),
+                Self::KeyPress(_) => println!("KeyPress size is: {}", size_of_val(self)),
+                Self::Paste(_) => println!("Paste size is: {}", size_of_val(self)),
+                Self::Click { .. } => println!("Click size is: {}", size_of_val(self)),
+            }
+        }
+    }
+
+    fn inspect(event: WebEvent) {
+        event.print_size();
+        match event {
+            WebEvent::PageLoad => println!("page loaded"),
+            WebEvent::PageUnload => println!("page unloaded"),
+            WebEvent::KeyPress(c) => println!("parsed '{c}'"),
+            WebEvent::Paste(s) => println!("pasted \"{s}\""),
+            WebEvent::Click { x, y } => println!("clicked at ({x}, {y})"),
+        }
+    }
+
+    pub fn run() {
+        inspect(WebEvent::PageLoad);
+        inspect(WebEvent::PageUnload);
+        inspect(Event::KeyPress('a'));
+        inspect(Event::Paste(String::from("msg")));
+        inspect(Event::Click { x: 10, y: 20 });
+    }
+}
+
+pub mod use_enums {
+    enum Status {
+        Rich,
+        Poor,
+    }
+
+    enum Work {
+        Civilian,
+        Soldier,
+    }
+
+    enum State {
+        Enable,
+        Disable,
+    }
+
+    pub fn run() {
+        use crate::custom_types::use_enums::State::Enable as Fine;
+        use crate::custom_types::use_enums::Status::{Poor, Rich};
+        use crate::custom_types::use_enums::Work::*;
+
+        let status = Poor;
+        let work = Civilian;
+        let state = Fine;
+
+        match status {
+            Rich => println!("The rich have lots of money"),
+            Poor => println!("The poor have no money..."),
+        }
+
+        match work {
+            Civilian => println!("Civilians work"),
+            Soldier => println!("Soldiers fight"),
+        }
+
+        match state {
+            Fine => println!("state is fine"),
+            State::Disable => println!("state is disabled"),
+        }
+    }
+}
+
+pub mod c_like_enums {
+    enum Number {
+        Zero,
+        One,
+        Two,
+        Ten = 10,
+    }
+
+    enum Color {
+        Red = 0xff0000,
+        Green = 0x00ff00,
+        Blue = 0x0000ff,
+    }
+
+    pub fn run() {
+        println!("zero is {}", Number::Zero as i32);
+        println!("one is {}", Number::One as i32);
+        println!("ten is {}", Number::Ten as i32);
+        println!("Number has size: {}", std::mem::size_of::<Number>());
+
+        println!();
+        println!("roses are #{:06x}", Color::Red as i32);
+        println!("violets are #{:06x}", Color::Blue as i32);
+        println!("Color has size: {}", std::mem::size_of::<Color>());
+    }
+}
+
+pub mod list_enum {
+    use std::fmt::Formatter;
+
+    use crate::custom_types::list_enum::List::Nil;
+
+    #[derive(Debug)]
+    enum List {
+        Cons { value: u32, next: Box<List> },
+        Nil,
+    }
+
+    impl std::fmt::Display for List {
+        fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+            write!(f, "[")?;
+            let mut lst = self;
+            loop {
+                write!(f, "{}", lst.stringify_self())?;
+                match lst {
+                    List::Cons { value: _, next } => {
+                        lst = &next;
+                    }
+                    Nil => {
+                        break;
+                    }
+                };
+            }
+            write!(f, "]")
+        }
+    }
+
+    impl List {
+        fn new() -> List {
+            Nil
+        }
+
+        fn prepend(self, value: u32) -> List {
+            Self::Cons {
+                value,
+                next: Box::new(self),
+            }
+        }
+
+        fn len(&self) -> u32 {
+            match self {
+                List::Cons { value: _, next } => next.len() + 1,
+                Nil => 0,
+            }
+        }
+
+        fn stringify_self(&self) -> String {
+            match self {
+                List::Cons { value, next: _ } => format!("{value}, "),
+                Nil => format!(""),
+            }
+        }
+    }
+
+    pub fn run() {
+        let lst = Nil;
+        println!("{} {lst}", lst.len());
+
+        let lst = lst.prepend(1);
+        println!("{} {lst}", lst.len());
+
+        let lst = lst.prepend(2);
+        println!("{} {lst}", lst.len());
+    }
+}
