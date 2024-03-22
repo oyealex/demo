@@ -1,6 +1,8 @@
+#![allow(dead_code)]
 mod base;
 mod primitives;
+mod custom_types;
 
 fn main() {
-    primitives::print_size::run();
+    custom_types::structures::run();
 }

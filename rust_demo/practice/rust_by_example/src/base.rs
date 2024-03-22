@@ -1,4 +1,3 @@
-#[allow(dead_code)]
 pub mod comments {
     pub fn run() {
         // 单行注释
@@ -16,7 +15,6 @@ pub mod comments {
     }
 }
 
-#[allow(dead_code)]
 /// 文档注释
 /// `cargo doc`可以在`target/doc`中生成文档。
 pub mod documentation {
@@ -61,7 +59,6 @@ pub mod documentation {
 
 /// 格式化打印
 pub mod formatted_print {
-    #[allow(dead_code)]
     pub fn run() {
         println!("==<占位符>==");
         println!("普通占位符打印 {{}}：一天有{}小时，一周有{}天。", 24, 7);
@@ -109,7 +106,6 @@ pub mod formatted_print {
 }
 
 /// 调试打印
-#[allow(dead_code)]
 pub mod debug_print {
     #[derive(Debug)]
     struct Structure(i32);
@@ -145,7 +141,6 @@ pub mod debug_print {
 }
 
 /// 打印一个列表
-#[allow(dead_code)]
 pub mod display_list {
     use std::fmt;
     use std::fmt::Formatter;
@@ -218,7 +213,6 @@ pub mod display_list {
     }
 }
 
-#[allow(dead_code)]
 pub mod display_color {
     use std::fmt;
     use std::fmt::Formatter;

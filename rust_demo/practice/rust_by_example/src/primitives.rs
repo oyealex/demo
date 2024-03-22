@@ -1,11 +1,9 @@
-#[allow(dead_code)]
 pub mod smoke {
     pub fn run() {
         println!("{}", i32::from_str_radix("z", 36).unwrap());
     }
 }
 
-#[allow(dead_code)]
 pub mod tuples {
     pub fn run() {
         println!("long tuple: {:?}", (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12));
@@ -34,7 +32,6 @@ pub mod tuples {
     }
 }
 
-#[allow(dead_code)]
 pub mod practice_matrix {
     use std::fmt;
     use std::fmt::Formatter;
@@ -62,7 +59,6 @@ pub mod practice_matrix {
     }
 }
 
-#[allow(dead_code)]
 pub mod arrays_and_slices {
     use std::mem;
 
@@ -86,7 +82,6 @@ pub mod arrays_and_slices {
     }
 }
 
-#[allow(dead_code)]
 pub mod print_size {
     use std::mem;
 
