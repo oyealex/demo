@@ -67,14 +67,22 @@ pub mod practice_matrix {
 pub mod arrays_and_slices {
     use std::mem;
 
-    fn analyze_slice(slice: &[i32]) {
+    pub fn run() {
+        let x = [1, 2, 3, 4, 5, 6];
+        let slice = &x[..3];
         println!("First element of the slice is {}", slice[0]);
         println!("The slice has {} elements", slice.len());
         println!("The slice's memory size is {}", mem::size_of_val(slice));
-    }
-
-    pub fn run() {
-        let x = [1, 2, 3, 4, 5, 6];
-        analyze_slice(&x[..3]);
+        println!(
+            "The slice's pointer memory size is {}",
+            mem::size_of_val(&slice)
+        );
+        
+        for i in 0..x.len() + 1 {
+            match x.get(i) {
+                Some(v) => println!("{}: {}", i, v),
+                None => println!("Index out of bounds: {}", i),
+            }
+        }
     }
 }
