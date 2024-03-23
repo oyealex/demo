@@ -4,5 +4,5 @@ mod primitives;
 mod custom_types;
 
 fn main() {
-    custom_types::list_enum::run();
+    custom_types::constants::run();
 }

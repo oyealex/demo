@@ -237,19 +237,54 @@ pub mod list_enum {
         fn stringify_self(&self) -> String {
             match self {
                 List::Cons { value, next: _ } => format!("{value}, "),
-                Nil => format!(""),
+                Nil => String::new(),
+            }
+        }
+
+        fn stringify(&self) -> String {
+            match self {
+                List::Cons { value, next } => format!("{}, {}", value, next.stringify()),
+                Nil => String::from("Nil"),
             }
         }
     }
 
     pub fn run() {
         let lst = Nil;
-        println!("{} {lst}", lst.len());
+        println!(
+            "list has length: {}, {lst}, stringify: {}",
+            lst.len(),
+            lst.stringify()
+        );
 
         let lst = lst.prepend(1);
-        println!("{} {lst}", lst.len());
+        println!(
+            "list has length: {}, {lst}, stringify: {}",
+            lst.len(),
+            lst.stringify()
+        );
 
         let lst = lst.prepend(2);
-        println!("{} {lst}", lst.len());
+        println!(
+            "list has length: {}, {lst}, stringify: {}",
+            lst.len(),
+            lst.stringify()
+        );
+
+        let lst = lst.prepend(3);
+        println!(
+            "list has length: {}, {lst}, stringify: {}",
+            lst.len(),
+            lst.stringify()
+        );
+    }
+}
+
+pub mod constants {
+    static LANGUAGE: &str = "Rust";
+    const THRESHOLD: i32 = 10;
+    
+    pub fn run() {
+        println!("Const address: {:p}", &THRESHOLD);
     }
 }
