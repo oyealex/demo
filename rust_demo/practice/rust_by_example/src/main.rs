@@ -1,9 +1,10 @@
 #![allow(dead_code)]
-mod base;
-mod primitives;
-mod custom_types;
-mod variable_bindings;
+mod _1_hello_world;
+mod _2_primitives;
+mod _3_custom_types;
+mod _4_variable_bindings;
+mod _5_types;
 
 fn main() {
-    variable_bindings::scope_and_shadowing::run();
+    _5_types::casting::run();
 }

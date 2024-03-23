@@ -56,3 +56,28 @@ pub mod scope_and_shadowing {
         );
     }
 }
+
+pub mod declare_first {
+    pub fn run() {
+        let binding;
+
+        {
+            let x = 2;
+            binding = x * x;
+        }
+        println!("binding: {}", binding);
+    }
+}
+
+pub mod freezing {
+    pub fn run() {
+        let mut _integer = 7i32;
+
+        {
+            let _integer = _integer;
+            // _integer = 10; // 外部的_integer被遮蔽，无法改变值
+        }
+
+        _integer = 12;
+    }
+}

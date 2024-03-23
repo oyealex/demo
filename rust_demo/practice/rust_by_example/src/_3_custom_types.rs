@@ -133,9 +133,9 @@ pub mod use_enums {
     }
 
     pub fn run() {
-        use crate::custom_types::use_enums::State::Enable as Fine;
-        use crate::custom_types::use_enums::Status::{Poor, Rich};
-        use crate::custom_types::use_enums::Work::*;
+        use crate::_3_custom_types::use_enums::State::Enable as Fine;
+        use crate::_3_custom_types::use_enums::Status::{Poor, Rich};
+        use crate::_3_custom_types::use_enums::Work::*;
 
         let status = Poor;
         let work = Civilian;
@@ -188,7 +188,7 @@ pub mod c_like_enums {
 pub mod list_enum {
     use std::fmt::Formatter;
 
-    use crate::custom_types::list_enum::List::Nil;
+    use crate::_3_custom_types::list_enum::List::Nil;
 
     #[derive(Debug)]
     enum List {
