@@ -2,7 +2,8 @@
 mod base;
 mod primitives;
 mod custom_types;
+mod variable_bindings;
 
 fn main() {
-    custom_types::constants::run();
+    variable_bindings::scope_and_shadowing::run();
 }
