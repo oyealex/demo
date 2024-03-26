@@ -4,6 +4,7 @@ mod _2_primitives;
 mod _3_custom_types;
 mod _4_variable_bindings;
 mod _5_types;
+mod _6_conversion;
 
 fn main() {
     _5_types::casting::run();
