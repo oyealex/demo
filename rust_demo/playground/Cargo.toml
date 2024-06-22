@@ -5,4 +5,20 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rand = "0.8.5"
+rand = { workspace = true }
+
+[[example]]
+name = "mode_demo"
+path = "example/mod_demo/main.rs"
+
+[[example]]
+name = "comprehensive_rust"
+path = "example/comprehensive_rust/main.rs"
+
+[[example]]
+name = "rust_by_example"
+path = "example/rust_by_example/main.rs"
+
+[[example]]
+name = "mine_grep"
+path = "example/mine_grep/main.rs"

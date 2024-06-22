@@ -1,0 +1,8 @@
+[package]
+name = "fltk_demo"
+version = "0.1.0"
+edition = { workspace = true }
+
+[dependencies]
+clipboard = { workspace = true }
+fltk = { workspace = true, features = ["fltk-bundled"] }

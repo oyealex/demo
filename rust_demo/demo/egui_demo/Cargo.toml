@@ -1,0 +1,10 @@
+[package]
+name = "egui_demo"
+version = "0.1.0"
+edition = { workspace = true }
+
+[dependencies]
+env_logger = { workspace = true }
+eframe = { workspace = true, features = ["__screenshot"] }
+rfd = { workspace = true }
+egui_demo_lib = { workspace = true }
