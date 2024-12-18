@@ -1,6 +1,13 @@
 package com.oye.common;
 
-import java.util.stream.Stream;
+import com.google.common.io.MoreFiles;
+import com.google.common.io.RecursiveDeleteOption;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.file.PathUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
 
 /**
  * Main
@@ -9,11 +16,8 @@ import java.util.stream.Stream;
  * @since 2023-04-24
  */
 public class Main {
-    public static void main(String[] args) {
-        long count = Stream.of(0, 1, 5, 74, 4, 9, 3, 54, 9, 4, 9, 5, 9, 4, 3).peek(System.out::println)
-            .sorted()
-            .map(a -> a + 1)
-            .findFirst().get();
-        System.out.println(count);
+    public static void main(String[] args) throws IOException {
+        // MoreFiles.deleteRecursively(Paths.get("E:\\.tp\\test"), RecursiveDeleteOption.ALLOW_INSECURE);
+        FileUtils.deleteDirectory(new File("E:\\.tp\\test"));
     }
 }

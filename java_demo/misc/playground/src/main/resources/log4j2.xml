@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="info" strict="true" name="XMLConfigTest"
+               packages="org.apache.logging.log4j.test">
+    <Properties>
+        <Property name="app">playground</Property>
+        <property name="default_pattern"
+                  value="%d{yyyy-MM-dd HH:mm:ss.SSS} %pid %level{length=1} %thread %class:%line: %msg%n"/>
+        <property name="colorful_pattern"
+                  value="%blue{%d{yyyy-MM-dd HH:mm:ss.SSS}} %magenta{%pid} %level{length=1} %magenta{%thread} %cyan{%class:%line}: %msg%n"/>
+    </Properties>
+
+    <Appenders>
+        <Appender type="Console" name="STDOUT">
+            <Layout type="PatternLayout" pattern="${colorful_pattern}"/>
+        </Appender>
+        <RollingFile name="RollingFile" fileName="log/${app}.log"
+                     filePattern="log/${app}-%d{yyyy-MM-dd}-%i.log">
+            <PatternLayout pattern="${default_pattern}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="20MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+
+        <Root level="trace">
+            <AppenderRef ref="STDOUT"/>
+            <AppenderRef ref="File"/>
+        </Root>
+    </Loggers>
+
+</Configuration>

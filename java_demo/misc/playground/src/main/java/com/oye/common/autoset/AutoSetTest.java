@@ -14,12 +14,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static java.util.stream.Collectors.toUnmodifiableMap;
 
 /**
  * AutoSetTest
@@ -54,7 +51,6 @@ public class AutoSetTest {
                     continue;
                 }
                 field.setAccessible(true);
-
             }
             // Map<String, CachedMethod> functions = Arrays.stream(type.getFields())
             //         .filter(field -> field.isAnnotationPresent(AutoSet.class)).peek(field -> field.setAccessible
