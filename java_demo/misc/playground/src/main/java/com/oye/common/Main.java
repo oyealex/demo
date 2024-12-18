@@ -1,13 +1,11 @@
 package com.oye.common;
 
-import com.google.common.io.MoreFiles;
-import com.google.common.io.RecursiveDeleteOption;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.file.PathUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Main
@@ -16,8 +14,16 @@ import java.nio.file.Paths;
  * @since 2023-04-24
  */
 public class Main {
-    public static void main(String[] args) throws IOException {
-        // MoreFiles.deleteRecursively(Paths.get("E:\\.tp\\test"), RecursiveDeleteOption.ALLOW_INSECURE);
-        FileUtils.deleteDirectory(new File("E:\\.tp\\test"));
+    static Map<String, Object> data = new HashMap<>();
+
+    public static void main(String[] args) {
+        data.put("1", 1);
+        data.put("a", "a");
+        String v1 = get("1");
+        System.out.println(v1);
+    }
+
+    static <T> T get(String key){
+        return (T) data.get(key);
     }
 }
